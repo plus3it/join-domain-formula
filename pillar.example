@@ -5,3 +5,5 @@ join-domain:
     encrypted_password:
     key:
     oupath:
+
+  linux:
