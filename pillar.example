@@ -8,7 +8,8 @@ join-domain:
 
   linux:
     # Domain-specific elements
-    #ad_domain: 'aws.lab'
+    #ad_domain_fqdn: 'aws.lab'
+    #ad_domain_short: 'AWSLAB'
     #join_svc_acct: 'svc_domjoin_aws'
     #encrypted_password: 'U2FsdGVkX18ThTf5km4IcWfAlAgbVwPn539BjI6fEpQmXa0B30gVRIK2qya9zPwh'
     #key: 'Unlock'
