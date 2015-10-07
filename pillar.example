@@ -7,3 +7,32 @@ join-domain:
     oupath:
 
   linux:
+    username:
+    encrypted_password:
+    key:
+    oupath:
+
+  # Programable path-elements for retrieving the PBIS self-installing
+  # archive file.
+  #repo_uri_host: 'http://S3BUCKET.F.Q.D.N'
+  #repo_uri_root_path: 'beyond-trust/linux/pbis'
+
+  # Directories where PBIS is installed to the system
+  #install_bin_dir: '/opt/pbis'
+  #install_var_dir: '/var/lib/pbis'
+
+  # List of RPMs to look for
+  #pbisRpms:
+  #  - "MFEcma"
+  #  - "MFErt"
+
+  # List of key files to look for
+  # checkFiles:
+  #   - "agentprvkey.bin"
+
+  # Name of installer to download
+  #package_name: 'pbis-open-8.3.0.3287.linux.x86_64.rpm.sh'
+
+  # Name of hash to download 
+  #package_hash: 'pbis-open-8.3.0.3287.linux.x86_64.rpm.sh.SHA512'
+
