@@ -21,18 +21,19 @@ join-domain:
   #install_bin_dir: '/opt/pbis'
   #install_var_dir: '/var/lib/pbis'
 
+  # AD-connector Tool
+  # ad_connector: 'pbis'
+
   # List of RPMs to look for
-  #pbisRpms:
+  #conectorRpms:
   #  - "MFEcma"
   #  - "MFErt"
 
-  # List of key files to look for
+  # List of critical files to look for
   # checkFiles:
   #   - "agentprvkey.bin"
 
-  # Name of installer to download
+  # Name of installer and hash-file to download
   #package_name: 'pbis-open-8.3.0.3287.linux.x86_64.rpm.sh'
-
-  # Name of hash to download 
   #package_hash: 'pbis-open-8.3.0.3287.linux.x86_64.rpm.sh.SHA512'
 
