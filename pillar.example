@@ -26,16 +26,22 @@ join-domain:
     # Directories where PBIS is installed to the system
     #install_bin_dir: '/opt/pbis'
     #install_var_dir: '/var/lib/pbis'
+    #install_db_dir: '/var/lib/pbis/db'
   
     # AD-connector Tool
     # ad_connector: 'pbis'
   
     # List of RPMs to look for
-    #conectorRpms:
-    #  - "MFEcma"
-    #  - "MFErt"
+    #connectorRpms:
+    #  - 'pbis-open-legacy'
+    #  - 'pbis-open'
+    #  - 'pbis-open-devel'
+    #  - 'pbis-open-gui'
+    #  - 'pbis-open-upgrade'
   
     # List of critical files to look for
-    # checkFiles:
-    #   - "agentprvkey.bin"
-  
+    checkFiles:
+      - 'registry.db'
+      - 'sam.db'
+      - 'lwi_events.db'
+      - 'lsass-adcache.filedb.FQDN'
