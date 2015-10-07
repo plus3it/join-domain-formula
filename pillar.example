@@ -40,8 +40,8 @@ join-domain:
     #  - 'pbis-open-upgrade'
   
     # List of critical files to look for
-    checkFiles:
-      - 'registry.db'
-      - 'sam.db'
-      - 'lwi_events.db'
-      - 'lsass-adcache.filedb.FQDN'
+    #checkFiles:
+    #  - 'registry.db'
+    #  - 'sam.db'
+    #  - 'lwi_events.db'
+    #  - 'lsass-adcache.filedb.FQDN'
