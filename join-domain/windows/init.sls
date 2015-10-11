@@ -7,16 +7,17 @@ join standalone system to domain in specified ou:
     - name: '
       try
       {
-        "changed=no comment=`"System is joined already to the correct domain.`" domain=$(([System.DirectoryServices.ActiveDirectory.Domain]::GetComputerDomain()).Name)";
+        $domain = ([System.DirectoryServices.ActiveDirectory.Domain]::GetComputerDomain()).Name;
+        "changed=no comment=`"System is joined already to a domain [$domain].`" domain=$domain";
       }
       catch
       {
         $cred = New-Object -TypeName System.Management.Automation.PSCredential
-        -ArgumentList {{ join_domain.username }}, (ConvertTo-SecureString 
-        -String {{ join_domain.encrypted_password }} 
-        -Key ([Byte[]] "{{ join_domain.key }}".split(",")));
+          -ArgumentList {{ join_domain.username }}, (ConvertTo-SecureString 
+          -String {{ join_domain.encrypted_password }} 
+          -Key ([Byte[]] "{{ join_domain.key }}".split(",")));
         Add-Computer -DomainName {{ join_domain.domain_name }} -Credential $cred
-        -Force -OUPath {{ join_domain.oupath }};
+          -Force -OUPath {{ join_domain.oupath }} -ErrorAction Stop;
         "changed=yes comment=`"Joined system to the domain.`" domain={{ join_domain.domain_name }}"
       }'
     - shell: powershell
@@ -29,16 +30,17 @@ join standalone system to domain in default ou:
     - name: '
       try
       {
-        "changed=no comment=`"System is joined already to the correct domain.`" domain=$(([System.DirectoryServices.ActiveDirectory.Domain]::GetComputerDomain()).Name)";
+        $domain = ([System.DirectoryServices.ActiveDirectory.Domain]::GetComputerDomain()).Name;
+        "changed=no comment=`"System is joined already to a domain [$domain].`" domain=$domain";
       }
       catch
       {
         $cred = New-Object -TypeName System.Management.Automation.PSCredential
-        -ArgumentList {{ join_domain.username }}, (ConvertTo-SecureString 
-        -String {{ join_domain.encrypted_password }} 
-        -Key ([Byte[]] "{{ join_domain.key }}".split(",")));
+          -ArgumentList {{ join_domain.username }}, (ConvertTo-SecureString 
+          -String {{ join_domain.encrypted_password }} 
+          -Key ([Byte[]] "{{ join_domain.key }}".split(",")));
         Add-Computer -DomainName {{ join_domain.domain_name }} -Credential $cred
-        -Force;
+          -Force -ErrorAction Stop;
         "changed=yes comment=`"Joined system to the domain.`" domain={{ join_domain.domain_name }}"
       }'
     - shell: powershell
