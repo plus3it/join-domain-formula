@@ -1,6 +1,7 @@
 join-domain:
 
   windows:
+    domain_name:
     username:
     encrypted_password:
     key:
