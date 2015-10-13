@@ -28,7 +28,7 @@
 # Vars for checking for previous installations' config RPMs
 {%- set pbisRpms = join_elx.connectorRpms %}
 
-# Derive service join-password (there's gotta be a less-awful way?
+# Derive service join-password (there's gotta be a less-awful way?)
 {%- set joinPass = salt.cmd.run('echo "' + svcPasswdCrypt + '" | \
     openssl enc -aes-256-ecb -a -d -salt -pass pass:"' + svcPasswdUlk + '"') %}
 
