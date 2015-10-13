@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/lorengordon/join-domain-formula.svg)](https://travis-ci.org/lorengordon/join-domain-formula)
+[![Build Status](https://travis-ci.org/lorengordon/join-domain-formula.svg?branch=master)](https://travis-ci.org/lorengordon/join-domain-formula)
 
 
 # join-domain-formula
