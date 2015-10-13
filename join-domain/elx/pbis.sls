@@ -27,3 +27,11 @@
 
 {%- set pbisRpms = join_elx.connectorRpms'] %}
   
+PBIS-stageFile:
+  file.managed:
+    - name: '/var/tmp/{{ pbisPkg }}'
+    - source: '{{ repoHost }}/{{ repoPath }}/{{ pbisPkg}}'
+    - source_hash: '{{ repoHost }}/{{ repoPath }}/{{ pbisHash}}'
+    - user: root
+    - group: root
+    - mode: 0700
