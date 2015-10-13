@@ -5,24 +5,40 @@
 #################################################################
 
 # Vars used to run the domain-join actions
-{%- set domainFqdn = pillar['join-domain']['ad_domain_fqdn'] %}
-{%- set domainShort = pillar['join-domain']['ad_domain_short'] %}
-{%- set domainAcct = pillar['join-domain']['join_svc_acct'] %}
-{%- set svcPasswdCrypt = pillar['join-domain']['encrypted_password'] %}
-{%- set svcPasswdUlk = pillar['join-domain']['key'] %}
-{%- set domainOuPath = pillar['join-domain']['oupath'] %}
+{%- set join_elx = salt['pillar.get']('join-domain:linux', {}) %}
+{%- set domainFqdn = join_elx.ad_domain_fqdn %}
+{%- set domainShort = join_elx.ad_domain_short'] %}
+{%- set domainAcct = join_elx.join_svc_acct'] %}
+{%- set svcPasswdCrypt = join_elx.encrypted_password'] %}
+{%- set svcPasswdUlk = join_elx.key'] %}
+{%- set domainOuPath = join_elx.oupath'] %}
 
 # Vars for getting PBIS install-media
-{%- set repoHost = pillar['join-domain']['repo_uri_host'] %}
-{%- set repoPath = pillar['join-domain']['repo_uri_root_path'] %}
-{%- set pbisPkg = pillar['join-domain']['package_name'] %}
-{%- set pbisHash = pillar['join-domain']['package_hash'] %}
+{%- set repoHost = join_elx.repo_uri_host'] %}
+{%- set repoPath = join_elx.repo_uri_root_path'] %}
+{%- set pbisPkg = join_elx.package_name'] %}
+{%- set pbisHash = join_elx.package_hash'] %}
 
 # Vars for checking for previous installations
-{%- set pbisBinDir = pillar['join-domain']['install_bin_dir'] %}
-{%- set pbisVarDir = pillar['join-domain']['install_var_dir'] %}
-{%- set pbisDbDir = pillar['join-domain']['install_db_dir'] %}
-{%- set pbisDbs = pillar['join-domain']['checkFiles'] %}
+{%- set pbisBinDir = join_elx.install_bin_dir'] %}
+{%- set pbisVarDir = join_elx.install_var_dir'] %}
+{%- set pbisDbDir = join_elx.install_db_dir'] %}
+{%- set pbisDbs = join_elx.checkFiles'] %}
 
-{%- set pbisRpms = pillar['join-domain']['connectorRpms'] %}
+{%- set pbisRpms = join_elx.connectorRpms'] %}
   
+PBIS-stageFile:
+  file.managed:
+    - name: '/var/tmp/{{ pbisPkg }}'
+    - source: '{{ repoHost }}/{{ repoPath }}/{{ pbisPkg}}'
+    - source_hash: '{{ repoHost }}/{{ repoPath }}/{{ pbisHash}}'
+    - user: root
+    - group: root
+    - mode: 0700
+
+PBIS-installsh:
+  cmd.run:
+    - name: 'bash /var/tmp/{{ pbisPkg }} -- --dont-join --legacy install > /dev/null 2>&1'
+    - cwd: '/var/tmp'
+    - require:
+      - file: PBIS-stageFile
