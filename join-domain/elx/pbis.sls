@@ -35,3 +35,10 @@ PBIS-stageFile:
     - user: root
     - group: root
     - mode: 0700
+
+PBIS-installsh:
+  cmd.run:
+    - name: 'bash /var/tmp/{{ pbisPkg }} -- --dont-join --legacy install > /dev/null 2>&1'
+    - cwd: '/var/tmp'
+    - require:
+      - file: PBIS-stageFile
