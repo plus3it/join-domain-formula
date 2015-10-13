@@ -1,11 +1,11 @@
 {%- set os_family = salt['grains.get']('os_family') %}
 
-{%- if os_family is 'Windows' %}
+{%- if os_family == 'Windows' %}
 
 include:
   - join-domain.windows
 
-{%- elif os_family is 'RedHat' %}
+{%- elif os_family == 'RedHat' %}
 
 include:
   - join-domain.elx
