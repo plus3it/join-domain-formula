@@ -19,14 +19,20 @@
 {%- set pbisPkg = join_elx.package_name %}
 {%- set pbisHash = join_elx.package_hash %}
 
-# Vars for checking for previous installations
+# Vars for checking for previous installations' config files
 {%- set pbisBinDir = join_elx.install_bin_dir %}
 {%- set pbisVarDir = join_elx.install_var_dir %}
 {%- set pbisDbDir = join_elx.install_db_dir %}
 {%- set pbisDbs = join_elx.checkFiles %}
 
+# Vars for checking for previous installations' config RPMs
 {%- set pbisRpms = join_elx.connectorRpms %}
-  
+
+# Derive service join-password (there's gotta be a less-awful way?
+{%- set joinPass = salt.cmd.run('echo "' + svcPasswdCrypt + '" | \
+    openssl enc -aes-256-ecb -a -d -salt -pass pass:"' + svcPasswdUlk + '"') %}
+
+
 PBIS-stageFile:
   file.managed:
     - name: '/var/tmp/{{ pbisPkg }}'
@@ -42,3 +48,9 @@ PBIS-installsh:
     - cwd: '/var/tmp'
     - require:
       - file: PBIS-stageFile
+
+PBIS-join:
+  cmd.run:
+    - name: '{{ pbisBinDir }}/bin/domainjoin-cli join --assumeDefaultDomain yes --userDomainPrefix {{ domainShort }} {{ domainFqdn }} {{ domainAcct }} {{ joinPass }}'
+    - require:
+      - cmd: PBIS-installsh
