@@ -32,22 +32,25 @@
 {%- set joinPass = salt.cmd.run('echo "' + svcPasswdCrypt + '" | \
     openssl enc -aes-256-ecb -a -d -salt -pass pass:"' + svcPasswdUlk + '"') %}
 
-test-pass:
-  cmd.run:
-    - name: 'echo {{ joinPass }}'
 
-## PBIS-stageFile:
-##   file.managed:
-##     - name: '/var/tmp/{{ pbisPkg }}'
-##     - source: '{{ repoHost }}/{{ repoPath }}/{{ pbisPkg}}'
-##     - source_hash: '{{ repoHost }}/{{ repoPath }}/{{ pbisHash}}'
-##     - user: root
-##     - group: root
-##     - mode: 0700
-## 
-## PBIS-installsh:
-##   cmd.run:
-##     - name: 'bash /var/tmp/{{ pbisPkg }} -- --dont-join --legacy install > /dev/null 2>&1'
-##     - cwd: '/var/tmp'
-##     - require:
-##       - file: PBIS-stageFile
+PBIS-stageFile:
+  file.managed:
+    - name: '/var/tmp/{{ pbisPkg }}'
+    - source: '{{ repoHost }}/{{ repoPath }}/{{ pbisPkg}}'
+    - source_hash: '{{ repoHost }}/{{ repoPath }}/{{ pbisHash}}'
+    - user: root
+    - group: root
+    - mode: 0700
+
+PBIS-installsh:
+  cmd.run:
+    - name: 'bash /var/tmp/{{ pbisPkg }} -- --dont-join --legacy install > /dev/null 2>&1'
+    - cwd: '/var/tmp'
+    - require:
+      - file: PBIS-stageFile
+
+PBIS-join:
+  cmd.run:
+    - name: '{{ pbisBinDir }}/bin/domainjoin-cli join --assumeDefaultDomain yes --userDomainPrefix {{ domainShort }} {{ domainFqdn }} {{ domainAcct }} {{ joinPass }}'
+    - require:
+      - cmd: PBIS-installsh
