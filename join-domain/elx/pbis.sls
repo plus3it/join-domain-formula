@@ -4,6 +4,10 @@
 #
 #################################################################
 
+# Move service-config elsewhere
+include:
+  - join-domain.elx.pbis-config
+
 # Vars used to run the domain-join actions
 {%- set join_elx = salt['pillar.get']('join-domain:linux', {}) %}
 {%- set domainFqdn = join_elx.ad_domain_fqdn %}
@@ -31,7 +35,6 @@
 # Derive service join-password (there's gotta be a less-awful way?)
 {%- set joinPass = salt.cmd.run('echo "' + svcPasswdCrypt + '" | \
     openssl enc -aes-256-ecb -a -d -salt -pass pass:"' + svcPasswdUlk + '"') %}
-
 
 PBIS-stageFile:
   file.managed:
