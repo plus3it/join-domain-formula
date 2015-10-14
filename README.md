@@ -20,12 +20,12 @@ The following parameters are usde to join a Linux client to Active Directory. Se
 
 ### Information used to join host to target AD domain
 Set of parameters used for joining a AD-client to its domain
-- ad_domain_fqdn: The fully-qualified DNS name for the AD domain (e.g., 'aws.lab')
-- ad_domain_short: The "short" or NETBIOS name for the AD domain (e.g., 'AWSLAB')
-- join_svc_acct: The account name used to perform automated joins of clients to the AD domain (e.g., 'svc_domjoin_aws'). It is recommended to create a service account that has the bare-minimum permissions necessary to (re)join a client to an AD domain
-- oupath: (OPTIONAL) where in the AD-hierarchy to create the computer account. Leave blank if joining to the default OU or provide the "/"-delimited path to the OU the computer account will be housed within
-- encrypted_password: This is an encrypted representation of the `join_svc_acct` service account's password. Use `openssl`'s `aes-256-ecb` encryption option to create the encrypted-string.
-- key: The string passed to `openssl` to encrypt/decrypt the `join_svc_acct` service account's password.
+- *`ad_domain_fqdn`*: The fully-qualified DNS name for the AD domain (e.g., 'aws.lab')
+- *`ad_domain_short`*: The "short" or NETBIOS name for the AD domain (e.g., 'AWSLAB')
+- *`join_svc_acct`*: The account name used to perform automated joins of clients to the AD domain (e.g., 'svc_domjoin_aws'). It is recommended to create a service account that has the bare-minimum permissions necessary to (re)join a client to an AD domain
+- *`oupath`*: (OPTIONAL) where in the AD-hierarchy to create the computer account. Leave blank if joining to the default OU or provide the "/"-delimited path to the OU the computer account will be housed within
+- *`encrypted_password`*: This is an encrypted representation of the `join_svc_acct` service account's password. Use `openssl`'s `aes-256-ecb` encryption option to create the encrypted-string.
+- *`key`*: The string passed to `openssl` to encrypt/decrypt the `join_svc_acct` service account's password.
 
 ### Programable path-elements for retrieving the PBIS self-installing archive file.
 These two values are used to determine where to locate the AD-client's installer software. HTTP is the expected (read "tested") download method. Other download methods may also work (but have not been tested).
