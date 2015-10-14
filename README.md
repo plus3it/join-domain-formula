@@ -8,14 +8,14 @@ This formula has been tested against Windows Server 2012 and Enterprise Linux 6 
 
 This formula uses data externalized via the SaltStack "[Pillar](https://docs.saltstack.com/en/latest/topics/pillar/)" feature. This formula expects the following data be present within the supporting Pillar:
 
-## windows:
+## Windows
 - domain_name:
 - username:
 - encrypted_password:
 - key:
 - oupath:
 
-## linux:
+## Linux
 The following parameters are usde to join a Linux client to Active Directory. See the [pillar.example](pillar.example) file for pillar-data structuring.
 
 ### Information used to join host to target AD domain
