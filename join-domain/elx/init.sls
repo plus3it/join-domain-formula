@@ -1,7 +1,4 @@
-{%- set join_domain = salt['pillar.get']('join-domain:windows', {} %}
+{%- set join_type = salt['pillar.get']('join-domain:linux:ad_connector') %}
 
-{%- if join_domain.oupath %}
-
-{%- elif join_domain %}
-
-{%- endif %}
+include:
+  - join-domain.elx.{{ join_type }}
