@@ -4,6 +4,10 @@
 #
 #################################################################
 
+# Move service-config elsewhere
+include:
+  - join-domain.elx.pbis-config
+
 # Vars used to run the domain-join actions
 {%- set join_elx = salt['pillar.get']('join-domain:linux', {}) %}
 {%- set domainFqdn = join_elx.ad_domain_fqdn %}
@@ -32,17 +36,6 @@
 {%- set joinPass = salt.cmd.run('echo "' + svcPasswdCrypt + '" | \
     openssl enc -aes-256-ecb -a -d -salt -pass pass:"' + svcPasswdUlk + '"') %}
 
-# PBIS config items:
-# DomainManagerIgnoreAllTrusts "false" (default)
-# DomainManagerIncludeTrustsList "" (default)
-# LoginShellTemplate "/bin/sh" (default)
-# Local_LoginShellTemplate "/bin/sh" (default)
-{%- set pbisUserHome = [ 'HomeDirTemplate', 'Local_HomeDirTemplate' ] %}
-{%- set pbisUserShell = [ 'LoginShellTemplate', 'Local_LoginShellTemplate' ] %}
-{%- set loginHome = '%H/%D/%U' %}
-{%- set loginShell = '/bin/bash' %}
-
-
 PBIS-stageFile:
   file.managed:
     - name: '/var/tmp/{{ pbisPkg }}'
@@ -62,23 +55,5 @@ PBIS-installsh:
 PBIS-join:
   cmd.run:
     - name: '{{ pbisBinDir }}/bin/domainjoin-cli join --assumeDefaultDomain yes --userDomainPrefix {{ domainShort }} {{ domainFqdn }} {{ domainAcct }} {{ joinPass }}'
-    - require:
-      - cmd: PBIS-installsh
-
-PBIS-config-iShell:
-  cmd.run:
-    - name: |
-{%- for userShell in pbisUserShell %}
-        {{ pbisBinDir }}/bin/config {{ userShell }} "{{ loginShell }}"
-{%- endfor %}
-    - require:
-      - cmd: PBIS-installsh
-
-PBIS-config-uHome:
-  cmd.run:
-    - name: |
-{%- for uHome in pbisUserHome %}
-        {{ pbisBinDir }}/bin/config {{ uHome }} "{{ loginHome }}"
-{%- endfor %}
     - require:
       - cmd: PBIS-installsh
