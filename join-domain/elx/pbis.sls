@@ -35,12 +35,11 @@
 # PBIS config items:
 # DomainManagerIgnoreAllTrusts "false" (default)
 # DomainManagerIncludeTrustsList "" (default)
-# HomeDirTemplate "%H/local/%D/%U" (default)
-# Local_HomeDirTemplate "%H/local/%D/%U" (default)
 # LoginShellTemplate "/bin/sh" (default)
 # Local_LoginShellTemplate "/bin/sh" (default)
-{%- set pbisUserHome = 'HomeDirTemplate, Local_HomeDirTemplate' %}
+{%- set pbisUserHome = [ 'HomeDirTemplate', 'Local_HomeDirTemplate' ] %}
 {%- set pbisUserShell = [ 'LoginShellTemplate', 'Local_LoginShellTemplate' ] %}
+{%- set loginHome = '%H/%D/%U' %}
 {%- set loginShell = '/bin/bash' %}
 
 
@@ -70,7 +69,16 @@ PBIS-config-iShell:
   cmd.run:
     - name: |
 {%- for userShell in pbisUserShell %}
-        {{ pbisBinDir }}/bin/config {{ userShell }} "/bin/bash"
+        {{ pbisBinDir }}/bin/config {{ userShell }} "{{ loginShell }}"
+{%- endfor %}
+    - require:
+      - cmd: PBIS-installsh
+
+PBIS-config-uHome:
+  cmd.run:
+    - name: |
+{%- for uHome in pbisUserHome %}
+        {{ pbisBinDir }}/bin/config {{ uHome }} "{{ loginHome }}"
 {%- endfor %}
     - require:
       - cmd: PBIS-installsh
