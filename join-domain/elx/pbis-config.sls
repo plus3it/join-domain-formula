@@ -14,6 +14,7 @@
 #
 #################################################################
 {%- set pbisBinDir = salt['pillar.get']('join-domain:linux:install_bin_dir') %}
+{%- set domfqdn = salt['pillar.get']('join-domain:linux:ad_domain_fqdn') %}
 {%- set pbisUserHome = [ 'HomeDirTemplate', 'Local_HomeDirTemplate' ] %}
 {%- set pbisUserShell = [ 'LoginShellTemplate', 'Local_LoginShellTemplate' ] %}
 {%- set loginHome = '%H/%D/%U' %}
@@ -34,5 +35,19 @@ PBIS-config-uHome:
 {%- for uHome in pbisUserHome %}
         {{ pbisBinDir }}/bin/config {{ uHome }} "{{ loginHome }}"
 {%- endfor %}
+    - require:
+      - cmd: PBIS-installsh
+
+PBIS-config-TrustIgnore:
+  cmd.run:
+    - name: |
+        {{ pbisBinDir }}/bin/config DomainManagerIgnoreAllTrusts true
+    - require:
+      - cmd: PBIS-installsh
+
+PBIS-config-TrustList:
+  cmd.run:
+    - name: |
+        {{ pbisBinDir }}/bin/config DomainManagerIncludeTrustsList {{ domfqdn }}
     - require:
       - cmd: PBIS-installsh
