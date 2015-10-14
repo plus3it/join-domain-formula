@@ -16,7 +16,7 @@ This formula uses data externalized via the SaltStack "[Pillar](https://docs.sal
 - oupath:
 
 ## linux:
-The following parameters are usde to join a Linux client to Active Directory. See the 'pillar.example' file for pillar-data structuring.
+The following parameters are usde to join a Linux client to Active Directory. See the `[pillar.example](pillar.example)` file for pillar-data structuring.
 
 ### Information used to join host to target AD domain
 Set of parameters used for joining a AD-client to its domain
