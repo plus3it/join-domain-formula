@@ -32,6 +32,17 @@
 {%- set joinPass = salt.cmd.run('echo "' + svcPasswdCrypt + '" | \
     openssl enc -aes-256-ecb -a -d -salt -pass pass:"' + svcPasswdUlk + '"') %}
 
+# PBIS config items:
+# DomainManagerIgnoreAllTrusts "false" (default)
+# DomainManagerIncludeTrustsList "" (default)
+# HomeDirTemplate "%H/local/%D/%U" (default)
+# Local_HomeDirTemplate "%H/local/%D/%U" (default)
+# LoginShellTemplate "/bin/sh" (default)
+# Local_LoginShellTemplate "/bin/sh" (default)
+{%- set pbisUserHome = 'HomeDirTemplate, Local_HomeDirTemplate' %}
+{%- set pbisUserShell = [ 'LoginShellTemplate', 'Local_LoginShellTemplate' ] %}
+{%- set loginShell = '/bin/bash' %}
+
 
 PBIS-stageFile:
   file.managed:
@@ -52,5 +63,14 @@ PBIS-installsh:
 PBIS-join:
   cmd.run:
     - name: '{{ pbisBinDir }}/bin/domainjoin-cli join --assumeDefaultDomain yes --userDomainPrefix {{ domainShort }} {{ domainFqdn }} {{ domainAcct }} {{ joinPass }}'
+    - require:
+      - cmd: PBIS-installsh
+
+PBIS-config-iShell:
+  cmd.run:
+    - name: |
+{%- for userShell in pbisUserShell %}
+        {{ pbisBinDir }}/bin/config {{ userShell }} "/bin/bash"
+{%- endfor %}
     - require:
       - cmd: PBIS-installsh
