@@ -16,6 +16,11 @@ join-domain:
     #key: 'Unlock'
     #oupath:
 
+    # List of groups to configure for access
+    #sudoer_groups:
+    #  - linux^admins
+
+
     # Programable path-elements for retrieving the PBIS self-installing
     # archive file.
     #repo_uri_host: 'http://S3BUCKET.F.Q.D.N'
