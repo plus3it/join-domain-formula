@@ -2,3 +2,4 @@
 
 include:
   - join-domain.elx.{{ join_type }}
+  - join-domain.elx.{{ join_type }}-grpCfg
