@@ -10,8 +10,8 @@
 #
 #################################################################
 
-{%- set adm_list = salt['pillar.get']('join-domain:linux:sudoer_groups', {}) %}
-{%- set noadm_list = salt['pillar.get']('join-domain:linux:login_groups', {}) %}
+{%- set adm_list = salt['pillar.get']('join-domain:linux:sudoer_groups', []) %}
+{%- set noadm_list = salt['pillar.get']('join-domain:linux:login_groups', []) %}
 {%- set sudo_d = '/etc/sudoers.d' %}
 {%- set sshd_cfg = '/etc/ssh/sshd_config' %}
 {%- set allow_groups = adm_list + noadm_list %}
