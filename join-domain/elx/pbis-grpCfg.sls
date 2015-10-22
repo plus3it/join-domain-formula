@@ -15,6 +15,7 @@
 {%- set sudo_d = '/etc/sudoers.d' %}
 {%- set sshd_cfg = '/etc/ssh/sshd_config' %}
 {%- set allow_groups = adm_list + noadm_list %}
+{%- set scriptDir = 'join-domain/elx/files' %}
 
 # Add to /etc/suders.d/group_XXX file
 {%- for sudoer_group in adm_list %}
@@ -36,8 +37,11 @@ AddDirective-sshd:
 
 {%- for logingroup in allow_groups %}
 ssh_allow_group-{{ logingroup }}:
-  cmd.run:
-    - name: 'sed -i "s/AllowGroups.*$/& {{ logingroup }}/" {{ sshd_cfg }}'
-    - unless:
-      - 'grep -q "AllowGroups.*{{ logingroup }}" {{ sshd_cfg }}'
+  cmd.script:
+    - name: 'ssh_allow_group.sh "{{ logingroup }}"'
+    - source: 'salt://{{ scriptDir }}/ssh_allow_group.sh'
+    - cwd: '/root'
+    - stateful: True
+    - require:
+      - file: AddDirective-sshd
 {%- endfor %}
