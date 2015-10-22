@@ -23,31 +23,51 @@
 PBIS-config-iShell:
   cmd.run:
     - name: |
+        (
 {%- for userShell in pbisUserShell %}
-        {{ pbisBinDir }}/bin/config {{ userShell }} "{{ loginShell }}"
+         {{ pbisBinDir }}/bin/config {{ userShell }} "{{ loginShell }}"
 {%- endfor %}
+         echo
+         printf "changed=yes "
+         printf "comment='Forced user default-shell to nicer value'\n")
+    - stateful: True
     - require:
       - cmd: PBIS-installsh
 
 PBIS-config-uHome:
   cmd.run:
     - name: |
+        (
 {%- for uHome in pbisUserHome %}
-        {{ pbisBinDir }}/bin/config {{ uHome }} "{{ loginHome }}"
+         {{ pbisBinDir }}/bin/config {{ uHome }} "{{ loginHome }}" 
 {%- endfor %}
+         echo
+         printf "changed=yes "
+         printf "comment='Forced home-directory location to nicer value'\n")
+    - stateful: True
     - require:
       - cmd: PBIS-installsh
 
 PBIS-config-TrustIgnore:
   cmd.run:
     - name: |
-        {{ pbisBinDir }}/bin/config DomainManagerIgnoreAllTrusts true
+        ({{ pbisBinDir }}/bin/config DomainManagerIgnoreAllTrusts true
+         echo
+         printf "changed=yes "
+         printf "comment='Forced DomainManagerIgnoreAllTrusts to true'")
+    - stateful: True
     - require:
       - cmd: PBIS-installsh
 
 PBIS-config-TrustList:
   cmd.run:
     - name: |
-        {{ pbisBinDir }}/bin/config DomainManagerIncludeTrustsList {{ domfqdn }}
+        ({{ pbisBinDir }}/bin/config DomainManagerIncludeTrustsList \
+         {{ domfqdn }}
+         echo
+         printf "changed=yes "
+         printf "comment='Forced DomainManagerIncludeTrustsList to "
+         printf "{{ domfqdn }}'")
+    - stateful: True
     - require:
       - cmd: PBIS-installsh

@@ -4,6 +4,9 @@
 #
 #################################################################
 
+# Set location for helper-files
+{%- set scriptDir = 'join-domain/elx/files' %}
+
 # Move service-config elsewhere
 include:
   - join-domain.elx.pbis-config
@@ -46,9 +49,11 @@ PBIS-stageFile:
     - mode: 0700
 
 PBIS-installsh:
-  cmd.run:
-    - name: 'bash /var/tmp/{{ pbisPkg }} -- --dont-join --legacy install > /dev/null 2>&1'
-    - cwd: '/var/tmp'
+  cmd.script:
+    - name: 'pbis-install_only.sh /var/tmp/{{ pbisPkg }}'
+    - source: 'salt://{{ scriptDir }}/pbis-install_only.sh'
+    - cwd: '/root'
+    - stateful: True
     - require:
       - file: PBIS-stageFile
 
