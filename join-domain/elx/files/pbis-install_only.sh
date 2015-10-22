@@ -12,7 +12,7 @@ ISINSTALLED=$(echo "${PBISPKG}" | grep -- "-${INSTPBISVERS}.")
 
 if [[ "${INSTPBISVERS}" = "" ]] || [[ "${ISINSTALLED}" = "" ]]
 then
-   bash /var/tmp/${PBISPKG} -- --dont-join --legacy install > /dev/null 2>&1
+   bash ${PBISPKG} -- --dont-join --legacy install > /dev/null 2>&1
    if [[ $? -eq 0 ]]
    then
       printf "\n"
