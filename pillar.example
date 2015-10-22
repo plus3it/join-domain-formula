@@ -19,6 +19,8 @@ join-domain:
     # List of groups to configure for access
     #sudoer_groups:
     #  - linux^admins
+    #login_groups:
+    #  - linux^operators
 
 
     # Programable path-elements for retrieving the PBIS self-installing
