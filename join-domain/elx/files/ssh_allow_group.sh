@@ -16,7 +16,7 @@ fi
 if [[ $(grep -q "AllowGroups.*${ALLOWGRP}" ${SSHCFG})$? -eq 0 ]]
 then
    printf "\n"
-   printf "changes=no comment='${ALLOWGRP} already present in sshd_config "
+   printf "changed=no comment='${ALLOWGRP} already present in sshd_config "
    printf "AllowGroups directive.'\n"
    exit 0
 else
