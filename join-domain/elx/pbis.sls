@@ -59,6 +59,9 @@ PBIS-installsh:
 
 PBIS-join:
   cmd.run:
-    - name: '{{ pbisBinDir }}/bin/domainjoin-cli join --assumeDefaultDomain yes --userDomainPrefix {{ domainShort }} {{ domainFqdn }} {{ domainAcct }} {{ joinPass }}'
+    - name: 'pbis-join.sh "{{ domainShort }}" "{{ domainFqdn }}" "{{ domainAcct }}" "{{ svcPasswdCrypt }}" "{{ svcPasswdUlk }}"'
+    - source: 'salt://{{ scriptDir }}/pbis-join.sh'
+    - cwd: '/root'
+    - stateful: True
     - require:
       - cmd: PBIS-installsh
