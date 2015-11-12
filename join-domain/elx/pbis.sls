@@ -58,10 +58,19 @@ PBIS-installsh:
       - file: PBIS-stageFile
 
 PBIS-join:
-  cmd.run:
+  cmd.script:
     - name: 'pbis-join.sh "{{ domainShort }}" "{{ domainFqdn }}" "{{ domainAcct }}" "{{ svcPasswdCrypt }}" "{{ svcPasswdUlk }}"'
     - source: 'salt://{{ scriptDir }}/pbis-join.sh'
     - cwd: '/root'
     - stateful: True
     - require:
       - cmd: PBIS-installsh
+
+PBIS-PamDemunge:
+  cmd.script:
+    - name: 'pbis-fix_pam.sh'
+    - source: 'salt://{{ scriptDir }}/pbis-fix_pam.sh'
+    - cwd: '/root'
+    - stateful: True
+    - require:
+      - cmd: PBIS-join
