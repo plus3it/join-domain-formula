@@ -8,10 +8,20 @@
 # working.
 #
 #################################################################
-PAMFILE=/etc/pam.d/password-auth
-CHKFILE=$(readlink -f ${PAMFILE})
+PAMFILE=(
+      /etc/pam.d/password-auth
+      /etc/pam.d/system-auth
+   )
 
-CKFAILLOCK=$(grep -q -E "^auth[ 	][ 	]*.*pam_faillock" ${CHKFILE})$?
+
+# Resolve sym-links to real file-path so in-place
+# replacements don't break things. ...This won't
+# prevent hard-link breakage
+function FindRealFile() {
+   local REALFILE=$(readlink -f "${1}")
+
+   echo "${REALFILE}"
+}
 
 # Fix munged stack-ordering
 function FixPam() {
@@ -52,11 +62,21 @@ function FixPam() {
 ######################
 ## Main program flow
 ######################
-if [[ ${CKFAILLOCK} -eq 0 ]]
-then
-   FixPam
-else
-   printf "\n"
-   printf "changed=no comment='Nothing to do: pam_faillock not present'\n"
-   exit 0
-fi
+
+for FILE in ${PAMFILE[@]}
+do
+   # Resolve sym-links
+   CHKFILE=$(FindRealFile "${FILE}")
+   CKFAILLOCK=$(grep -q -E "^auth[ 	][ 	]*.*pam_faillock" ${CHKFILE})$?
+
+   # Only act if pam_faillock is in play
+   if [[ ${CKFAILLOCK} -eq 0 ]]
+   then
+      FixPam
+   else
+      printf "\n"
+      printf "changed=no comment='The faillock PAM module not present: "
+      printf "leaving ${CHKFILE} as-is'"
+   fi
+done
+exit
