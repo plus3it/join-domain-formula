@@ -66,9 +66,18 @@ PBIS-join:
     - require:
       - cmd: PBIS-installsh
 
-PBIS-PamDemunge:
+PBIS-PamPasswordDemunge:
   cmd.script:
-    - name: 'pbis-fix_pam.sh'
+    - name: 'pbis-fix_pam.sh "/etc/pam.d/password-auth"'
+    - source: 'salt://{{ scriptDir }}/pbis-fix_pam.sh'
+    - cwd: '/root'
+    - stateful: True
+    - require:
+      - cmd: PBIS-join
+
+PBIS-PamSystemDemunge:
+  cmd.script:
+    - name: 'pbis-fix_pam.sh "/etc/pam.d/system-auth"'
     - source: 'salt://{{ scriptDir }}/pbis-fix_pam.sh'
     - cwd: '/root'
     - stateful: True

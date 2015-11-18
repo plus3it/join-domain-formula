@@ -8,11 +8,7 @@
 # working.
 #
 #################################################################
-PAMFILE=(
-      /etc/pam.d/password-auth
-      /etc/pam.d/system-auth
-   )
-
+PAMFILE="${1}"
 
 # Resolve sym-links to real file-path so in-place
 # replacements don't break things. ...This won't
@@ -63,20 +59,16 @@ function FixPam() {
 ## Main program flow
 ######################
 
-for FILE in ${PAMFILE[@]}
-do
-   # Resolve sym-links
-   CHKFILE=$(FindRealFile "${FILE}")
-   CKFAILLOCK=$(grep -q -E "^auth[ 	][ 	]*.*pam_faillock" ${CHKFILE})$?
+# Resolve sym-links
+CHKFILE=$(FindRealFile "${PAMFILE}")
+CKFAILLOCK=$(grep -q -E "^auth[ 	][ 	]*.*pam_faillock" ${CHKFILE})$?
 
-   # Only act if pam_faillock is in play
-   if [[ ${CKFAILLOCK} -eq 0 ]]
-   then
-      FixPam
-   else
-      printf "\n"
-      printf "changed=no comment='The faillock PAM module not present: "
-      printf "leaving ${CHKFILE} as-is'"
-   fi
-done
-exit
+# Only act if pam_faillock is in play
+if [[ ${CKFAILLOCK} -eq 0 ]]
+then
+   FixPam
+else
+   printf "\n"
+   printf "changed=no comment='The faillock PAM module not present: "
+   printf "leaving ${CHKFILE} as-is'"
+fi
