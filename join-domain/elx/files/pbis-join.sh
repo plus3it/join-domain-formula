@@ -41,7 +41,7 @@ function PWdecrypt() {
 
 # Attempt to join client to domain
 function DomainJoin() {
-   local JOINSTAT=$(domainjoin-cli join "${TARGOU}" --assumeDefaultDomain \
+   local JOINSTAT=$(domainjoin-cli join ${TARGOU} --assumeDefaultDomain \
                     yes --userDomainPrefix ${DOMSHORT} ${DOMFQDN} \
                     ${SVCACCT} ${SVCPASS} > /dev/null 2>&1)$?
 
