@@ -16,6 +16,8 @@
 #       account. Passed via the Salt-parameter 'svcPasswdCrypt'.
 # * PWUNLOCK: String used to return Obfuscated password to clear-
 #       text. Passed via the Salt-parameter 'svcPasswdUlk'.
+# * JOINOU: OU to use for targeted-OU domain-join attempts.
+#       Passed via the Salt-parameter 'domainOuPath'.
 #
 #################################################################
 PATH=/sbin:/usr/sbin:/bin:/usr/bin:/opt/pbis/bin
@@ -24,6 +26,7 @@ DOMFQDN=${2:-UNDEF}
 SVCACCT=${3:-UNDEF}
 PWCRYPT=${4:-UNDEF}
 PWUNLOCK=${5:-UNDEF}
+JOINOU=${6:-UNDEF}
 JOINSTAT=$(/opt/pbis/bin/pbis-status | \
              awk '/^[ 	][ 	]*Status:/{print $2}')
 
@@ -38,9 +41,9 @@ function PWdecrypt() {
 
 # Attempt to join client to domain
 function DomainJoin() {
-   local JOINSTAT=$(domainjoin-cli join --assumeDefaultDomain yes \
-                    --userDomainPrefix ${DOMSHORT} ${DOMFQDN} ${SVCACCT} \
-                    ${SVCPASS} > /dev/null 2>&1)$?
+   local JOINSTAT=$(domainjoin-cli join "${TARGOU}" --assumeDefaultDomain \
+                    yes --userDomainPrefix ${DOMSHORT} ${DOMFQDN} \
+                    ${SVCACCT} ${SVCPASS} > /dev/null 2>&1)$?
 
    if [[ ${JOINSTAT} -eq 0 ]]
    then
@@ -72,6 +75,13 @@ then
    echo "Failed to pass a required parameter. Aborting."
    exit 1
 fi
+
+# Set parms necessary to do a targeted-OU join
+if [[ ${JOINOU} != "UNDEF" ]]
+then
+   TARGOU="--ou ${JOINOU}"
+fi
+
 
 # Execute join-attempt as necessary...
 case ${JOINSTAT} in
