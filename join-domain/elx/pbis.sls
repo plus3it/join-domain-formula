@@ -59,7 +59,7 @@ PBIS-installsh:
 
 PBIS-join:
   cmd.script:
-    - name: 'pbis-join.sh "{{ domainShort }}" "{{ domainFqdn }}" "{{ domainAcct }}" "{{ svcPasswdCrypt }}" "{{ svcPasswdUlk }}"'
+    - name: 'pbis-join.sh "{{ domainShort }}" "{{ domainFqdn }}" "{{ domainAcct }}" "{{ svcPasswdCrypt }}" "{{ svcPasswdUlk }}" "{{ domainOuPath }}"'
     - source: 'salt://{{ scriptDir }}/pbis-join.sh'
     - cwd: '/root'
     - stateful: True
