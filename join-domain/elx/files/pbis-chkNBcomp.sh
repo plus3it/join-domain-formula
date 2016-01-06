@@ -26,3 +26,56 @@
 #   /etc/sysconfig/network file is reverted
 # 
 #################################################################
+
+# Check if nodename is too long
+if [[ $(HOST=$(hostname -s) ; echo ${#HOST}) -gt 15 ]]
+then
+   # Calculate default-interface
+   DEFIF=$(ip route show | awk '/^default/{print $5}')
+   
+   if [[ ${DEFIF} = "" ]]
+   then
+      # Abort if there's no default-route
+      printf "\n"
+      printf "changed=no comment='Host has no default route. "
+      printf "Cant cope.'\n"
+      exit 1
+   else
+      OLDFQDN=$(hostname)
+      CURDOM=$(awk -F = '/HOSTNAME/{print $2}' /etc/sysconfig/network | \
+               sed 's/'$(hostname -s)'\.//')
+      BASEIP=$(printf '%02X' \
+               $(ip addr show ${DEFIF} | \
+                 awk '/inet /{print $2}' | \
+                 sed -e 's#/.*$##' -e 's/\./ /g' \
+               ))
+   
+      # Try to make new hostname fully-qualified
+      if [[ ${CURDOM} = "" ]]
+      then
+         NEWFQDN="ip-${BASEIP,,}"
+      else
+         NEWFQDN="ip-${BASEIP,,}.${CURDOM}"
+      fi
+   
+      if [[ $(hostname ${NEWFQDN})$? -eq 0 ]]
+      then
+         # Create info-preservation files
+         echo ${OLDFQDN} > /etc/sysconfig/hostname.fqdn-orig
+         echo ${NEWFQDN} > /etc/sysconfig/hostname.fqdn-new
+   
+         printf "\n"
+         printf "changed=yes comment='Changed hostname to ${NEWFQDN}.'\n"
+         exit 0
+      else
+         printf "\n"
+         printf "changed=no comment='Failed to change hostname "
+         printf "to ${NEWFQDN}.'\n"
+         exit 1
+      fi
+   fi
+else
+   printf "\n"
+   printf "changed=no comment='Host short-name is NETBIOS compliant.'\n"
+   exit 0
+fi
