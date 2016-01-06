@@ -14,18 +14,15 @@ join standalone system to domain:
       {
         $cred = New-Object -TypeName System.Management.Automation.PSCredential
           -ArgumentList {{ join_domain.username }}, (ConvertTo-SecureString
-          -String {{ join_domain.encrypted_password }}
+          -String "{{ join_domain.encrypted_password }}"
           -Key ([Byte[]] "{{ join_domain.key }}".split(",")));
-        Add-Computer -DomainName {{ join_domain.domain_name }} -Credential $cred
-          -Force
-
     {%- if join_domain.oupath -%}
-
-          -OUPath {{ join_domain.oupath }}
-
+        Add-Computer -DomainName {{ join_domain.domain_name }} -Credential $cred
+          -Force -OUPath "{{ join_domain.oupath }}" -ErrorAction Stop;
+    {%- else -%}
+        Add-Computer -DomainName {{ join_domain.domain_name }} -Credential $cred
+          -Force -ErrorAction Stop;
     {%- endif -%}
-
-          -ErrorAction Stop;
         "changed=yes comment=`"Joined system to the domain.`" domain={{ join_domain.domain_name }}"
       }'
     - shell: powershell
