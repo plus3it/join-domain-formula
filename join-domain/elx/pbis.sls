@@ -57,6 +57,14 @@ PBIS-installsh:
     - require:
       - file: PBIS-stageFile
 
+PBIS-NETBIOSfix:
+  cmd.script:
+    - name: 'pbis-chkNBcomp.sh'
+    - source: 'salt://{{ scriptDir }}/pbis-chkNBcomp.sh'
+    - cwd: '/root'
+    - require:
+      - cmd: PBIS-installsh
+
 PBIS-join:
   cmd.script:
     - name: 'pbis-join.sh "{{ domainShort }}" "{{ domainFqdn }}" "{{ domainAcct }}" "{{ svcPasswdCrypt }}" "{{ svcPasswdUlk }}" "{{ domainOuPath }}"'
@@ -64,7 +72,7 @@ PBIS-join:
     - cwd: '/root'
     - stateful: True
     - require:
-      - cmd: PBIS-installsh
+      - cmd: PBIS-NETBIOSfix
 
 PBIS-PamPasswordDemunge:
   cmd.script:
