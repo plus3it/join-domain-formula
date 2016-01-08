@@ -65,6 +65,14 @@ PBIS-NETBIOSfix:
     - require:
       - cmd: PBIS-installsh
 
+PBIS-KillCollision:
+  cmd.script:
+    - name: 'pbis-clndir.sh "{{ domainFqdn }}" "{{ domainAcct }}" "{{ svcPasswdCrypt }}" "{{ svcPasswdUlk }}"'
+    - source: 'salt://{{ scriptDir }}/pbis-clndir.sh'
+    - cwd: '/root'
+    - require:
+      - cmd: PBIS-NETBIOSfix
+
 PBIS-join:
   cmd.script:
     - name: 'pbis-join.sh "{{ domainShort }}" "{{ domainFqdn }}" "{{ domainAcct }}" "{{ svcPasswdCrypt }}" "{{ svcPasswdUlk }}" "{{ domainOuPath }}"'
@@ -72,7 +80,7 @@ PBIS-join:
     - cwd: '/root'
     - stateful: True
     - require:
-      - cmd: PBIS-NETBIOSfix
+      - cmd: PBIS-KillCollision
 
 PBIS-PamPasswordDemunge:
   cmd.script:
