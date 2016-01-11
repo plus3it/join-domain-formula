@@ -8,12 +8,32 @@ This formula has been tested against Windows Server 2012 and Enterprise Linux 6 
 
 This formula uses data externalized via the SaltStack "[Pillar](https://docs.saltstack.com/en/latest/topics/pillar/)" feature. This formula expects the following data be present within the supporting Pillar:
 
+
 ## Windows
 - domain_name:
 - username:
 - encrypted_password:
 - key:
 - oupath:
+
+
+### Generating `key` and `encrypted_password`
+For Windows systems, to generate the `key` and the `encrypted_password` pillar parameters, use the code snippet below:
+```
+$String = 'Super secure password'
+$StringBytes = [System.Text.UnicodeEncoding]::Unicode.GetBytes($String)
+$AesObject = New-Object System.Security.Cryptography.AesCryptoServiceProvider
+$AesObject.IV = New-Object Byte[]($AesObject.IV.Length)
+$AesObject.GenerateKey()
+$KeyBase64 = [System.Convert]::ToBase64String($AesObject.Key)
+$EncryptedStringBytes = ($AesObject.CreateEncryptor()).TransformFinalBlock($StringBytes, 0, $StringBytes.Length)
+$EncryptedStringBase64 = [System.Convert]::ToBase64String($EncryptedStringBytes)
+# Save KeyBase64 in pillar as `key`
+"key = $KeyBase64"
+# Save EncryptedStringBase64 in pillar as `encrypted_password`
+"encrypted_password = $EncryptedStringBase64"
+```
+
 
 ## Linux
 The following parameters are usde to join a Linux client to Active Directory. See the [pillar.example](pillar.example) file for pillar-data structuring.
