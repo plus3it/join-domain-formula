@@ -82,3 +82,30 @@ This is a list of critical files - typically configuration files - that the form
   - CFG2
   - ...
   - CFGn
+
+### Generating `key` and `encrypted_password`
+
+The Linux portions of the join-domain-formula make use of a reversible, AES 256-bit ECB-encrypted string to store password data with a Salt pillar. To create the reversible, crypted string, you need three things:
+
+* The `openssl` tools
+* The password of the domain-join account
+* A semi-random string to use as the lock/unlock key for the encrypted string.
+
+The lock/unlock key can be either manually or automatically generated. A good method for automatically generating the key is to execute something similar to `(< /dev/urandom tr -dc _A-Z-a-z-0-9 | head -c${1:-10};echo )`. This might give you an output similar to `F_6ln9jV3X`
+
+Once the domain-join account's password and the lock/unlock key are available, use `openssl`'s `enc` functionality to generate the reversible crypt-sting via a method similar to the following.
+
+~~~
+echo "MyP@ssw*rd5tr1ng" | openssl enc -aes-256-ecb -a -e -salt -pass pass:"F_6ln9jV3X"
+U2FsdGVkX1/WgQtZRqlwwl67JQYHnsQce0dask0TuyqTnAXH8aGTfb/JLiOGUq4O
+~~~
+
+After generating the crypt-string, verify its reversibility by doing something similar to the following:
+
+~~~
+$ echo "U2FsdGVkX1/WgQtZRqlwwl67JQYHnsQce0dask0TuyqTnAXH8aGTfb/JLiOGUq4O" | \
+openssl enc -aes-256-ecb -a -d -salt -pass pass:"F_6ln9jV3X"
+MyP@ssw*rd5tr1ng
+~~~
+
+After verification, place the crypt-string and its lock/unlock string into the appropriate Pillar fields.
