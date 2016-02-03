@@ -13,6 +13,7 @@ include:
 
 # Vars used to run the domain-join actions
 {%- set join_elx = salt['pillar.get']('join-domain:linux', {}) %}
+{%- do join_elx.update(salt['grains.get']('join-domain', {})) %}
 {%- set domainFqdn = join_elx.ad_domain_fqdn %}
 {%- set domainShort = join_elx.ad_domain_short %}
 {%- set domainAcct = join_elx.join_svc_acct %}
