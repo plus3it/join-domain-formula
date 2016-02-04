@@ -1,7 +1,8 @@
 {%- set join_domain = salt['pillar.get']('join-domain:windows', {}) %}
-{%- do join_domain.update(salt['grains.get']('join-domain', {})) %}
 
 {%- if join_domain %}
+
+{%- do join_domain.update(salt['grains.get']('join-domain', {})) %}
 
 join standalone system to domain:
   cmd.run:
