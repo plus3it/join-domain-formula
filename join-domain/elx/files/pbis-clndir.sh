@@ -62,6 +62,17 @@ function PWdecrypt() {
 # Am I already joined
 function CheckMyJoinState() {
    local CHKDOM=$(echo ${DOMAIN} | tr "[:lower:]" "[:upper:]")
+
+   # Try to accommodate back-to-back (ab)use cases
+   # This should ensure that the adcache file exists if the
+   # host is properly configured to talk to AD
+   if [[ $(rpm -q --quiet pbis-open)$? -eq 0 ]] &&
+      [[ ! -e /var/lib/pbis/db/lsass-adcache.filedb.${CHKDOM} ]]
+   then
+      service lwsmd restart
+   fi
+
+   # See if adcache file exists - return value if it does
    if [[ -e /var/lib/pbis/db/lsass-adcache.filedb.${CHKDOM} ]]
    then
       echo "LOCALLYBOUND"
