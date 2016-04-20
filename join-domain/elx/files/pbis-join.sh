@@ -77,10 +77,14 @@ then
 fi
 
 # Set parms necessary to do a targeted-OU join
-if [[ ${JOINOU} != "UNDEF" ]]
-then
-   TARGOU="--ou ${JOINOU}"
-fi
+case ${JOINOU} in
+    none|None|NONE|UNDEF)
+       TARGOU=""
+       ;;
+    *)
+       TARGOU="--ou ${JOINOU}"
+       ;;
+esac
 
 
 # Execute join-attempt as necessary...
