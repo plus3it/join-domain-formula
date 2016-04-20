@@ -59,6 +59,16 @@ function PWdecrypt() {
 }
 
 
+# Am I already joined
+function CheckMyJoinState() {
+   local CHKDOM=$(echo ${DOMAIN} | tr "[:lower:]" "[:upper:]")
+   if [[ -e /var/lib/pbis/db/lsass-adcache.filedb.${CHKDOM} ]]
+   then
+      echo "LOCALLYBOUND"
+   fi
+}
+
+
 # Check for object-collisions
 function CheckObject() {
    local EXISTS=$(${ADTOOL} -d ${DOMAIN} -n ${USERID}@${DOMAIN} \
@@ -103,7 +113,13 @@ PASSWORD=$(PWdecrypt)
 if [[ $(CheckObject) = NONE ]]
 then
    printf "\n"
-   printf "changed=no comment='No collisions for ${NODENAME} found "
+   printf "changed=no comment='No collisions for ${NODENAME} found'"
+   printf "in the directory'\n"
+   exit 0
+elif [[ $(CheckMyJoinState) = "LOCALLYBOUND" ]]
+then
+   printf "\n"
+   printf "changed=no comment='Local system has active join config present'"
    printf "in the directory'\n"
    exit 0
 else
