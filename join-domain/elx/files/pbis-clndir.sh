@@ -59,6 +59,27 @@ function PWdecrypt() {
 }
 
 
+# Am I already joined
+function CheckMyJoinState() {
+   local CHKDOM=$(echo ${DOMAIN} | tr "[:lower:]" "[:upper:]")
+
+   # Try to accommodate back-to-back (ab)use cases
+   # This should ensure that the adcache file exists if the
+   # host is properly configured to talk to AD
+   if [[ $(rpm -q --quiet pbis-open)$? -eq 0 ]] &&
+      [[ ! -e /var/lib/pbis/db/lsass-adcache.filedb.${CHKDOM} ]]
+   then
+      service lwsmd restart > /dev/null 2>&1
+   fi
+
+   # See if adcache file exists - return value if it does
+   if [[ -e /var/lib/pbis/db/lsass-adcache.filedb.${CHKDOM} ]]
+   then
+      echo "LOCALLYBOUND"
+   fi
+}
+
+
 # Check for object-collisions
 function CheckObject() {
    local EXISTS=$(${ADTOOL} -d ${DOMAIN} -n ${USERID}@${DOMAIN} \
@@ -103,7 +124,13 @@ PASSWORD=$(PWdecrypt)
 if [[ $(CheckObject) = NONE ]]
 then
    printf "\n"
-   printf "changed=no comment='No collisions for ${NODENAME} found "
+   printf "changed=no comment='No collisions for ${NODENAME} found'"
+   printf "in the directory'\n"
+   exit 0
+elif [[ $(CheckMyJoinState) = "LOCALLYBOUND" ]]
+then
+   printf "\n"
+   printf "changed=no comment='Local system has active join config present'"
    printf "in the directory'\n"
    exit 0
 else
