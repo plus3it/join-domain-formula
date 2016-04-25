@@ -69,7 +69,7 @@ function CheckMyJoinState() {
    if [[ $(rpm -q --quiet pbis-open)$? -eq 0 ]] &&
       [[ ! -e /var/lib/pbis/db/lsass-adcache.filedb.${CHKDOM} ]]
    then
-      service lwsmd restart
+      service lwsmd restart > /dev/null 2>&1
    fi
 
    # See if adcache file exists - return value if it does
