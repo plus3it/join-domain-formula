@@ -36,10 +36,11 @@ join standalone system to domain:
           -AsPlainText -Force);
     {%- if join_domain.oupath -%}
         Add-Computer -DomainName {{ join_domain.domain_name }} -Credential $cred
-          -Force -OUPath "{{ join_domain.oupath }}" -ErrorAction Stop;
+          -OUPath "{{ join_domain.oupath }}"
+          -Options JoinWithNewName,AccountCreate -Force -ErrorAction Stop;
     {%- else -%}
         Add-Computer -DomainName {{ join_domain.domain_name }} -Credential $cred
-          -Force -ErrorAction Stop;
+          -Options JoinWithNewName,AccountCreate -Force -ErrorAction Stop;
     {%- endif -%}
         "changed=yes comment=`"Joined system to the domain.`"
         domain={{ join_domain.domain_name }}"
