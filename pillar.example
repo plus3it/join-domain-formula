@@ -1,11 +1,14 @@
 join-domain:
 
   windows:
-    domain_name:
+    dns_name:
+    netbios_name:
     username:
     encrypted_password:
     key:
     oupath:
+    admin_users:
+    admin_groups:
 
   linux:
     # Domain-specific elements
@@ -27,19 +30,19 @@ join-domain:
     # archive file.
     #repo_uri_host: 'http://S3BUCKET.F.Q.D.N'
     #repo_uri_root_path: 'beyond-trust/linux/pbis'
-  
+
     # Name of installer and hash-file to download
     #package_name: 'pbis-open-8.3.0.3287.linux.x86_64.rpm.sh'
     #package_hash: 'pbis-open-8.3.0.3287.linux.x86_64.rpm.sh.SHA512'
-  
+
     # Directories where PBIS is installed to the system
     #install_bin_dir: '/opt/pbis'
     #install_var_dir: '/var/lib/pbis'
     #install_db_dir: '/var/lib/pbis/db'
-  
+
     # AD-connector Tool
     # ad_connector: 'pbis'
-  
+
     # List of RPMs to look for
     #connectorRpms:
     #  - 'pbis-open-legacy'
@@ -47,7 +50,7 @@ join-domain:
     #  - 'pbis-open-devel'
     #  - 'pbis-open-gui'
     #  - 'pbis-open-upgrade'
-  
+
     # List of critical files to look for
     #checkFiles:
     #  - 'registry.db'

@@ -1,8 +1,6 @@
-{%- set join_domain = salt['pillar.get']('join-domain:windows', {}) %}
+{%- from tpldir + '/map.jinja' import join_domain with context %}
 
-{%- if join_domain %}
-
-{%- do join_domain.update(salt['grains.get']('join-domain', {})) %}
+{%- if join_domain.pillar_exists %}
 
 join standalone system to domain:
   cmd.run:
@@ -10,7 +8,7 @@ join standalone system to domain:
       if ( ( (Get-WmiObject Win32_ComputerSystem).partofdomain ) -eq $True )
       {
         $domain = (Get-WmiObject Win32_ComputerSystem).domain;
-        if ( $domain -eq "{{ join_domain.domain_name }}" )
+        if ( $domain -eq "{{ join_domain.dns_name }}" )
         {
           "changed=no comment=`"System is joined already to the correct domain
             [$domain].`" domain=$domain";
@@ -35,17 +33,55 @@ join standalone system to domain:
           0, $EncryptedStringBytes.Length)))"
           -AsPlainText -Force);
     {%- if join_domain.oupath -%}
-        Add-Computer -DomainName {{ join_domain.domain_name }} -Credential $cred
+        Add-Computer -DomainName {{ join_domain.dns_name }} -Credential $cred
           -OUPath "{{ join_domain.oupath }}"
           -Options JoinWithNewName,AccountCreate -Force -ErrorAction Stop;
     {%- else -%}
-        Add-Computer -DomainName {{ join_domain.domain_name }} -Credential $cred
+        Add-Computer -DomainName {{ join_domain.dns_name }} -Credential $cred
           -Options JoinWithNewName,AccountCreate -Force -ErrorAction Stop;
     {%- endif -%}
         "changed=yes comment=`"Joined system to the domain.`"
-        domain={{ join_domain.domain_name }}"
+        domain={{ join_domain.dns_name }}"
       }'
     - shell: powershell
     - stateful: true
 
+{%- for admin in join_domain.admins %}
+
+add local administrator - {{ admin }}:
+  cmd.run:
+    - name: '
+      $group = [ADSI]"WinNT://$env:COMPUTERNAME/Administrators,group";
+      $groupmembers = @( @( $group.Invoke("Members") ) | foreach {
+        $_.GetType().InvokeMember("Name",
+        "GetProperty", $null, $_, $null)
+      });
+      if ( $groupmembers -contains "{{ admin }}" )
+      {
+        "changed=no
+         comment=`"[{{ admin }}] is already a local administrator.`"
+         domain=`"{{ join_domain.netbios_name }}`" user=`"{{ admin }}`""
+      }
+      else
+      {
+        try
+        {
+          $group.Add(
+            "WinNT://{{ join_domain.netbios_name }}/{{ admin }},group");
+          "changed=yes
+           comment=`"Added [{{ admin }}] as a local administrator.`"
+           domain=`"{{ join_domain.netbios_name }}`" user=`"{{ admin }}`""
+        }
+        catch
+        {
+          throw "Failed to add [{{ admin }}] as a local administor.`n$Error[0]"
+        }
+      }
+    '
+    - shell: powershell
+    - stateful: true
+    - require:
+      - cmd: join standalone system to domain
+
+{%- endfor %}
 {%- endif %}

@@ -1,0 +1,33 @@
+{#
+    * Get the join-domain settings from pillar and grains.
+    * Set a flag if the pillar is present; used to control whether to execute
+      the state.
+    * Create a list of unique admins from values in both pillar and grains.
+    * Merge the grains settings into pillar. This allows local overrides of
+      pillar settings. Admins in pillar will be preserved.
+    * Add local variables back to the join_domain settings so they can be
+      referenced elsewhere.
+#}
+
+{%- set join_domain = salt['pillar.get']('join-domain:windows', {}) %}
+{%- set join_domain_grains = salt['grains.get']('join-domain', {}) %}
+
+{%- set pillar_exists = true if join_domain else false %}
+
+{%- set admins = [] %}
+{%- for admin in join_domain.get('admin_users', []) +
+    join_domain.get('admin_groups', []) +
+    join_domain_grains.get('admin_users', []) +
+    join_domain_grains.get('admin_groups', [])
+%}
+    {%- if admin not in admins %}
+        {%- do admins.append(admin) %}
+   {%- endif %}
+{%- endfor %}
+
+{%- do join_domain.update(salt['grains.get']('join-domain', {})) %}
+
+{%- do join_domain.update({
+    'pillar_exists' : pillar_exists,
+    'admins' : admins
+}) %}
