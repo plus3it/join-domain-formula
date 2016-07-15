@@ -12,14 +12,14 @@ include:
   - join-domain.elx.pbis-config
 
 # Vars used to run the domain-join actions
-{%- set join_elx = salt['pillar.get']('join-domain:linux', {}) %}
+{%- set join_elx = salt['pillar.get']('join-domain:lookup', {}) %}
 {%- do join_elx.update(salt['grains.get']('join-domain', {})) %}
-{%- set domainFqdn = join_elx.ad_domain_fqdn %}
-{%- set domainShort = join_elx.ad_domain_short %}
-{%- set domainAcct = join_elx.join_svc_acct %}
+{%- set domainFqdn = join_elx.dns_name %}
+{%- set domainShort = join_elx.netbios_name %}
+{%- set domainAcct = join_elx.username %}
 {%- set svcPasswdCrypt = join_elx.encrypted_password %}
 {%- set svcPasswdUlk = join_elx.key %}
-{%- set domainOuPath = join_elx.oupath %}
+{%- set domainOuPath = join_elx.get('oupath', '') %}
 
 # Vars for getting PBIS install-media
 {%- set repoHost = join_elx.repo_uri_host %}

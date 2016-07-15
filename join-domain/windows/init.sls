@@ -1,7 +1,5 @@
 {%- from tpldir + '/map.jinja' import join_domain with context %}
 
-{%- if join_domain.pillar_exists %}
-
 join standalone system to domain:
   cmd.run:
     - name: '
@@ -84,4 +82,3 @@ add local administrator - {{ admin }}:
       - cmd: join standalone system to domain
 
 {%- endfor %}
-{%- endif %}

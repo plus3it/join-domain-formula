@@ -1,30 +1,44 @@
 join-domain:
 
-  windows:
+  lookup:
+    ##################################
+    # Windows-specific pillar settings
+    ##################################
+
+    # Required Settings
     dns_name:
     netbios_name:
     username:
     encrypted_password:
     key:
-    oupath:
-    admin_users:
-    admin_groups:
 
-  linux:
-    # Domain-specific elements
-    #ad_domain_fqdn: 'aws.lab'
-    #ad_domain_short: 'AWSLAB'
-    #join_svc_acct: 'svc_domjoin_aws'
-    #encrypted_password: 'U2FsdGVkX18ThTf5km4IcWfAlAgbVwPn539BjI6fEpQmXa0B30gVRIK2qya9zPwh'
-    #key: 'Unlock'
+    # Optional Settings
     #oupath:
+    #admin_users:
+    #admin_groups:
 
-    # List of groups to configure for access
-    #sudoer_groups:
+    ################################
+    # Linux-specific pillar settings
+    ################################
+
+    # Required domain-specific settings
+    dns_name:
+    netbios_name:
+    username:
+    encrypted_password:
+    key:
+
+    # Optional domain-specific settings
+    #oupath:
+    #admin_users:
+    #admin_groups:
     #  - linux^admins
-    #login_groups:
+    #login_users:
     #  - linux^operators
+    #login_groups:
 
+    # AD-connector Tool
+    #ad_connector: 'pbis'
 
     # Programable path-elements for retrieving the PBIS self-installing
     # archive file.
@@ -39,9 +53,6 @@ join-domain:
     #install_bin_dir: '/opt/pbis'
     #install_var_dir: '/var/lib/pbis'
     #install_db_dir: '/var/lib/pbis/db'
-
-    # AD-connector Tool
-    # ad_connector: 'pbis'
 
     # List of RPMs to look for
     #connectorRpms:

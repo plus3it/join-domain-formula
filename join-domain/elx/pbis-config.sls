@@ -6,15 +6,15 @@
 # * Set 'HomeDirTemplate' and 'Local_HomeDirTemplate' to flatter
 #   default value ("/home/<DOMAIN>/${USER}" - PBIS sets to
 #   "/home/local/<DOMAIN>/${USER}")
-# * Set 'DomainManagerIgnoreAllTrusts' to "true" to prevent 
+# * Set 'DomainManagerIgnoreAllTrusts' to "true" to prevent
 #   spurious service-faults in multi-domain forrests.
-# * Set 'DomainManagerIncludeTrustsList' to match domain FQDN. 
+# * Set 'DomainManagerIncludeTrustsList' to match domain FQDN.
 #   This setting necessary due to setting of the
 #   'DomainManagerIgnoreAllTrusts' value to "true"
 #
 #################################################################
-{%- set pbisBinDir = salt['pillar.get']('join-domain:linux:install_bin_dir') %}
-{%- set domfqdn = salt['pillar.get']('join-domain:linux:ad_domain_fqdn') %}
+{%- set pbisBinDir = salt['pillar.get']('join-domain:lookup:install_bin_dir') %}
+{%- set domfqdn = salt['pillar.get']('join-domain:lookup:dns_name') %}
 {%- set pbisUserHome = [ 'HomeDirTemplate', 'Local_HomeDirTemplate' ] %}
 {%- set pbisUserShell = [ 'LoginShellTemplate', 'Local_LoginShellTemplate' ] %}
 {%- set loginHome = '%H/%D/%U' %}
@@ -39,7 +39,7 @@ PBIS-config-uHome:
     - name: |
         (
 {%- for uHome in pbisUserHome %}
-         {{ pbisBinDir }}/bin/config {{ uHome }} "{{ loginHome }}" 
+         {{ pbisBinDir }}/bin/config {{ uHome }} "{{ loginHome }}"
 {%- endfor %}
          echo
          printf "changed=yes "
