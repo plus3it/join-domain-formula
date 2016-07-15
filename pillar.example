@@ -34,8 +34,8 @@ join-domain:
     #admin_groups:
     #  - linux^admins
     #login_users:
-    #  - linux^operators
     #login_groups:
+    #  - linux^operators
 
     # AD-connector Tool
     #ad_connector: 'pbis'

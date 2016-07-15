@@ -10,15 +10,34 @@
 #
 #################################################################
 
+{%- set admin_users = salt['pillar.get']('join-domain:lookup:admin_users', []) %}
 {%- set admin_groups = salt['pillar.get']('join-domain:lookup:admin_groups', []) %}
+{%- set login_users = salt['pillar.get']('join-domain:lookup:login_users', []) %}
 {%- set login_groups = salt['pillar.get']('join-domain:lookup:login_groups', []) %}
 {%- set sudo_d = '/etc/sudoers.d' %}
 {%- set sshd_cfg = '/etc/ssh/sshd_config' %}
-{%- set allow_groups = admin_groups + login_groups %}
+{%- set users = admin_users + login_users %}
+{%- set admins = admin_groups + admin_users %}
+{%- set logins = admin_users + admin_groups + login_users + login_groups %}
 {%- set scriptDir = 'join-domain/elx/files' %}
 
-# Add to /etc/suders.d/group_XXX file
-{%- for admin in admin_groups %}
+{%- for user in users %}
+# Create a group for {{ user }}, for sshd AllowGroups to work
+Create group for user {{ user }}:
+  group.present:
+    - name: {{ user }}
+
+Add member {{ user }}:
+  file.replace:
+    - name: /etc/group
+    - pattern: '(^{{ user }}:.*:.*:)(.*$)'
+    - repl: '\1{{ user }}'
+    - require:
+      - group: Create group for user {{ user }}
+{%- endfor %}
+
+{%- for admin in admins %}
+# Add to /etc/suders.d/group_{{ admin }} file
 admin_group-{{ admin }}:
   file.append:
     - name: '{{ sudo_d }}/group_{{ admin }}'
@@ -27,6 +46,7 @@ admin_group-{{ admin }}:
       - 'grep -q {{ admin }} {{ sudo_d }}/group_{{ admin }}'
 {%- endfor %}
 
+{%- if logins %}
 # Add to /etc/ssh/sshd_config
 AddDirective-sshd:
   file.append:
@@ -35,13 +55,14 @@ AddDirective-sshd:
     - unless:
       - 'grep -q AllowGroups {{ sshd_cfg }}'
 
-{%- for group in allow_groups %}
-ssh_allow_group-{{ group }}:
+{%- for name in logins %}
+ssh_allow_group-{{ login }}:
   cmd.script:
-    - name: 'ssh_allow_group.sh "{{ group }}"'
+    - name: 'ssh_allow_group.sh "{{ name }}"'
     - source: 'salt://{{ scriptDir }}/ssh_allow_group.sh'
     - cwd: '/root'
     - stateful: True
     - require:
       - file: AddDirective-sshd
 {%- endfor %}
+{%- endif %}
