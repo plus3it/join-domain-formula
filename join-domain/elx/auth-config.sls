@@ -19,7 +19,7 @@
 {%- set users = admin_users + login_users %}
 {%- set admins = admin_groups + admin_users %}
 {%- set logins = admin_users + admin_groups + login_users + login_groups %}
-{%- set scriptDir = 'join-domain/elx/files' %}
+{%- set files = tpldir ~ '/files' %}
 
 {%- for user in users %}
 # Create a group for {{ user }}, for sshd AllowGroups to work
@@ -39,11 +39,9 @@ Add member {{ user }}:
 {%- for admin in admins %}
 # Add to /etc/suders.d/group_{{ admin }} file
 admin_group-{{ admin }}:
-  file.append:
+  file.managed:
     - name: '{{ sudo_d }}/group_{{ admin }}'
-    - text: '%{{ admin }}	ALL=(root)	NOPASSWD:ALL'
-    - unless:
-      - 'grep -q {{ admin }} {{ sudo_d }}/group_{{ admin }}'
+    - contents: '%{{ admin }}	ALL=(root)	NOPASSWD:ALL'
 {%- endfor %}
 
 {%- if logins %}
@@ -55,11 +53,11 @@ AddDirective-sshd:
     - unless:
       - 'grep -q AllowGroups {{ sshd_cfg }}'
 
-{%- for name in logins %}
-ssh_allow_group-{{ login }}:
+{%- for name in join_domain.logins %}
+ssh_allow_group-{{ name }}:
   cmd.script:
-    - name: 'ssh_allow_group.sh "{{ name }}"'
-    - source: 'salt://{{ scriptDir }}/ssh_allow_group.sh'
+    - name: 'ssh-allow-group.sh "{{ name }}"'
+    - source: 'salt://{{ files }}/ssh-allow-group.sh'
     - cwd: '/root'
     - stateful: True
     - require:

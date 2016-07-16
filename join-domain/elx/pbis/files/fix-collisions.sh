@@ -1,7 +1,7 @@
 #!/bin/sh
 #
 # Under least-privileges security models, the PBIS installer can
-# have problems joining a client to the domain if the domain 
+# have problems joining a client to the domain if the domain
 # already contains a matching computer object (even if join-
 # account has add/modify/delete permissions to the object). This
 # Script is designed to look for conflicting objects in the
@@ -21,7 +21,7 @@
 # 2) USERID
 # 3) PASSWORD
 #
-# Note: This utility assumes that domain-joiner account's UPN 
+# Note: This utility assumes that domain-joiner account's UPN
 #       takes the form "USERID@DOMAIN.F.Q.D.N"
 #
 #################################################################
@@ -29,7 +29,7 @@
 # Check if enoug args were passed
 if [[ ${#@} -ge 4 ]]
 then
-  # Positional parameters (we'd use getopts, but humans shouldn't 
+  # Positional parameters (we'd use getopts, but humans shouldn't
   # be directly invoking this script)
    DOMAIN=${1}
    USERID=${2}
@@ -85,7 +85,7 @@ function CheckObject() {
    local EXISTS=$(${ADTOOL} -d ${DOMAIN} -n ${USERID}@${DOMAIN} \
                   -x "${PASSWORD}" -a search-computer \
                   --name cn="${NODENAME}" -t)
-   
+
    if [[ -z ${EXISTS} ]]
    then
       echo "NONE"
@@ -93,6 +93,7 @@ function CheckObject() {
       echo "${EXISTS}"
    fi
 }
+
 
 # Kill the collision
 function NukeCollision() {
@@ -106,14 +107,11 @@ function NukeCollision() {
       exit 0
    else
       printf "\n"
-      printf "changed=no comment='Faile to delete ${NODENAME} "
+      printf "changed=no comment='Failed to delete ${NODENAME} "
       printf "from the directory'\n"
       exit 1
    fi
-
 }
-##
-#########################
 
 
 ######################
@@ -124,13 +122,13 @@ PASSWORD=$(PWdecrypt)
 if [[ $(CheckObject) = NONE ]]
 then
    printf "\n"
-   printf "changed=no comment='No collisions for ${NODENAME} found'"
+   printf "changed=no comment='No collisions for ${NODENAME} found"
    printf "in the directory'\n"
    exit 0
 elif [[ $(CheckMyJoinState) = "LOCALLYBOUND" ]]
 then
    printf "\n"
-   printf "changed=no comment='Local system has active join config present'"
+   printf "changed=no comment='Local system has active join config present"
    printf "in the directory'\n"
    exit 0
 else

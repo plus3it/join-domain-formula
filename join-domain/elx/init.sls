@@ -1,5 +1,8 @@
-{%- set join_type = salt['pillar.get']('join-domain:lookup:ad_connector') %}
+{%- set ad_connector = salt['pillar.get'](
+    'join-domain:lookup:ad_connector',
+    'pbis'
+) %}
 
 include:
-  - join-domain.elx.{{ join_type }}
-  - join-domain.elx.{{ join_type }}-grpCfg
+  - .{{ ad_connector }}
+  - .auth-config

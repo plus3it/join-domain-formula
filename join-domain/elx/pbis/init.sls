@@ -4,14 +4,13 @@
 #
 #################################################################
 
-# Set location for helper-files
-{%- set scriptDir = 'join-domain/elx/files' %}
+{#- Set location for helper-files #}
+{%- set files = tpldir ~ '/files' %}
 
-# Move service-config elsewhere
 include:
-  - join-domain.elx.pbis-config
+  - .config
 
-# Vars used to run the domain-join actions
+{#- Vars used to run the domain-join actions #}
 {%- set join_elx = salt['pillar.get']('join-domain:lookup', {}) %}
 {%- do join_elx.update(salt['grains.get']('join-domain', {})) %}
 {%- set domainFqdn = join_elx.dns_name %}
@@ -21,24 +20,27 @@ include:
 {%- set svcPasswdUlk = join_elx.key %}
 {%- set domainOuPath = join_elx.get('oupath', '') %}
 
-# Vars for getting PBIS install-media
+{#- Vars for getting PBIS install-media #}
 {%- set repoHost = join_elx.repo_uri_host %}
 {%- set repoPath = join_elx.repo_uri_root_path %}
 {%- set pbisPkg = join_elx.package_name %}
 {%- set pbisHash = join_elx.package_hash %}
 
-# Vars for checking for previous installations' config files
+{#- Vars for checking for previous installations' config files #}
 {%- set pbisBinDir = join_elx.install_bin_dir %}
 {%- set pbisVarDir = join_elx.install_var_dir %}
 {%- set pbisDbDir = join_elx.install_db_dir %}
 {%- set pbisDbs = join_elx.checkFiles %}
 
-# Vars for checking for previous installations' config RPMs
+{#- Vars for checking for previous installations' config RPMs #}
 {%- set pbisRpms = join_elx.connectorRpms %}
 
-# Derive service join-password (there's gotta be a less-awful way?)
-{%- set joinPass = salt.cmd.run('echo "' + svcPasswdCrypt + '" | \
-    openssl enc -aes-256-ecb -a -d -salt -pass pass:"' + svcPasswdUlk + '"') %}
+{#- Derive service join-password (there's gotta be a less-awful way?) #}
+{%-
+    set joinPass = salt.cmd.run('echo "' + svcPasswdCrypt + '" | \
+        openssl enc -aes-256-ecb -a -d -salt -pass pass:"' + svcPasswdUlk + '"'
+    )
+%}
 
 PBIS-stageFile:
   file.managed:
@@ -51,8 +53,8 @@ PBIS-stageFile:
 
 PBIS-installsh:
   cmd.script:
-    - name: 'pbis-install_only.sh /var/tmp/{{ pbisPkg }}'
-    - source: 'salt://{{ scriptDir }}/pbis-install_only.sh'
+    - name: 'install.sh /var/tmp/{{ pbisPkg }}'
+    - source: 'salt://{{ files }}/install.sh'
     - cwd: '/root'
     - stateful: True
     - require:
@@ -60,24 +62,24 @@ PBIS-installsh:
 
 PBIS-NETBIOSfix:
   cmd.script:
-    - name: 'pbis-chkNBcomp.sh'
-    - source: 'salt://{{ scriptDir }}/pbis-chkNBcomp.sh'
+    - name: 'fix-hostname.sh'
+    - source: 'salt://{{ files }}/fix-hostname.sh'
     - cwd: '/root'
     - require:
       - cmd: PBIS-installsh
 
 PBIS-KillCollision:
   cmd.script:
-    - name: 'pbis-clndir.sh "{{ domainFqdn }}" "{{ domainAcct }}" "{{ svcPasswdCrypt }}" "{{ svcPasswdUlk }}"'
-    - source: 'salt://{{ scriptDir }}/pbis-clndir.sh'
+    - name: 'fix-collisions.sh "{{ domainFqdn }}" "{{ domainAcct }}" "{{ svcPasswdCrypt }}" "{{ svcPasswdUlk }}"'
+    - source: 'salt://{{ files }}/fix-collisions.sh'
     - cwd: '/root'
     - require:
       - cmd: PBIS-NETBIOSfix
 
 PBIS-join:
   cmd.script:
-    - name: 'pbis-join.sh "{{ domainShort }}" "{{ domainFqdn }}" "{{ domainAcct }}" "{{ svcPasswdCrypt }}" "{{ svcPasswdUlk }}" "{{ domainOuPath }}"'
-    - source: 'salt://{{ scriptDir }}/pbis-join.sh'
+    - name: 'join.sh "{{ domainShort }}" "{{ domainFqdn }}" "{{ domainAcct }}" "{{ svcPasswdCrypt }}" "{{ svcPasswdUlk }}" "{{ domainOuPath }}"'
+    - source: 'salt://{{ files }}/join.sh'
     - cwd: '/root'
     - stateful: True
     - require:
@@ -85,8 +87,8 @@ PBIS-join:
 
 PBIS-PamPasswordDemunge:
   cmd.script:
-    - name: 'pbis-fix_pam.sh "/etc/pam.d/password-auth"'
-    - source: 'salt://{{ scriptDir }}/pbis-fix_pam.sh'
+    - name: 'fix-pam.sh "/etc/pam.d/password-auth"'
+    - source: 'salt://{{ files }}/fix-pam.sh'
     - cwd: '/root'
     - stateful: True
     - require:
@@ -94,8 +96,8 @@ PBIS-PamPasswordDemunge:
 
 PBIS-PamSystemDemunge:
   cmd.script:
-    - name: 'pbis-fix_pam.sh "/etc/pam.d/system-auth"'
-    - source: 'salt://{{ scriptDir }}/pbis-fix_pam.sh'
+    - name: 'fix-pam.sh "/etc/pam.d/system-auth"'
+    - source: 'salt://{{ files }}/fix-pam.sh'
     - cwd: '/root'
     - stateful: True
     - require:

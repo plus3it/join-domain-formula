@@ -1,8 +1,8 @@
 #!/bin/sh
 #
-# The NETBIOS character-limit for hostnames is fifteen 
-# characters. If PBIS attempts to join the host to a domain and 
-# the host's shortname is greater than fifteeen characters, the 
+# The NETBIOS character-limit for hostnames is fifteen
+# characters. If PBIS attempts to join the host to a domain and
+# the host's shortname is greater than fifteeen characters, the
 # join operation will fail with one of two errors:
 # * LDAP_INSUFFICIENT_ACCESS: this error is thrown when the
 #   domain-join operation causes the overlong hostname to be
@@ -14,7 +14,7 @@
 #   domain-join operation has caused an abbreviated computer-
 #   object name to be created in AD and the current operation
 #   cannot resolve the deadlock.
-# 
+#
 # This purpose of this script is to detect if the current
 # hostname is too long then modify the system configuration to be
 # more compatible with the NETBIOS character limits prior to
@@ -24,7 +24,7 @@
 # * Record the node's original hostname to a file
 # * Ensure that PBIS's shortening of HOSTNAME in the
 #   /etc/sysconfig/network file is reverted
-# 
+#
 #################################################################
 
 # Check if nodename is too long
@@ -32,7 +32,7 @@ if [[ $(HOST=$(hostname -s) ; echo ${#HOST}) -gt 15 ]]
 then
    # Calculate default-interface
    DEFIF=$(ip route show | awk '/^default/{print $5}')
-   
+
    if [[ ${DEFIF} = "" ]]
    then
       # Abort if there's no default-route
@@ -49,7 +49,7 @@ then
                  awk '/inet /{print $2}' | \
                  sed -e 's#/.*$##' -e 's/\./ /g' \
                ))
-   
+
       # Try to make new hostname fully-qualified
       if [[ ${CURDOM} = "" ]]
       then
@@ -57,13 +57,13 @@ then
       else
          NEWFQDN="ip-${BASEIP,,}.${CURDOM}"
       fi
-   
+
       if [[ $(hostname ${NEWFQDN})$? -eq 0 ]]
       then
          # Create info-preservation files
          echo ${OLDFQDN} > /etc/sysconfig/hostname.fqdn-orig
          echo ${NEWFQDN} > /etc/sysconfig/hostname.fqdn-new
-   
+
          printf "\n"
          printf "changed=yes comment='Changed hostname to ${NEWFQDN}.'\n"
          exit 0
