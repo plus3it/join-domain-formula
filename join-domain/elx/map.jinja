@@ -1,0 +1,54 @@
+{#
+    * Get the join-domain settings from pillar and grains.
+    * Create lists of unique users and groups from values in both pillar and
+      grains.
+    * Merge the grains settings into pillar. This allows local overrides of
+      pillar settings. Users and groups in pillar will be preserved.
+    * Add local list variables back to the join_domain settings so they can be
+      referenced elsewhere.
+#}
+
+{%- set join_domain = salt['pillar.get']('join-domain:lookup', {}) %}
+{%- set join_domain_grains = salt['grains.get']('join-domain', {}) %}
+
+{%- set admin_groups = [] %}
+{%- for group in join_domain.get('admin_groups', []) +
+                 join_domain_grains.get('admin_groups', [])
+%}
+    {%- if group not in admin_groups %}
+        {%- do admin_groups.append(group) %}
+    {%- endif %}
+{%- endfor %}
+
+{%- set login_groups = [] %}
+{%- for group in join_domain.get('login_groups', []) +
+                 join_domain_grains.get('login_groups', [])
+%}
+    {%- if group not in login_groups %}
+        {%- do login_groups.append(group) %}
+    {%- endif %}
+{%- endfor %}
+
+{%- set admin_users = [] %}
+{%- for user in join_domain.get('admin_users', []) +
+                join_domain_grains.get('admin_users', [])
+%}
+    {%- if user not in admin_users %}
+        {%- do admin_users.append(user) %}
+    {%- endif %}
+{%- endfor %}
+
+{%- set login_users = [] %}
+{%- for user in join_domain.get('login_users', []) +
+                join_domain_grains.get('login_users', [])
+%}
+    {%- if user not in login_users %}
+        {%- do login_users.append(user) %}
+    {%- endif %}
+{%- endfor %}
+
+{%- set auth_config = {
+    'admins' : admin_groups + admin_users,
+    'users' : admin_users + login_users,
+    'logins' : admin_users + admin_groups + login_users + login_groups
+} %}

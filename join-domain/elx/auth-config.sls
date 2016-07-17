@@ -9,19 +9,12 @@
 #   placed in /etc/sudoers.d
 #
 #################################################################
-
-{%- set admin_users = salt['pillar.get']('join-domain:lookup:admin_users', []) %}
-{%- set admin_groups = salt['pillar.get']('join-domain:lookup:admin_groups', []) %}
-{%- set login_users = salt['pillar.get']('join-domain:lookup:login_users', []) %}
-{%- set login_groups = salt['pillar.get']('join-domain:lookup:login_groups', []) %}
+{%- from tpldir ~ '/map.jinja' import auth_config with context %}
+{%- set files = tpldir ~ '/files' %}
 {%- set sudo_d = '/etc/sudoers.d' %}
 {%- set sshd_cfg = '/etc/ssh/sshd_config' %}
-{%- set users = admin_users + login_users %}
-{%- set admins = admin_groups + admin_users %}
-{%- set logins = admin_users + admin_groups + login_users + login_groups %}
-{%- set files = tpldir ~ '/files' %}
 
-{%- for user in users %}
+{%- for user in auth_config.users %}
 # Create a group for {{ user }}, for sshd AllowGroups to work
 Create group for user {{ user }}:
   group.present:
@@ -36,7 +29,7 @@ Add member {{ user }}:
       - group: Create group for user {{ user }}
 {%- endfor %}
 
-{%- for admin in admins %}
+{%- for admin in auth_config.admins %}
 # Add to /etc/suders.d/group_{{ admin }} file
 admin_group-{{ admin }}:
   file.managed:
@@ -44,7 +37,7 @@ admin_group-{{ admin }}:
     - contents: '%{{ admin }}	ALL=(root)	NOPASSWD:ALL'
 {%- endfor %}
 
-{%- if logins %}
+{%- if auth_config.logins %}
 # Add to /etc/ssh/sshd_config
 AddDirective-sshd:
   file.append:
@@ -53,7 +46,7 @@ AddDirective-sshd:
     - unless:
       - 'grep -q AllowGroups {{ sshd_cfg }}'
 
-{%- for name in join_domain.logins %}
+{%- for name in auth_config.logins %}
 ssh_allow_group-{{ name }}:
   cmd.script:
     - name: 'ssh-allow-group.sh "{{ name }}"'
