@@ -34,6 +34,7 @@ PBIS-NETBIOSfix:
     - name: 'fix-hostname.sh'
     - source: 'salt://{{ files }}/fix-hostname.sh'
     - cwd: '/root'
+    - stateful: True
     - require:
       - cmd: PBIS-installsh
 
@@ -42,6 +43,7 @@ PBIS-KillCollision:
     - name: 'fix-collisions.sh "{{ join_domain.dns_name }}" "{{ join_domain.username }}" "{{ join_domain.encrypted_password }}" "{{ join_domain.key }}"'
     - source: 'salt://{{ files }}/fix-collisions.sh'
     - cwd: '/root'
+    - stateful: True
     - require:
       - cmd: PBIS-NETBIOSfix
 
