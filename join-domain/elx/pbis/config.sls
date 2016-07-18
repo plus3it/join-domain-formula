@@ -13,19 +13,14 @@
 #   'DomainManagerIgnoreAllTrusts' value to "true"
 #
 #################################################################
-{%- set pbisBinDir = salt['pillar.get']('join-domain:lookup:install_bin_dir') %}
-{%- set domfqdn = salt['pillar.get']('join-domain:lookup:dns_name') %}
-{%- set pbisUserHome = [ 'HomeDirTemplate', 'Local_HomeDirTemplate' ] %}
-{%- set pbisUserShell = [ 'LoginShellTemplate', 'Local_LoginShellTemplate' ] %}
-{%- set loginHome = '%H/%D/%U' %}
-{%- set loginShell = '/bin/bash' %}
+{%- from tpldir ~ '/map.jinja' import join_domain with context %}
 
 PBIS-config-iShell:
   cmd.run:
     - name: |
         (
-{%- for userShell in pbisUserShell %}
-         {{ pbisBinDir }}/bin/config {{ userShell }} "{{ loginShell }}"
+{%- for shell in join_domain.pbis_user_shell %}
+         {{ join_domain.install_bin_dir }}/bin/config {{ shell }} "{{ join_domain.login_shell }}"
 {%- endfor %}
          echo
          printf "changed=yes "
@@ -38,8 +33,8 @@ PBIS-config-uHome:
   cmd.run:
     - name: |
         (
-{%- for uHome in pbisUserHome %}
-         {{ pbisBinDir }}/bin/config {{ uHome }} "{{ loginHome }}"
+{%- for home in join_domain.pbis_user_home %}
+         {{ join_domain.install_bin_dir }}/bin/config {{ home }} "{{ join_domain.login_home }}"
 {%- endfor %}
          echo
          printf "changed=yes "
@@ -51,7 +46,7 @@ PBIS-config-uHome:
 PBIS-config-TrustIgnore:
   cmd.run:
     - name: |
-        ({{ pbisBinDir }}/bin/config DomainManagerIgnoreAllTrusts true
+        ({{ join_domain.install_bin_dir }}/bin/config DomainManagerIgnoreAllTrusts true
          echo
          printf "changed=yes "
          printf "comment='Forced DomainManagerIgnoreAllTrusts to true'")
@@ -62,12 +57,12 @@ PBIS-config-TrustIgnore:
 PBIS-config-TrustList:
   cmd.run:
     - name: |
-        ({{ pbisBinDir }}/bin/config DomainManagerIncludeTrustsList \
-         {{ domfqdn }}
+        ({{ join_domain.install_bin_dir }}/bin/config DomainManagerIncludeTrustsList \
+         {{ join_domain.dns_name }}
          echo
          printf "changed=yes "
          printf "comment='Forced DomainManagerIncludeTrustsList to "
-         printf "{{ domfqdn }}'")
+         printf "{{ join_domain.dns_name }}'")
     - stateful: True
     - require:
       - cmd: PBIS-installsh

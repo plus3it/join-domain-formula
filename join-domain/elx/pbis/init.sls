@@ -3,6 +3,7 @@
 # then joining # the instance to Active Directory
 #
 #################################################################
+{%- from tpldir ~ '/map.jinja' import join_domain with context %}
 
 {#- Set location for helper-files #}
 {%- set files = tpldir ~ '/files' %}
@@ -10,50 +11,18 @@
 include:
   - .config
 
-{#- Vars used to run the domain-join actions #}
-{%- set join_elx = salt['pillar.get']('join-domain:lookup', {}) %}
-{%- do join_elx.update(salt['grains.get']('join-domain', {})) %}
-{%- set domainFqdn = join_elx.dns_name %}
-{%- set domainShort = join_elx.netbios_name %}
-{%- set domainAcct = join_elx.username %}
-{%- set svcPasswdCrypt = join_elx.encrypted_password %}
-{%- set svcPasswdUlk = join_elx.key %}
-{%- set domainOuPath = join_elx.get('oupath', '') %}
-
-{#- Vars for getting PBIS install-media #}
-{%- set repoHost = join_elx.repo_uri_host %}
-{%- set repoPath = join_elx.repo_uri_root_path %}
-{%- set pbisPkg = join_elx.package_name %}
-{%- set pbisHash = join_elx.package_hash %}
-
-{#- Vars for checking for previous installations' config files #}
-{%- set pbisBinDir = join_elx.install_bin_dir %}
-{%- set pbisVarDir = join_elx.install_var_dir %}
-{%- set pbisDbDir = join_elx.install_db_dir %}
-{%- set pbisDbs = join_elx.checkFiles %}
-
-{#- Vars for checking for previous installations' config RPMs #}
-{%- set pbisRpms = join_elx.connectorRpms %}
-
-{#- Derive service join-password (there's gotta be a less-awful way?) #}
-{%-
-    set joinPass = salt.cmd.run('echo "' + svcPasswdCrypt + '" | \
-        openssl enc -aes-256-ecb -a -d -salt -pass pass:"' + svcPasswdUlk + '"'
-    )
-%}
-
 PBIS-stageFile:
   file.managed:
-    - name: '/var/tmp/{{ pbisPkg }}'
-    - source: '{{ repoHost }}/{{ repoPath }}/{{ pbisPkg}}'
-    - source_hash: '{{ repoHost }}/{{ repoPath }}/{{ pbisHash}}'
+    - name: '/var/tmp/{{ join_domain.package_name }}'
+    - source: '{{ join_domain.repo_uri_host }}/{{ join_domain.repo_uri_root_path }}/{{ join_domain.package_name }}'
+    - source_hash: '{{ join_domain.repo_uri_host }}/{{ join_domain.repo_uri_root_path }}/{{ join_domain.package_hash }}'
     - user: root
     - group: root
     - mode: 0700
 
 PBIS-installsh:
   cmd.script:
-    - name: 'install.sh /var/tmp/{{ pbisPkg }}'
+    - name: 'install.sh /var/tmp/{{ join_domain.package_name }}'
     - source: 'salt://{{ files }}/install.sh'
     - cwd: '/root'
     - stateful: True
@@ -70,7 +39,7 @@ PBIS-NETBIOSfix:
 
 PBIS-KillCollision:
   cmd.script:
-    - name: 'fix-collisions.sh "{{ domainFqdn }}" "{{ domainAcct }}" "{{ svcPasswdCrypt }}" "{{ svcPasswdUlk }}"'
+    - name: 'fix-collisions.sh "{{ join_domain.dns_name }}" "{{ join_domain.username }}" "{{ join_domain.encrypted_password }}" "{{ join_domain.key }}"'
     - source: 'salt://{{ files }}/fix-collisions.sh'
     - cwd: '/root'
     - require:
@@ -78,7 +47,7 @@ PBIS-KillCollision:
 
 PBIS-join:
   cmd.script:
-    - name: 'join.sh "{{ domainShort }}" "{{ domainFqdn }}" "{{ domainAcct }}" "{{ svcPasswdCrypt }}" "{{ svcPasswdUlk }}" "{{ domainOuPath }}"'
+    - name: 'join.sh "{{ join_domain.netbios_name }}" "{{ join_domain.dns_name }}" "{{ join_domain.username }}" "{{ join_domain.encrypted_password }}" "{{ join_domain.key }}" "{{ join_domain.oupath }}"'
     - source: 'salt://{{ files }}/join.sh'
     - cwd: '/root'
     - stateful: True

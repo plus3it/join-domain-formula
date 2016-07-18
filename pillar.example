@@ -55,7 +55,7 @@ join-domain:
     #install_db_dir: '/var/lib/pbis/db'
 
     # List of RPMs to look for
-    #connectorRpms:
+    #connector_rpms:
     #  - 'pbis-open-legacy'
     #  - 'pbis-open'
     #  - 'pbis-open-devel'
@@ -63,7 +63,7 @@ join-domain:
     #  - 'pbis-open-upgrade'
 
     # List of critical files to look for
-    #checkFiles:
+    #check_files:
     #  - 'registry.db'
     #  - 'sam.db'
     #  - 'lwi_events.db'
