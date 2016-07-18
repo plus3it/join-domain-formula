@@ -27,7 +27,7 @@ PBIS-config-iShell:
          printf "comment='Forced user default-shell to nicer value'\n")
     - stateful: True
     - require:
-      - cmd: PBIS-installsh
+      - cmd: PBIS-join
 
 PBIS-config-uHome:
   cmd.run:
@@ -41,7 +41,7 @@ PBIS-config-uHome:
          printf "comment='Forced home-directory location to nicer value'\n")
     - stateful: True
     - require:
-      - cmd: PBIS-installsh
+      - cmd: PBIS-join
 
 PBIS-config-TrustIgnore:
   cmd.run:
@@ -52,7 +52,7 @@ PBIS-config-TrustIgnore:
          printf "comment='Forced DomainManagerIgnoreAllTrusts to true'")
     - stateful: True
     - require:
-      - cmd: PBIS-installsh
+      - cmd: PBIS-join
 
 PBIS-config-TrustList:
   cmd.run:
@@ -65,4 +65,4 @@ PBIS-config-TrustList:
          printf "{{ join_domain.dns_name }}'")
     - stateful: True
     - require:
-      - cmd: PBIS-installsh
+      - cmd: PBIS-join
