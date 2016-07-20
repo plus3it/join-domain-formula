@@ -1,10 +1,10 @@
 #!/bin/sh
 #
-# This script is designed to fix PAM stack-order munging that may 
-# be caused by the PBIS package's "join" operations. When the 
-# pam_faillock module is present in /etc/pam.d/password-auth, 
-# PBIS places its edits in the wrong place, preventing 
-# password-based authentication from PBIS-managed SSH users from 
+# This script is designed to fix PAM stack-order munging that may
+# be caused by the PBIS package's "join" operations. When the
+# pam_faillock module is present in /etc/pam.d/password-auth,
+# PBIS places its edits in the wrong place, preventing
+# password-based authentication from PBIS-managed SSH users from
 # working.
 #
 #################################################################
