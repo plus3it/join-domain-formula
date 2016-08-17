@@ -47,12 +47,12 @@ function DomainJoin() {
       none|None|NONE|UNDEF)
          domainjoin-cli join --assumeDefaultDomain \
            yes --userDomainPrefix ${DOMSHORT} ${DOMFQDN} \
-           ${SVCACCT} ${SVCPASS} # > /dev/null 2>&1
+           "${SVCACCT}" "${SVCPASS}" # > /dev/null 2>&1
          ;;
       *)
          domainjoin-cli join --ou "${JOINOU}" --assumeDefaultDomain \
            yes --userDomainPrefix ${DOMSHORT} ${DOMFQDN} \
-           ${SVCACCT} ${SVCPASS} # > /dev/null 2>&1
+           "${SVCACCT}" "${SVCPASS}" # > /dev/null 2>&1
          ;;
 esac
 
