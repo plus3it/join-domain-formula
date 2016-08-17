@@ -27,6 +27,7 @@ SVCACCT=${3:-UNDEF}
 PWCRYPT=${4:-UNDEF}
 PWUNLOCK=${5:-UNDEF}
 JOINOU=${6:-UNDEF}
+JOINOU=${JOINOU// /\ }
 JOINSTAT=$(/opt/pbis/bin/pbis-status | \
              awk '/^[ 	][ 	]*Status:/{print $2}')
 
@@ -41,11 +42,21 @@ function PWdecrypt() {
 
 # Attempt to join client to domain
 function DomainJoin() {
-   local JOINSTAT=$(domainjoin-cli join ${TARGOU} --assumeDefaultDomain \
-                    yes --userDomainPrefix ${DOMSHORT} ${DOMFQDN} \
-                    ${SVCACCT} ${SVCPASS} > /dev/null 2>&1)$?
+   # Srsly? Shellacked by '/" encapsulation...
+   case "${JOINOU}" in
+      none|None|NONE|UNDEF)
+         domainjoin-cli join --assumeDefaultDomain \
+           yes --userDomainPrefix ${DOMSHORT} ${DOMFQDN} \
+           ${SVCACCT} ${SVCPASS} # > /dev/null 2>&1
+         ;;
+      *)
+         domainjoin-cli join --ou "${JOINOU}" --assumeDefaultDomain \
+           yes --userDomainPrefix ${DOMSHORT} ${DOMFQDN} \
+           ${SVCACCT} ${SVCPASS} # > /dev/null 2>&1
+         ;;
+esac
 
-   if [[ ${JOINSTAT} -eq 0 ]]
+   if [[ $? -eq 0 ]]
    then
       printf "\n"
       printf "changed=yes comment='Joined client to domain ${DOMSHORT}.'\n"
@@ -75,16 +86,6 @@ then
    echo "Failed to pass a required parameter. Aborting."
    exit 1
 fi
-
-# Set parms necessary to do a targeted-OU join
-case ${JOINOU} in
-    none|None|NONE|UNDEF)
-       TARGOU=""
-       ;;
-    *)
-       TARGOU="--ou ${JOINOU}"
-       ;;
-esac
 
 
 # Execute join-attempt as necessary...
