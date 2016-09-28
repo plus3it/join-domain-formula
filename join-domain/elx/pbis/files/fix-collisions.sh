@@ -42,7 +42,7 @@ else
 fi
 
 # Generic vars
-ADTOOL=$(rpm -ql pbis-open | grep adtool$)
+ADTOOL=$(rpm -qla pbis-open pbis-enterprise | grep adtool$)
 NODENAME=$(hostname -s)
 
 
@@ -66,7 +66,8 @@ function CheckMyJoinState() {
    # Try to accommodate back-to-back (ab)use cases
    # This should ensure that the adcache file exists if the
    # host is properly configured to talk to AD
-   if [[ $(rpm -q --quiet pbis-open)$? -eq 0 ]] &&
+   HAVERPM=$(rpm -qa --quiet pbis-open pbis-enterprise)
+   if [[ "${HAVERPM}" != "" ]] &&
       [[ ! -e /var/lib/pbis/db/lsass-adcache.filedb.${CHKDOM} ]]
    then
       service lwsmd restart > /dev/null 2>&1

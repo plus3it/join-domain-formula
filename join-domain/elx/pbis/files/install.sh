@@ -6,7 +6,7 @@
 #
 #################################################################
 PBISPKG="${1:-UNDEF}"
-INSTPBISVERS="$(rpm --qf '%{version}\n' -q pbis-open)"
+INSTPBISVERS="$(rpm --qf '%{version}\n' -qa pbis-open pbis-enterprise)"
 ISINSTALLED=$(echo "${PBISPKG}" | grep -- "-${INSTPBISVERS}.")
 
 
