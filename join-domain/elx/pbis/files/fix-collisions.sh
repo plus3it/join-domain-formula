@@ -97,20 +97,32 @@ function CheckObject() {
 
 # Kill the collision
 function NukeCollision() {
-   if [[ $(${ADTOOL} -d ${DOMAIN} -n ${USERID}@${DOMAIN} \
-           -x "${PASSWORD}" -a delete-object --dn="$(CheckObject)" \
-           --force > /dev/null 2>&1)$? -eq 0 ]]
-   then
-      printf "\n"
-      printf "changed=yes comment='Deleted ${NODENAME} from "
-      printf "the directory'\n"
-      exit 0
-   else
-      printf "\n"
-      printf "changed=no comment='Failed to delete ${NODENAME} "
-      printf "from the directory'\n"
-      exit 1
-   fi
+   local LOOP=0
+
+   while [ $LOOP -le 5 ]
+   do
+      ${ADTOOL} -d ${DOMAIN} -n ${USERID}@${DOMAIN} -x "${PASSWORD}" \
+         -a delete-object --dn="$(CheckObject)" --force > /dev/null 2>&1
+
+      if [[ $? -eq 0 ]]
+      then
+         printf "\n"
+         printf "changed=yes comment='Deleted ${NODENAME} from "
+         printf "the directory'\n"
+         exit 0
+      fi
+
+      local RND=$(shuf -i 1-15 -n 1)
+      logger -p user.warn -t "pbis-join(nuke)" "Retrying nuke-attempt in $RND seconds"
+      sleep ${RND}
+
+      (( LOOP++ ))
+   done
+
+   printf "\n"
+   printf "changed=no comment='Failed to delete ${NODENAME} "
+   printf "from the directory'\n"
+   exit 1
 }
 
 
@@ -128,7 +140,7 @@ then
 elif [[ $(CheckMyJoinState) = "LOCALLYBOUND" ]]
 then
    printf "\n"
-   printf "changed=no comment='Local system has active join config present"
+   printf "changed=no comment='Local system has active join config present "
    printf "in the directory'\n"
    exit 0
 else

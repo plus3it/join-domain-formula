@@ -15,6 +15,11 @@ then
    bash ${PBISPKG} -- --dont-join --legacy install > /dev/null 2>&1
    if [[ $? -eq 0 ]]
    then
+      # There's a slight delay between binaries' install and
+      # availability/readiness of service-components. Setting 
+      # static-delay until something more dynamic proves necessary
+      sleep 5
+
       printf "\n"
       printf "changed=yes comment='Installed RPMs from ${PBISPKG}.'\n"
       exit 0
