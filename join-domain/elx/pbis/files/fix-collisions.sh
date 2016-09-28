@@ -104,7 +104,7 @@ function NukeCollision() {
       ${ADTOOL} -d ${DOMAIN} -n ${USERID}@${DOMAIN} -x "${PASSWORD}" \
          -a delete-object --dn="$(CheckObject)" --force > /dev/null 2>&1
 
-      if [[ $? -eq 0 ]]
+      if [[ $(sleep 5 ; CheckObject) = "NONE" ]]
       then
          printf "\n"
          printf "changed=yes comment='Deleted ${NODENAME} from "
