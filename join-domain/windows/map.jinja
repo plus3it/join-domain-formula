@@ -27,6 +27,18 @@
 
 {%- do join_domain.update(salt['grains.get']('join-domain', {})) %}
 
+{%- set wrapper = {
+    'name' : opts['cachedir'] ~ '\\extfiles\\join-domain\\Invoke-ScriptDeleteTask.ps1',
+    'source' : 'salt://' ~ tpldir ~ '/files/Invoke-ScriptDeleteTask.ps1'
+} %}
+
+{%- set new_member = {
+    'name' : opts['cachedir'] ~ '\\extfiles\\join-domain\\New-LocalGroupMember.ps1',
+    'source' : 'salt://' ~ tpldir ~ '/files/New-LocalGroupMember.ps1'
+} %}
+
 {%- do join_domain.update({
-    'admins' : admins
+    'admins' : admins,
+    'wrapper' : wrapper,
+    'new_member' : new_member
 }) %}
