@@ -44,41 +44,29 @@ join standalone system to domain:
     - shell: powershell
     - stateful: true
 
-{%- for admin in join_domain.admins %}
+{%- if join_domain.admins %}
+{%- set admins = join_domain.admins|string|replace('[','')|replace(']','') %}
 
-add local administrator - {{ admin }}:
-  cmd.run:
-    - name: '
-      $group = [ADSI]"WinNT://$env:COMPUTERNAME/Administrators,group";
-      $groupmembers = @( @( $group.Invoke("Members") ) | foreach {
-        $_.GetType().InvokeMember("Name",
-        "GetProperty", $null, $_, $null)
-      });
-      if ( $groupmembers -contains "{{ admin }}" )
-      {
-        "changed=no
-         comment=`"[{{ admin }}] is already a local administrator.`"
-         domain=`"{{ join_domain.netbios_name }}`" user=`"{{ admin }}`""
-      }
-      else
-      {
-        try
-        {
-          $group.Add(
-            "WinNT://{{ join_domain.netbios_name }}/{{ admin }},group");
-          "changed=yes
-           comment=`"Added [{{ admin }}] as a local administrator.`"
-           domain=`"{{ join_domain.netbios_name }}`" user=`"{{ admin }}`""
-        }
-        catch
-        {
-          throw "Failed to add [{{ admin }}] as a local administor.`n$Error[0]"
-        }
-      }
-    '
+manage wrapper script:
+  file.managed:
+    - name: {{ join_domain.wrapper.name }}
+    - source: {{ join_domain.wrapper.source }}
+    - makedirs: true
+
+manage new member script:
+  file.managed:
+    - name: {{ join_domain.new_member.name }}
+    - source: {{ join_domain.new_member.source }}
+    - makedirs: true
+
+register startup task:
+  cmd.script:
+    - name: salt://{{ tpldir }}/files/Register-RunOnceStartupTask.ps1
+    - args: -InvokeScript "{{ join_domain.wrapper.name }}" -RunOnceScript "{{ join_domain.new_member.name }}" -Members {{ admins }} -DomainNetBiosName {{ join_domain.netbios_name }}
     - shell: powershell
-    - stateful: true
     - require:
-      - cmd: join standalone system to domain
+      - file: manage wrapper script
+      - file: manage new member script
+      - script: join standalone system to domain
 
-{%- endfor %}
+{%- endif %}
