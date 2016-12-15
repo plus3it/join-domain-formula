@@ -65,7 +65,7 @@ then
          echo ${NEWFQDN} > /etc/sysconfig/hostname.fqdn-new
 
          printf "\n"
-         printf "changed=yes comment='Changed hostname to ${NEWFQDN}.'\n"
+         printf "changed=yes comment='Changed hostname from ${OLDFQDN} to ${NEWFQDN}.'\n"
          exit 0
       else
          printf "\n"
