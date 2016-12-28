@@ -67,6 +67,6 @@ register startup task:
     - require:
       - file: manage wrapper script
       - file: manage new member script
-      - script: join standalone system to domain
+      - cmd: join standalone system to domain
 
 {%- endif %}
