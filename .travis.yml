@@ -23,6 +23,13 @@ script:
       --pillar-root=$SALT_PILLARROOT \
       state.show_sls \
       $SALT_STATE
+  - |
+    sudo salt-call --local --retcode-passthrough --log-file-level debug \
+      --file-root=$TRAVIS_BUILD_DIR \
+      --pillar-root=$SALT_PILLARROOT \
+      state.sls \
+      $SALT_STATE \
+      mock=True
 
 after_failure:
   - sudo salt-call --local grains.items

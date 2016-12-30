@@ -29,6 +29,14 @@ test_script:
         --pillar-root="${env:SALT_PILLARROOT}" `
         state.show_sls `
         "${env:SALT_STATE}"
+  - ps: |
+      C:\salt\salt-call.bat --local --retcode-passthrough `
+        --log-file-level debug `
+        --file-root="${env:SALT_FILEROOT}" `
+        --pillar-root="${env:SALT_PILLARROOT}" `
+        state.sls `
+        "${env:SALT_STATE}" `
+        mock=True
 
 on_failure:
   - ps: C:\salt\salt-call.bat --local grains.items
