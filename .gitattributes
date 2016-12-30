@@ -17,3 +17,5 @@
 *.RTF	 diff=astextplain
 
 /join-domain/elx/** text eol=lf
+/tests/** text eol=lf
+appveyor.yml eol=lf

@@ -1,13 +1,41 @@
 language: python
-
 python:
   - "2.6"
   - "2.7"
-  - "3.3"
-  - "3.4"
+env:
+  global:
+    - LD_PRELOAD=/lib/x86_64-linux-gnu/libSegFault.so
+    - SEGFAULT_SIGNALS=all
+    - SALT_STATE=join-domain.elx
+  matrix:
+    - SALT_PILLARROOT=$TRAVIS_BUILD_DIR/tests/pillar/test-linux-main
 
-sudo: false
+sudo: true
+install:
+  - sudo pip install salt
+  - sudo pip --version
+  - sudo salt-call --versions-report
 
-install: true
+script:
+  - |
+    sudo salt-call --local --retcode-passthrough --log-file-level debug \
+      --file-root=$TRAVIS_BUILD_DIR \
+      --pillar-root=$SALT_PILLARROOT \
+      state.show_sls \
+      $SALT_STATE
+  - |
+    sudo salt-call --local --retcode-passthrough --log-file-level debug \
+      --file-root=$TRAVIS_BUILD_DIR \
+      --pillar-root=$SALT_PILLARROOT \
+      state.sls \
+      $SALT_STATE \
+      mock=True
 
-script: true
+after_failure:
+  - sudo salt-call --local grains.items
+  - sudo set
+  - sudo more /var/log/salt/* | cat
+notifications:
+  email:
+    on_success: never
+    on_failure: always
