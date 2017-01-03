@@ -1,30 +1,49 @@
 language: python
-python:
-  - "2.6"
-  - "2.7"
+sudo: required
 env:
   global:
     - LD_PRELOAD=/lib/x86_64-linux-gnu/libSegFault.so
     - SEGFAULT_SIGNALS=all
-    - SALT_STATE=join-domain.elx
+    - SALT_STATE=join-domain
   matrix:
-    - SALT_PILLARROOT=$TRAVIS_BUILD_DIR/tests/pillar/test-linux-main
+    - OS_VERSION=6 SALT_PILLARROOT=$TRAVIS_BUILD_DIR/tests/pillar/test-linux-main
+    - OS_VERSION=7 SALT_PILLARROOT=$TRAVIS_BUILD_DIR/tests/pillar/test-linux-main
 
-sudo: true
+services:
+  - docker
+
+before_install:
+  - sudo apt-get update
+  - |
+    echo 'DOCKER_OPTS="-H tcp://127.0.0.1:2375 -H unix:///var/run/docker.sock -s devicemapper"' | \
+      sudo tee /etc/default/docker > /dev/null
+  - sudo service docker restart
+  - sleep 5
+  - sudo docker pull centos:centos${OS_VERSION}
+
 install:
-  - sudo pip install salt
-  - sudo pip --version
-  - sudo salt-call --versions-report
+  - |
+    sudo docker run --detach --privileged \
+      --volume="${TRAVIS_BUILD_DIR}":"${TRAVIS_BUILD_DIR}":ro \
+      --volume=/sys/fs/cgroup:/sys/fs/cgroup:ro \
+      --name centos-${OS_VERSION} centos:${OS_VERSION} init
+  - |
+    sudo docker exec centos-${OS_VERSION} yum -y install \
+      https://repo.saltstack.com/yum/redhat/salt-repo-latest-1.el${OS_VERSION}.noarch.rpm
+  - sudo docker exec centos-${OS_VERSION} yum -y install salt-minion util-linux-ng
+  - sudo docker exec centos-${OS_VERSION} salt-call --versions-report
 
 script:
   - |
-    sudo salt-call --local --retcode-passthrough --log-file-level debug \
+    sudo docker exec centos-${OS_VERSION} salt-call --local \
+      --retcode-passthrough --log-file-level debug \
       --file-root=$TRAVIS_BUILD_DIR \
       --pillar-root=$SALT_PILLARROOT \
       state.show_sls \
       $SALT_STATE
   - |
-    sudo salt-call --local --retcode-passthrough --log-file-level debug \
+    sudo docker exec centos-${OS_VERSION} salt-call --local \
+      --retcode-passthrough --log-file-level debug \
       --file-root=$TRAVIS_BUILD_DIR \
       --pillar-root=$SALT_PILLARROOT \
       state.sls \
@@ -32,9 +51,13 @@ script:
       mock=True
 
 after_failure:
-  - sudo salt-call --local grains.items
-  - sudo set
-  - sudo more /var/log/salt/* | cat
+  - sudo docker exec centos-${OS_VERSION} salt-call --local grains.items
+  - sudo docker exec centos-${OS_VERSION} sh -c set
+  - sudo docker exec centos-${OS_VERSION} more /var/log/salt/* | cat
+
+after_script:
+  - sudo docker stop centos-${OS_VERSION}
+
 notifications:
   email:
     on_success: never
