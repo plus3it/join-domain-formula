@@ -1,4 +1,5 @@
 #!/bin/sh
+set -x
 #
 # Helper-script to more-intelligently handle joining PBIS client
 # to domain. Script replaces "PBIS-join" cmd.run method with
@@ -34,8 +35,8 @@ JOINSTAT=$(/opt/pbis/bin/pbis-status | \
 
 # Get clear-text password from crypt
 function PWdecrypt() {
-   local PWCLEAR=$(echo "${PWCRYPT}" | openssl enc -aes-256-ecb -a -d \
-                   -salt -pass pass:"${PWUNLOCK}")
+   local PWCLEAR=$(echo "${PWCRYPT}" | \
+                   openssl aes-256-cbc -md sha256 -a -d -k "${PWUNLOCK}")
 
    echo ${PWCLEAR}
 }
@@ -75,11 +76,11 @@ esac
 #########################
 
 # Make sure all were the parms were passed
-if [[ ${DOMSHORT} = "UNDEF" ]] || \
-   [[ ${DOMFQDN} = "UNDEF" ]] || \
-   [[ ${SVCACCT} = "UNDEF" ]] || \
-   [[ ${PWCRYPT} = "UNDEF" ]] || \
-   [[ ${PWUNLOCK} = "UNDEF" ]]
+if [[ ${DOMSHORT} = UNDEF ]] || \
+   [[ ${DOMFQDN} = UNDEF ]] || \
+   [[ ${SVCACCT} = UNDEF ]] || \
+   [[ ${PWCRYPT} = UNDEF ]] || \
+   [[ ${PWUNLOCK} = UNDEF ]]
 then
    printf "Usage: $0 <SHORT_DOMAIN> <DOMAIN_FQDN> <SVC_ACCT> "
    printf "<JOIN_PASS_CRYPT> <JOIN_PASS_UNLOCK>\n"

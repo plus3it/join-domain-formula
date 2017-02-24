@@ -74,7 +74,7 @@ Set of parameters used for joining a AD-client to its domain:
     "/"-delimited path to the OU the computer account will be housed within.
 
 -   *`encrypted_password`*: This is an encrypted representation of the
-    `join_svc_acct` service account's password. Use `openssl`'s `aes-256-ecb`
+    `join_svc_acct` service account's password. Use `openssl`'s `aes-256-cbc`
     encryption option to create the encrypted-string.
 
 -   *`key`*: The string passed to `openssl` to encrypt/decrypt the
@@ -169,16 +169,17 @@ use `openssl`'s `enc` functionality to generate the reversible crypt-sting via
 a method similar to the following.
 
 ```bash
-echo "MyP@ssw*rd5tr1ng" | openssl enc -aes-256-ecb -a -e -salt -pass pass:"F_6ln9jV3X"
-U2FsdGVkX1/WgQtZRqlwwl67JQYHnsQce0dask0TuyqTnAXH8aGTfb/JLiOGUq4O
+$ echo "MyP@ssw*rd5tr1ng" | \
+   openssl enc -aes-256-cbc -md sha256 -a -e -salt -pass pass:"F_6ln9jV3X"
+U2FsdGVkX19pOx6FMnowkQ9vVGmHPuL5xWFwY5+EnB7Wy4rYze5HDmSZoTitwZDO
 ```
 
 After generating the crypt-string, verify its reversibility by doing something
 similar to the following:
 
 ```bash
-echo "U2FsdGVkX1/WgQtZRqlwwl67JQYHnsQce0dask0TuyqTnAXH8aGTfb/JLiOGUq4O" | \
-openssl enc -aes-256-ecb -a -d -salt -pass pass:"F_6ln9jV3X"
+echo "U2FsdGVkX19pOx6FMnowkQ9vVGmHPuL5xWFwY5+EnB7Wy4rYze5HDmSZoTitwZDO" | \
+   openssl enc -aes-256-cbc -md sha256 -a -d -salt -pass pass:"F_6ln9jV3X"
 MyP@ssw*rd5tr1ng
 ```
 
