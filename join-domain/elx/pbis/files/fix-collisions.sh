@@ -52,8 +52,8 @@ NODENAME=$(hostname -s)
 
 # Decrypt Join Password
 function PWdecrypt() {
-   local PWCLEAR=$(echo "${PASSCRYPT}" | openssl enc -aes-256-ecb -a -d \
-                   -salt -pass pass:"${PASSULOCK}")
+   local PWCLEAR=$(echo "${PASSCRYPT}" | openssl enc -aes-256-cbc -md sha256 \
+                   -a -d -salt -pass pass:"${PASSULOCK}")
 
    echo ${PWCLEAR}
 }
