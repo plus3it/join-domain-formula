@@ -52,10 +52,15 @@ NODENAME=$(hostname -s)
 
 # Decrypt Join Password
 function PWdecrypt() {
-   local PWCLEAR=$(echo "${PASSCRYPT}" | openssl enc -aes-256-cbc -md sha256 \
-                   -a -d -salt -pass pass:"${PASSULOCK}")
-
-   echo ${PWCLEAR}
+   local PWCLEAR
+   PWCLEAR=$(echo "${PASSCRYPT}" | openssl enc -aes-256-cbc -md sha256 -a -d \
+             -salt -pass pass:"${PASSULOCK}")
+   if [[ $? -ne 0 ]]
+   then
+     echo ""
+   else
+     echo "${PWCLEAR}"
+   fi
 }
 
 
@@ -132,10 +137,17 @@ function NukeCollision() {
 ######################
 PASSWORD=$(PWdecrypt)
 
+if [[ -z "${PASSWORD}" ]]
+then
+  printf "\n"
+  printf "changed=no comment='Failed to decrypt password'\n"
+  exit 1
+fi
+
 if [[ $(CheckObject) = NONE ]]
 then
    printf "\n"
-   printf "changed=no comment='No collisions for ${NODENAME} found"
+   printf "changed=no comment='No collisions for ${NODENAME} found "
    printf "in the directory'\n"
    exit 0
 elif [[ $(CheckMyJoinState) = "LOCALLYBOUND" ]]
