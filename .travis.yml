@@ -1,62 +1,99 @@
-language: python
+language: shell
 sudo: required
 env:
   global:
     - LD_PRELOAD=/lib/x86_64-linux-gnu/libSegFault.so
     - SEGFAULT_SIGNALS=all
-    - SALT_STATE=join-domain
-  matrix:
-    - OS_VERSION=6 SALT_PILLARROOT=$TRAVIS_BUILD_DIR/tests/pillar/test-linux-main
-    - OS_VERSION=7 SALT_PILLARROOT=$TRAVIS_BUILD_DIR/tests/pillar/test-linux-main
 
-services:
-  - docker
+matrix:
+  include:
+    - env:
+        - TESTENV=salt
+        - OS_VERSION=6
+        - SALT_PILLARROOT=$TRAVIS_BUILD_DIR/tests/pillar/test-linux-main
+        - SALT_STATE=join-domain
+      services:
+        - docker
+    - env:
+        - TESTENV=salt
+        - OS_VERSION=7
+        - SALT_PILLARROOT=$TRAVIS_BUILD_DIR/tests/pillar/test-linux-main
+        - SALT_STATE=join-domain
+      services:
+        - docker
+    - env:
+        - TESTENV=shellcheck
+        - SHELLCHECK_OPTS="-s bash"
+      addons:
+        apt:
+          sources:
+            - debian-sid    # Grab ShellCheck from the Debian repo
+          packages:
+            - shellcheck
 
 before_install:
   - sudo apt-get update
   - |
-    echo 'DOCKER_OPTS="-H tcp://127.0.0.1:2375 -H unix:///var/run/docker.sock -s devicemapper"' | \
-      sudo tee /etc/default/docker > /dev/null
-  - sudo service docker restart
-  - sleep 5
-  - sudo docker pull centos:centos${OS_VERSION}
+    if [ "${TESTENV}" = "salt" ]
+    then
+      echo 'DOCKER_OPTS="-H tcp://127.0.0.1:2375 -H unix:///var/run/docker.sock -s devicemapper"' | \
+        sudo tee /etc/default/docker > /dev/null
+      sudo service docker restart
+      sleep 5
+      sudo docker pull centos:centos${OS_VERSION}
+    fi
 
 install:
   - |
-    sudo docker run --detach --privileged \
-      --volume="${TRAVIS_BUILD_DIR}":"${TRAVIS_BUILD_DIR}":ro \
-      --volume=/sys/fs/cgroup:/sys/fs/cgroup:ro \
-      --name centos-${OS_VERSION} centos:${OS_VERSION} init
-  - |
-    sudo docker exec centos-${OS_VERSION} yum -y install \
-      https://repo.saltstack.com/yum/redhat/salt-repo-latest-1.el${OS_VERSION}.noarch.rpm
-  - sudo docker exec centos-${OS_VERSION} yum -y install salt-minion util-linux-ng
-  - sudo docker exec centos-${OS_VERSION} salt-call --versions-report
+    if [ "${TESTENV}" = "salt" ]
+    then
+      sudo docker run --detach --privileged \
+        --volume="${TRAVIS_BUILD_DIR}":"${TRAVIS_BUILD_DIR}":ro \
+        --volume=/sys/fs/cgroup:/sys/fs/cgroup:ro \
+        --name centos-${OS_VERSION} centos:${OS_VERSION} init
+      sudo docker exec centos-${OS_VERSION} yum -y install \
+        https://repo.saltstack.com/yum/redhat/salt-repo-latest-1.el${OS_VERSION}.noarch.rpm
+      sudo docker exec centos-${OS_VERSION} yum -y install salt-minion util-linux-ng
+      sudo docker exec centos-${OS_VERSION} salt-call --versions-report
+    fi
 
 script:
   - |
-    sudo docker exec centos-${OS_VERSION} salt-call --local \
-      --retcode-passthrough --log-file-level debug \
-      --file-root=$TRAVIS_BUILD_DIR \
-      --pillar-root=$SALT_PILLARROOT \
-      state.show_sls \
-      $SALT_STATE
-  - |
-    sudo docker exec centos-${OS_VERSION} salt-call --local \
-      --retcode-passthrough --log-file-level debug \
-      --file-root=$TRAVIS_BUILD_DIR \
-      --pillar-root=$SALT_PILLARROOT \
-      state.sls \
-      $SALT_STATE \
-      mock=True
+    if [ "${TESTENV}" = "salt" ]
+    then
+      sudo docker exec centos-${OS_VERSION} salt-call --local \
+        --retcode-passthrough --log-file-level debug \
+        --file-root=$TRAVIS_BUILD_DIR \
+        --pillar-root=$SALT_PILLARROOT \
+        state.show_sls \
+        $SALT_STATE
+      sudo docker exec centos-${OS_VERSION} salt-call --local \
+        --retcode-passthrough --log-file-level debug \
+        --file-root=$TRAVIS_BUILD_DIR \
+        --pillar-root=$SALT_PILLARROOT \
+        state.sls \
+        $SALT_STATE \
+        mock=True
+    elif [ "${TESTENV}" = "shellcheck" ]
+    then
+      find $TRAVIS_BUILD_DIR -name '*.sh' -type f -print0 | xargs -0 -n1 shellcheck
+    fi
 
 after_failure:
-  - sudo docker exec centos-${OS_VERSION} salt-call --local grains.items
-  - sudo docker exec centos-${OS_VERSION} sh -c set
-  - sudo docker exec centos-${OS_VERSION} more /var/log/salt/* | cat
+  - |
+    if [ "${TESTENV}" = "salt" ]
+    then
+      sudo docker exec centos-${OS_VERSION} salt-call --local grains.items
+      sudo docker exec centos-${OS_VERSION} sh -c set
+      sudo docker exec centos-${OS_VERSION} more /var/log/salt/* | cat
+    fi
 
 after_script:
-  - sudo docker stop centos-${OS_VERSION}
+  - |
+    if [ "${TESTENV}" = "salt" ]
+    then
+      sudo docker stop centos-${OS_VERSION}
+    fi
 
 notifications:
   email:
