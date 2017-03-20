@@ -35,10 +35,15 @@ JOINSTAT=$(/opt/pbis/bin/pbis-status | \
 
 # Get clear-text password from crypt
 function PWdecrypt() {
-   local PWCLEAR=$(echo "${PWCRYPT}" | \
-                   openssl aes-256-cbc -md sha256 -a -d -k "${PWUNLOCK}")
-
-   echo ${PWCLEAR}
+   local PWCLEAR
+   PWCLEAR=$(echo "${PWCRYPT}" | openssl enc -aes-256-cbc -md sha256 -a -d \
+             -salt -pass pass:"${PWUNLOCK}")
+   if [[ $? -ne 0 ]]
+   then
+     echo ""
+   else
+     echo "${PWCLEAR}"
+   fi
 }
 
 # Attempt to join client to domain
@@ -93,6 +98,12 @@ fi
 case ${JOINSTAT} in
    Unknown)
       SVCPASS="$(PWdecrypt)"
+      if [[ -z "${SVCPASS}" ]]
+      then
+        printf "\n"
+        printf "changed=no comment='Failed to decrypt password'\n"
+        exit 1
+      fi
       DomainJoin
       ;;
    Online)
