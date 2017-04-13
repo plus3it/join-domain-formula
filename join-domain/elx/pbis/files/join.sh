@@ -1,5 +1,4 @@
 #!/bin/sh
-set -x
 #
 # Helper-script to more-intelligently handle joining PBIS client
 # to domain. Script replaces "PBIS-join" cmd.run method with

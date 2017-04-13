@@ -71,15 +71,15 @@ function CheckMyJoinState() {
    # Try to accommodate back-to-back (ab)use cases
    # This should ensure that the adcache file exists if the
    # host is properly configured to talk to AD
-   HAVERPM=$(rpm -qa --quiet pbis-open pbis-enterprise)
+   HAVERPM=$(rpm -qa pbis-open pbis-enterprise)
    if [[ "${HAVERPM}" != "" ]] &&
-      [[ ! -e /var/lib/pbis/db/lsass-adcache.filedb.${CHKDOM} ]]
+      [[ ! -e /var/lib/pbis/krb5cc_lsass.${CHKDOM} ]]
    then
       service lwsmd restart > /dev/null 2>&1
    fi
 
    # See if adcache file exists - return value if it does
-   if [[ -e /var/lib/pbis/db/lsass-adcache.filedb.${CHKDOM} ]]
+   if [[ -e /var/lib/pbis/krb5cc_lsass.${CHKDOM} ]]
    then
       echo "LOCALLYBOUND"
    fi
