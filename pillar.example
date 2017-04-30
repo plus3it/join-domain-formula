@@ -16,6 +16,7 @@ join-domain:
     #oupath:
     #admin_users:
     #admin_groups:
+    #ec2config:
 
     ################################
     # Linux-specific pillar settings

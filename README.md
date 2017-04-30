@@ -18,15 +18,17 @@ supporting pillar.
 
 ```yaml
 join-domain:
-  windows:
-    dns_name:
-    netbios_name:
-    username:
-    encrypted_password:
-    key:
-    oupath:
-    admin_users:
-    admin_groups:
+  lookup:
+    windows:
+      dns_name:
+      netbios_name:
+      username:
+      encrypted_password:
+      key:
+      oupath:
+      admin_users:
+      admin_groups:
+      ec2config:
 ```
 
 ### Generating `key` and `encrypted_password` for Windows

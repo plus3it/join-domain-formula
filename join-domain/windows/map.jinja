@@ -9,7 +9,10 @@
 
 {%- set join_domain = salt['pillar.get'](
     'join-domain:lookup',
-    { 'oupath': '' },
+    default={
+      'oupath': '',
+      'ec2config': '$null'
+    },
     merge=True
 ) %}
 {%- set join_domain_grains = salt['grains.get']('join-domain', {}) %}
