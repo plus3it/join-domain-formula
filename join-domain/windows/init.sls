@@ -70,3 +70,11 @@ register startup task:
       - cmd: join standalone system to domain
 
 {%- endif %}
+
+set dns search suffix:
+  cmd.script:
+    - name: salt://{{ tpldir }}/files/Set-DnsSearchSuffix.ps1
+    - args: -DnsSearchSuffixes {{ join_domain.dns_name }} -Ec2ConfigSetDnsSuffixList {{ join_domain.ec2config }} -ErrorAction Stop
+    - shell: powershell
+    - require:
+      - cmd: join standalone system to domain
