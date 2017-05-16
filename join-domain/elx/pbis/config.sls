@@ -32,7 +32,7 @@ PBIS-config-Shell-{{ shell }}:
         fi
     - stateful: True
     - require:
-      - cmd: PBIS-installsh
+      - pkg: PBIS-install
 {%- endfor %}
 
 {%- for home in join_domain.pbis_user_home %}
@@ -52,7 +52,7 @@ PBIS-config-Home-{{ home }}:
         fi
     - stateful: True
     - require:
-      - cmd: PBIS-installsh
+      - pkg: PBIS-install
 {%- endfor %}
 
 PBIS-config-TrustIgnore:
@@ -71,7 +71,7 @@ PBIS-config-TrustIgnore:
         fi
     - stateful: True
     - require:
-      - cmd: PBIS-installsh
+      - pkg: PBIS-install
 
 PBIS-config-TrustList:
   cmd.run:
@@ -92,4 +92,4 @@ PBIS-config-TrustList:
         fi
     - stateful: True
     - require:
-      - cmd: PBIS-installsh
+      - pkg: PBIS-install
