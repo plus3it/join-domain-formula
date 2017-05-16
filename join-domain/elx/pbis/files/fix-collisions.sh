@@ -66,23 +66,7 @@ function PWdecrypt() {
 
 # Am I already joined
 function CheckMyJoinState() {
-   local CHKDOM=$(echo ${DOMAIN} | tr "[:lower:]" "[:upper:]")
-
-   # Try to accommodate back-to-back (ab)use cases
-   # This should ensure that the adcache file exists if the
-   # host is properly configured to talk to AD
-   HAVERPM=$(rpm -qa pbis-open pbis-enterprise)
-   if [[ "${HAVERPM}" != "" ]] &&
-      [[ ! -e /var/lib/pbis/krb5cc_lsass.${CHKDOM} ]]
-   then
-      service lwsmd restart > /dev/null 2>&1
-   fi
-
-   # See if adcache file exists - return value if it does
-   if [[ -e /var/lib/pbis/krb5cc_lsass.${CHKDOM} ]]
-   then
-      echo "LOCALLYBOUND"
-   fi
+   /opt/pbis/bin/lsa ad-get-machine account
 }
 
 
@@ -150,7 +134,7 @@ then
    printf "changed=no comment='No collisions for ${NODENAME} found "
    printf "in the directory'\n"
    exit 0
-elif [[ $(CheckMyJoinState) = "LOCALLYBOUND" ]]
+elif [[ -n "$(CheckMyJoinState)" ]]
 then
    printf "\n"
    printf "changed=no comment='Local system has active join config present "
