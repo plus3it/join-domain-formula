@@ -28,8 +28,6 @@ PWCRYPT=${4:-UNDEF}
 PWUNLOCK=${5:-UNDEF}
 JOINOU=${6:-UNDEF}
 JOINOU=${JOINOU// /\ }
-JOINSTAT=$(/opt/pbis/bin/pbis-status | \
-             awk '/^[ 	][ 	]*Status:/{print $2}')
 
 
 # Get clear-text password from crypt
@@ -43,6 +41,14 @@ function PWdecrypt() {
    else
      echo "${PWCLEAR}"
    fi
+}
+
+# Clear lsass service and get current join-status
+function JoinStatus() {
+   /opt/pbis/bin/lwsm restart lsass > /dev/null 2>&1
+   # Will take a few seconds for the status to refresh
+   sleep 3
+   /opt/pbis/bin/pbis-status | awk '/^[\t][\t]*Status:/{print $2}'
 }
 
 # Attempt to join client to domain
@@ -94,7 +100,7 @@ fi
 
 
 # Execute join-attempt as necessary...
-case ${JOINSTAT} in
+case $(JoinStatus) in
    Unknown)
       SVCPASS="$(PWdecrypt)"
       if [[ -z "${SVCPASS}" ]]

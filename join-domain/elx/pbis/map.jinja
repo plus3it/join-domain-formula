@@ -17,11 +17,9 @@ check_files:
   - lwi_events.db
   - lsass-adcache.filedb.{{ dns_name }}
 connector_rpms:
-  - pbis-open-legacy
-  - pbis-open
-  - pbis-open-devel
-  - pbis-open-gui
-  - pbis-open-upgrade
+  - pbis-open-legacy: https://s3.amazonaws.com/bits-public/beyond-trust/pbiso/pbis-open-8.5.3-293.x86_64.rpm
+  - pbis-open: https://s3.amazonaws.com/bits-public/beyond-trust/pbiso/pbis-open-legacy-8.5.3-293.x86_64.rpm
+  - pbis-open-upgrade: https://s3.amazonaws.com/bits-public/beyond-trust/pbiso/pbis-open-upgrade-8.5.3-293.x86_64.rpm
 pbis_user_home:
   - HomeDirTemplate
   - Local_HomeDirTemplate
@@ -42,6 +40,12 @@ login_shell: /bin/bash
     default = defaults,
     merge = True
 ) %}
+
+{%- do join_domain.update({
+    'connector_rpms': salt.pillar.get(
+        'join-domain:lookup:connector_rpms',
+        default = defaults.connector_rpms)
+}) %}
 
 {% do join_domain.update(
     salt.grains.get('join-domain', {})

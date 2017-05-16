@@ -11,23 +11,10 @@
 include:
   - .config
 
-PBIS-stageFile:
-  file.managed:
-    - name: '/var/tmp/{{ join_domain.package_name }}'
-    - source: '{{ join_domain.repo_uri_host }}/{{ join_domain.repo_uri_root_path }}/{{ join_domain.package_name }}'
-    - source_hash: '{{ join_domain.repo_uri_host }}/{{ join_domain.repo_uri_root_path }}/{{ join_domain.package_hash }}'
-    - user: root
-    - group: root
-    - mode: 0700
-
-PBIS-installsh:
-  cmd.script:
-    - name: 'install.sh /var/tmp/{{ join_domain.package_name }}'
-    - source: 'salt://{{ files }}/install.sh'
-    - cwd: '/root'
-    - stateful: True
-    - require:
-      - file: PBIS-stageFile
+PBIS-install:
+  pkg.installed:
+    - sources: {{ join_domain.connector_rpms }}
+    - allow_updates: True
 
 PBIS-NETBIOSfix:
   cmd.script:
@@ -36,7 +23,7 @@ PBIS-NETBIOSfix:
     - cwd: '/root'
     - stateful: True
     - require:
-      - cmd: PBIS-installsh
+      - pkg: PBIS-install
 
 PBIS-KillCollision:
   cmd.script:

@@ -39,33 +39,24 @@ join-domain:
     #  - linux^operators
 
     # AD-connector Tool
-    #ad_connector: 'pbis'
+    #ad_connector: pbis
 
-    # Programable path-elements for retrieving the PBIS self-installing
-    # archive file.
-    #repo_uri_host: 'http://S3BUCKET.F.Q.D.N'
-    #repo_uri_root_path: 'beyond-trust/linux/pbis'
-
-    # Name of installer and hash-file to download
-    #package_name: 'pbis-open-8.3.0.3287.linux.x86_64.rpm.sh'
-    #package_hash: 'pbis-open-8.3.0.3287.linux.x86_64.rpm.sh.SHA512'
+    # List of RPM sources to install
+    #connector_rpms:
+    #  - pbis-open-legacy: https://s3.amazonaws.com/bits-public/beyond-trust/pbiso/pbis-open-legacy-8.5.3-293.x86_64.rpm
+    #  - pbis-open: https://s3.amazonaws.com/bits-public/beyond-trust/pbiso/pbis-open-8.5.3-293.x86_64.rpm
+    #  - pbis-open-devel: https://s3.amazonaws.com/bits-public/beyond-trust/pbiso/pbis-open-devel-8.5.3-293.x86_64.rpm
+    #  - pbis-open-gui: https://s3.amazonaws.com/bits-public/beyond-trust/pbiso/pbis-open-gui-8.5.3-293.x86_64.rpm
+    #  - pbis-open-upgrade: https://s3.amazonaws.com/bits-public/beyond-trust/pbiso/pbis-open-upgrade-8.5.3-293.x86_64.rpm
 
     # Directories where PBIS is installed to the system
-    #install_bin_dir: '/opt/pbis'
-    #install_var_dir: '/var/lib/pbis'
-    #install_db_dir: '/var/lib/pbis/db'
-
-    # List of RPMs to look for
-    #connector_rpms:
-    #  - 'pbis-open-legacy'
-    #  - 'pbis-open'
-    #  - 'pbis-open-devel'
-    #  - 'pbis-open-gui'
-    #  - 'pbis-open-upgrade'
+    #install_bin_dir: /opt/pbis
+    #install_var_dir: /var/lib/pbis
+    #install_db_dir: /var/lib/pbis/db
 
     # List of critical files to look for
     #check_files:
-    #  - 'registry.db'
-    #  - 'sam.db'
-    #  - 'lwi_events.db'
-    #  - 'lsass-adcache.filedb.FQDN'
+    #  - registry.db
+    #  - sam.db
+    #  - lwi_events.db
+    #  - lsass-adcache.filedb.FQDN
