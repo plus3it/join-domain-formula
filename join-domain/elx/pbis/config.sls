@@ -93,3 +93,10 @@ PBIS-config-TrustList:
     - stateful: True
     - require:
       - pkg: PBIS-install
+
+PBIS-disable-NssEnumeration:
+  cmd.run:
+    - name: {{ join_domain.install_bin_dir }}/bin/config NssEnumerationEnabled false
+    - onlyif: test $({{ join_domain.install_bin_dir }}/bin/config --show NssEnumerationEnabled | grep -q -i "false")$? -ne 0
+    - require:
+      - pkg: PBIS-install
