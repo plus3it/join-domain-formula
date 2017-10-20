@@ -11,10 +11,20 @@ param(
 if ($Ec2ConfigSetDnsSuffixList -ne "null")
 {
     $EC2SettingsFile = "${env:ProgramFiles}\Amazon\Ec2ConfigService\Settings\Config.xml"
-    $xml = [xml](get-content $EC2SettingsFile)
-    $xmlElement = $xml.get_DocumentElement()
-    $xmlElement.GlobalSettings.SetDnsSuffixList = "$Ec2ConfigSetDnsSuffixList".ToLower()
-    $xml.Save($EC2SettingsFile)
+    if (Test-Path $EC2SettingsFile)
+    {
+        $xml = [xml](get-content $EC2SettingsFile)
+        $xmlElement = $xml.get_DocumentElement()
+        $xmlElement.GlobalSettings.SetDnsSuffixList = "$Ec2ConfigSetDnsSuffixList".ToLower()
+        $xml.Save($EC2SettingsFile)
+    }
 }
 
-Set-DnsClientGlobalSetting -SuffixSearchList $DnsSearchSuffixes
+if (Get-Command Set-DnsClientGlobalSetting -ErrorAction SilentlyContinue)
+{
+    Set-DnsClientGlobalSetting -SuffixSearchList $DnsSearchSuffixes
+}
+else
+{
+    Invoke-WmiMethod -Path Win32_NetworkAdapterConfiguration -Name SetDNSSuffixSearchOrder -ArgumentList $DnsSearchSuffixes
+}
