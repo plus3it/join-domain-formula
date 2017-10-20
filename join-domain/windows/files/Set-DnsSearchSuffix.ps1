@@ -20,4 +20,11 @@ if ($Ec2ConfigSetDnsSuffixList -ne "null")
     }
 }
 
-Set-DnsClientGlobalSetting -SuffixSearchList $DnsSearchSuffixes
+if (Get-Command Set-DnsClientGlobalSetting -ErrorAction SilentlyContinue)
+{
+    Set-DnsClientGlobalSetting -SuffixSearchList $DnsSearchSuffixes
+}
+else
+{
+    Invoke-WmiMethod -Path Win32_NetworkAdapterConfiguration -Name SetDNSSuffixSearchOrder -ArgumentList $DnsSearchSuffixes
+}
