@@ -7,8 +7,8 @@ This project uses a [SaltStack](http://saltstack.com/community/) [formula](https
 to automate the joining of a Windows or Linux system to an Active Directory (or
 compatible) domain.
 
-This formula has been tested against Windows Server 2012 and Enterprise Linux
-6 derivatives (Red Hat, CentOS, Scientific Linux, etc.)
+This formula has been tested against Windows Server 2012/2016 and Enterprise Linux
+6/7 derivatives (Red Hat, CentOS, Scientific Linux, etc.)
 
 This formula uses data externalized via the SaltStack "[Pillar](https://docs.saltstack.com/en/latest/topics/pillar/)"
 feature. See the sections below for the data required to be present within the
@@ -51,9 +51,27 @@ $EncryptedStringBase64 = [System.Convert]::ToBase64String($EncryptedStringBytes)
 "encrypted_password = $EncryptedStringBase64"
 ```
 
+### Permissions required to join AD Domain
+
+The following are the permissions required for the service account used to join
+computer clients to the AD domain:
+
+| Permission | Applies to |
+|:------:|:-:|
+| Create/delete computer objects | This object and all descendant objects |
+| Validated write to DNS hostname | Descendant Computer objects |
+| Validated write to service principal name | Descendant Computer objects |
+| Write operating system | Descendant Computer objects |
+| Write operating system version | Descendant Computer objects |
+| Write operating system service pack | Descendant Computer objects |
+| Write operating system hot fix | Descendant Computer objects |
+| Write description | Descendant Computer objects |
+| Read/Write account restrictions | Descendant Computer objects |
+| Read all properties | Descendant Computer objects |
+
 ## join-domain:linux
 
-The following parameters are usde to join a Linux client to Active Directory.
+The following parameters are used to join a Linux client to Active Directory.
 See the [pillar.example](pillar.example) file for pillar-data structuring.
 
 ### Information used to join host to target AD domain
