@@ -275,7 +275,7 @@ Function Find-LdapObject
             {
                 if($propDef.ContainsKey($prop))
                 {
-                    continue 
+                    continue
                 }
                 $propDef.Add($prop,$null)
             }
@@ -353,7 +353,7 @@ Function Find-LdapObject
                                         #last chunk arrived
                                         $lastRange = $true
                                     }
-                                } 
+                                }
                                 else
                                 {
                                     #nothing was found
@@ -579,31 +579,35 @@ if($DomainJoinStatus -eq $null)
     $EncryptedStringBytes = [System.Convert]::FromBase64String($EncryptedPassword)
     $ReEncryptedPassword = ConvertTo-SecureString -String "$([System.Text.UnicodeEncoding]::Unicode.GetString(($AesObject.CreateDecryptor()).TransformFinalBlock($EncryptedStringBytes, 0, $EncryptedStringBytes.Length)))" -AsPlainText -Force
     $cred = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $UserName, $ReEncryptedPassword
-    
+
     #Create the ldap connection
     $Ldap = Get-LdapConnection -LdapServer:$DomainName -Credential:$cred
-    
+
     #Create search filter using the Local Computer's NetBIOS Name
     #https://social.msdn.microsoft.com/Forums/en-US/a5690438-d9bc-4f47-b1c6-bcb35cc2d074/how-to-get-changed-computer-name-without-restarting-the-computer?forum=netfxbcl
     $ControlSetNumber = (Get-ItemProperty -path HKLM:SYSTEM\Select).Current.ToString().PadLeft(3, "0")
     $ComputerName = (get-itemproperty -path HKLM:SYSTEM\ControlSet$ControlSetNumber\Control\ComputerName\ComputerName).ComputerName
     $SearchFilter = "(&(cn=$ComputerName)(objectClass=computer))"
-    
+
     #Convert domain name to common name
     $OUSearchBase = 'dc=' + $DomainName.Replace('.',',dc=')
-    
+
     #Run LDAP search
     $result = Find-LdapObject -LdapConnection:$Ldap -SearchFilter:$SearchFilter -SearchBase:$OUSearchBase -propertiesToLoad:@("distinguishedName") -ErrorAction SilentlyContinue
     if($result)
     {
-        #if the computer object is found in AD, remove it
-        Remove-LdapObject $result.distinguishedName -LdapConnection:$Ldap
+        $resultOU = $result.distinguishedName.substring((($result.distinguishedName -replace '\,(.*)').length+1))
+        if($resultOU -ne $targetOU)
+        {
+            #if the computer object is found in AD, remove it
+            Remove-LdapObject $result.distinguishedName -LdapConnection:$Ldap
+        }
     }
 
     #Try to add the computer to the domain until AD catches up
     Retry-TestCommand -Test xAdd-Computer -Args @{DomainName=$DomainName; Credential=$cred; TargetOU=$targetOU; args=@{Options="JoinWithNewName,AccountCreate"; Force=$true; Verbose=$true; Passthru=$true; ErrorAction="SilentlyContinue";}} -Tries 3 -SecondsDelay 5 -TestProperty "hasSucceeded"
     Write-Host "changed=yes comment=`"Joined system to the domain [$DomainName].`" domain=$DomainName";
-    
+
 }
 elseif($DomainJoinStatus -eq $DomainName)
     {
