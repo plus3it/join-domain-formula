@@ -3,7 +3,7 @@
 join standalone system to domain:
   cmd.script:
     - name: salt://{{ tpldir }}/files/JoinDomain.ps1
-    - args: -DomainName "{{ join_domain.dns_name }}" -TargetOU "{{ join_domain.oupath }}" -Key "{{ join_domain.key }}" -EncryptedPassword "{{ join_domain.encrypted_password }}" -UserName "{{ join_domain.username }}"
+    - args: -DomainName "{{ join_domain.dns_name }}" -TargetOU "{{ join_domain.oupath }}" -Key "{{ join_domain.key }}" -EncryptedPassword "{{ join_domain.encrypted_password }}" -UserName "{{ join_domain.username }}" -ErrorAction Stop
     - shell: powershell
     - stateful: true
 

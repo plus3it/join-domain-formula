@@ -19,7 +19,7 @@ Param(
 
     [parameter(Mandatory = $true)]
     [String]
-        #Encrtyped join domain password
+        #Encrypted join domain password
     $EncryptedPassword,
 
     [parameter(Mandatory = $true)]
