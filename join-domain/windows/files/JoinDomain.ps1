@@ -482,13 +482,18 @@ Function Retry-TestCommand
 
         [Parameter(Mandatory=$false)]
         [int]
-        $SecondsDelay = 2,
+        $InitialDelay = 2,  # in seconds
+
+        [Parameter(Mandatory=$false)]
+        [int]
+        $MaxDelay = 32,  # in seconds
 
         [Parameter(Mandatory=$false)]
         [switch]
         $ExpectNull
     )
     $TryCount = 0
+    $Delay = $InitialDelay
     $Completed = $false
     $MsgFailed = "Command [{0}] failed" -f $Test
     $MsgSucceeded = "Command [{0}] succeeded." -f $Test
@@ -525,8 +530,10 @@ Function Retry-TestCommand
             {
                 $Msg = $PSItem.ToString()
                 if ($Msg -ne $MsgFailed) { Write-Warning $Msg }
-                Write-Warning ("Command [{0}] failed. Retrying in {1} second(s)." -f $Test, $SecondsDelay)
-                Start-Sleep $SecondsDelay
+                Write-Warning ("Command [{0}] failed. Retrying in {1} second(s)." -f $Test, $Delay)
+                Start-Sleep $Delay
+                $Delay *= 2
+                $Delay = [Math]::Min($MaxDelay, $Delay)
             }
         }
     }
@@ -605,7 +612,7 @@ if($DomainJoinStatus -eq $null)
     }
 
     #Try to add the computer to the domain until AD catches up
-    Retry-TestCommand -Test xAdd-Computer -Args @{DomainName=$DomainName; Credential=$cred; TargetOU=$targetOU; args=@{Options="JoinWithNewName,AccountCreate"; Force=$true; Verbose=$true; Passthru=$true; ErrorAction="SilentlyContinue";}} -Tries 3 -SecondsDelay 5 -TestProperty "hasSucceeded"
+    Retry-TestCommand -Test xAdd-Computer -Args @{DomainName=$DomainName; Credential=$cred; TargetOU=$targetOU; args=@{Options="JoinWithNewName,AccountCreate"; Force=$true; Verbose=$true; Passthru=$true; ErrorAction="SilentlyContinue";}} -Tries 3 -InitialDelay 10 -TestProperty "hasSucceeded"
     Write-Host "changed=yes comment=`"Joined system to the domain [$DomainName].`" domain=$DomainName";
 
 }
