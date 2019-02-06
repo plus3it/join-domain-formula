@@ -29,6 +29,7 @@ join-domain:
       admin_users:
       admin_groups:
       ec2config:
+      tries:
 ```
 
 ### Generating `key` and `encrypted_password` for Windows

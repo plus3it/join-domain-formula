@@ -17,6 +17,7 @@ join-domain:
     #admin_users:
     #admin_groups:
     #ec2config:
+    #tries:
 
     ################################
     # Linux-specific pillar settings
