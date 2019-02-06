@@ -25,8 +25,13 @@ Param(
     [parameter(Mandatory = $true)]
     [String]
         #Username of account used to domain join the target computer
-    $UserName
-)
+    $UserName,
+
+    [parameter(Mandatory = $false)]
+    [String]
+        #Number of times to attempt the domain join
+    $Tries = 3
+    )
 
 Add-Type @'
 public enum EncryptionType
@@ -612,7 +617,7 @@ if($DomainJoinStatus -eq $null)
     }
 
     #Try to add the computer to the domain until AD catches up
-    Retry-TestCommand -Test xAdd-Computer -Args @{DomainName=$DomainName; Credential=$cred; TargetOU=$targetOU; args=@{Options="JoinWithNewName,AccountCreate"; Force=$true; Verbose=$true; Passthru=$true; ErrorAction="SilentlyContinue";}} -Tries 3 -InitialDelay 10 -TestProperty "hasSucceeded"
+    Retry-TestCommand -Test xAdd-Computer -Args @{DomainName=$DomainName; Credential=$cred; TargetOU=$targetOU; args=@{Options="JoinWithNewName,AccountCreate"; Force=$true; Verbose=$true; Passthru=$true; ErrorAction="SilentlyContinue";}} -Tries $Tries -InitialDelay 10 -TestProperty "hasSucceeded"
     Write-Host "changed=yes comment=`"Joined system to the domain [$DomainName].`" domain=$DomainName";
 
 }
