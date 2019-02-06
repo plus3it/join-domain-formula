@@ -1,3 +1,3 @@
-FROM centos:centos7@sha256:6f6d986d425aeabdc3a02cb61c02abb2e78e57357e92417d6d58332856024faf
+FROM centos:centos7@sha256:184e5f35598e333bfa7de10d8fb1cebb5ee4df5bc0f970bf2b1e7c7345136426
 
 CMD ["/bin/bash"]
