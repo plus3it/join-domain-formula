@@ -13,7 +13,7 @@ include:
 
 PBIS-install:
   pkg.installed:
-    - sources: {{ join_domain.connector_rpms }}
+    - sources: {{ join_domain.connector_rpms|yaml }}
     - allow_updates: True
 
 PBIS-NETBIOSfix:

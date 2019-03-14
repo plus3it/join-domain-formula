@@ -15,7 +15,7 @@ join standalone system to domain:
     - stateful: true
 
 {%- if join_domain.admins %}
-{%- set admins = join_domain.admins|string|replace('[','')|replace(']','') %}
+{%- set admins = join_domain.admins | join(',') %}
 
 manage wrapper script:
   file.managed:
