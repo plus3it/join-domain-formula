@@ -38,6 +38,11 @@ join-domain:
     #login_users:
     #login_groups:
     #  - linux^operators
+    #extra_domains
+    #  - trusted.ad.domain1
+    #  - trusted.ad.domain2
+    #  - ...
+    #  - trusted.ad.domainn
 
     # AD-connector Tool
     #ad_connector: pbis
