@@ -15,7 +15,10 @@ join standalone system to domain:
     - stateful: true
 
 {%- if join_domain.admins %}
-{%- set admins = join_domain.admins | join(',') %}
+{%- set admins = [] %}
+{%- for admin in join_domain.admins %}
+    {% do admins.append('"%s"' | format(admin)) %}
+{%- endfor %}
 
 manage wrapper script:
   file.managed:
@@ -35,7 +38,7 @@ register startup task:
     - args: >-
         -InvokeScript "{{ join_domain.wrapper.name }}"
         -RunOnceScript "{{ join_domain.new_member.name }}"
-        -Members {{ admins }}
+        -Members {{ admins | join(',') }}
         -DomainNetBiosName {{ join_domain.netbios_name }}
     - shell: powershell
     - require:
