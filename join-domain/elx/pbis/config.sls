@@ -14,7 +14,7 @@
 #
 #################################################################
 {%- from tpldir ~ '/map.jinja' import join_domain with context %}
-{%- set trust_domains = salt.pillar.get('join-domain:lookup:extra_domains', []) + [ join_domain.dns_name ] %}
+{%- set trust_domains = salt.pillar.get('join-domain:lookup:trusted_domains', []) + [ join_domain.dns_name ] %}
 {%- set trusted_domains = trust_domains | unique %}
 
 
