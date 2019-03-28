@@ -14,6 +14,9 @@
 #
 #################################################################
 {%- from tpldir ~ '/map.jinja' import join_domain with context %}
+{%- set trust_domains = salt.pillar.get('join-domain:lookup:trusted_domains', []) + [ join_domain.dns_name ] %}
+{%- set trusted_domains = trust_domains | unique %}
+
 
 {%- for shell in join_domain.pbis_user_shell %}
 PBIS-config-Shell-{{ shell }}:
@@ -58,8 +61,11 @@ PBIS-config-TrustIgnore:
 
 PBIS-config-TrustList:
   cmd.run:
-    - name: {{ join_domain.install_bin_dir }}/bin/config DomainManagerIncludeTrustsList {{ join_domain.dns_name }}
-    - onlyif: test $({{ join_domain.install_bin_dir }}/bin/config --show DomainManagerIncludeTrustsList | grep -q -i "{{ join_domain.dns_name }}")$? -ne 0
+    - name: {{ join_domain.install_bin_dir }}/bin/config DomainManagerIncludeTrustsList {{ trusted_domains | join (' ') }}
+    - onlyif:
+      {%- for check_domain in trusted_domains %}
+      - test $({{ join_domain.install_bin_dir }}/bin/config --show DomainManagerIncludeTrustsList | grep -q -i "{{ check_domain }}")$? -ne 0
+      {%- endfor %}
     - require:
       - pkg: PBIS-install
 
