@@ -14,9 +14,13 @@
 #
 #################################################################
 {%- from tpldir ~ '/map.jinja' import join_domain with context %}
-{%- set trust_domains = salt.pillar.get('join-domain:lookup:trusted_domains', []) + [ join_domain.dns_name ] %}
-{%- set trusted_domains = trust_domains | unique %}
 
+{%- set trusted_domains = [] %}
+{%- for domain in salt.pillar.get('join-domain:lookup:trusted_domains', []) + [ join_domain.dns_name ] %}
+  {%- if domain not in trusted_domains %}
+    {%- do trusted_domains.append(domain) %}
+  {%- endif %}
+{%- endfor %}
 
 {%- for shell in join_domain.pbis_user_shell %}
 PBIS-config-Shell-{{ shell }}:
