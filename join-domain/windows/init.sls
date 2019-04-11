@@ -17,7 +17,7 @@ join standalone system to domain:
 {%- if join_domain.admins %}
 {%- set admins = [] %}
 {%- for admin in join_domain.admins %}
-    {% do admins.append('"%s"' | format(admin)) %}
+    {% do admins.append("'%s'" | format(admin)) %}
 {%- endfor %}
 
 manage wrapper script:
