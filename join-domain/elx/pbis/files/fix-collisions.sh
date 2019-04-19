@@ -136,8 +136,19 @@ function NukeCollision() {
 ######################
 ## Main program flow
 ######################
+# If already joined, no point proceeding further
+if [[ -n "$(CheckMyJoinState)" ]]
+then
+   printf "\n"
+   printf "changed=no comment='Local system has active join config present "
+   printf "in the directory'\n"
+   exit 0
+fi
+
+# Decrypt our password
 PASSWORD=$(PWdecrypt)
 
+# Bail if we can't decryption failed
 if [[ -z "${PASSWORD}" ]]
 then
   printf "\n"
@@ -145,18 +156,19 @@ then
   exit 1
 fi
 
+# See if we can find an collision, try to nuke if we do
 case $(CheckObject) in
-   NONE)
-      printf "\n"
-      printf "changed=no comment='No collisions for %s found " "${NODENAME}"
-      printf "in the directory'\n"
-      exit 0
-      ;;
    ERROR)
       OUTSTRING=$(<"${STATFILE}")
       printf "\n"
       printf "changed=no comment='Could not check for collision: "
       printf "%s.\n" "${OUTSTRING}"
+      exit 0
+      ;;
+   NONE)
+      printf "\n"
+      printf "changed=no comment='No collisions for %s found " "${NODENAME}"
+      printf "in the directory'\n"
       exit 0
       ;;
    *)
