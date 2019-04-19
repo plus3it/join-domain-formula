@@ -1,4 +1,5 @@
 #!/bin/sh
+# shellcheck disable=SC2155
 #
 # This script is designed to fix PAM stack-order munging that may
 # be caused by the PBIS package's "join" operations. When the
@@ -22,11 +23,11 @@ function FindRealFile() {
 # Fix munged stack-ordering
 function FixPam() {
    local MOVELSASS=$(grep -q -E \
-                     '^auth[ 	][ 	]*.*pam_lsass.so' ${CHKFILE})$?
+                     '^auth[ 	][ 	]*.*pam_lsass.so' "${CHKFILE}")$?
 
    if [[  ${MOVELSASS} -eq 0 ]]
    then
-      local NUKIT=$(sed -i '/^auth[ 	][ 	]*.*pam_lsass.so/d' ${CHKFILE})$?
+      local NUKIT=$(sed -i '/^auth[ 	][ 	]*.*pam_lsass.so/d' "${CHKFILE}")$?
       if [[ ${NUKIT} -ne 0 ]]
       then
          printf "\n"
@@ -39,7 +40,7 @@ function FixPam() {
       ITXT2="auth        sufficient      pam_lsass.so      try_first_pass"
 
       sed -i '/^auth.*default=die.*faillock/s/^/'"${ITXT1}"'\n'"${ITXT2}"'\n/' \
-         ${CHKFILE}
+         "${CHKFILE}"
 
       printf "\n"
       printf "changed=yes comment='Moved pam_lsass modules up-stack.'\n"
@@ -61,7 +62,7 @@ function FixPam() {
 
 # Resolve sym-links
 CHKFILE=$(FindRealFile "${PAMFILE}")
-CKFAILLOCK=$(grep -q -E "^auth[ 	][ 	]*.*pam_faillock" ${CHKFILE})$?
+CKFAILLOCK=$(grep -q -E "^auth[ 	][ 	]*.*pam_faillock" "${CHKFILE}")$?
 
 # Only act if pam_faillock is in play
 if [[ ${CKFAILLOCK} -eq 0 ]]
@@ -70,5 +71,5 @@ then
 else
    printf "\n"
    printf "changed=no comment='The faillock PAM module not present: "
-   printf "leaving ${CHKFILE} as-is'"
+   printf "leaving %s as-is'" "${CHKFILE}"
 fi

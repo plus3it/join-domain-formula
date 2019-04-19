@@ -1,4 +1,5 @@
 #!/bin/sh
+# shellcheck disable=SC2155
 #
 # Under least-privileges security models, the PBIS installer can
 # have problems joining a client to the domain if the domain
@@ -26,7 +27,7 @@
 #
 #################################################################
 PROGNAME="$( basename "${0}" )"
-trap "exit 1" TERM
+trap "exit 0" TERM
 export TOP_PID=$$
 
 
@@ -40,8 +41,8 @@ then
    PASSCRYPT=${3}
    PASSULOCK=${4}
 else
-   printf "Usage: ${0} <DOMAIN.F.Q.D.N> <JOIN_USER> " > /dev/stderr
-   printf "<PASSWORD_CRYPT> <PASSWORD_UNLOCK>"  > /dev/stderr
+   printf "Usage: %s <DOMAIN.F.Q.D.N> <JOIN_USER> " "${PROGNAME}" >&2
+   printf "<PASSWORD_CRYPT> <PASSWORD_UNLOCK>"  >&2
    exit 1
 fi
 
@@ -59,6 +60,7 @@ function PWdecrypt() {
    local PWCLEAR
    PWCLEAR=$(echo "${PASSCRYPT}" | openssl enc -aes-256-cbc -md sha256 -a -d \
              -salt -pass pass:"${PASSULOCK}")
+   # shellcheck disable=SC2181
    if [[ $? -ne 0 ]]
    then
      echo ""
@@ -76,7 +78,7 @@ function CheckMyJoinState() {
 
 # Check for object-collisions
 function CheckObject() {
-   local EXISTS=$(${ADTOOL} -d ${DOMAIN} -n ${USERID}@${DOMAIN} \
+   local EXISTS=$("${ADTOOL}" -d "${DOMAIN}" -n "${USERID}@${DOMAIN}" \
                   -x "${PASSWORD}" -a search-computer \
                   --name cn="${NODENAME}" -t 2>&1 )
 
@@ -94,8 +96,8 @@ function CheckObject() {
       then
          printf "\n"
          printf "changed=no comment='Could not check for collision: "
-         printf ""Stronger authentication required'\n"
-         kill -s TERM ${TOP_PID}
+         printf "Stronger authentication required'\n"
+         kill ${TOP_PID}
       else
          echo "${EXISTS}"
       fi
@@ -109,26 +111,26 @@ function NukeCollision() {
 
    while [ $LOOP -le 5 ]
    do
-      ${ADTOOL} -d ${DOMAIN} -n ${USERID}@${DOMAIN} -x "${PASSWORD}" \
+      "${ADTOOL}" -d "${DOMAIN}" -n "${USERID}@${DOMAIN}" -x "${PASSWORD}" \
          -a delete-object --dn="$(CheckObject)" --force > /dev/null 2>&1
 
       if [[ $(sleep 5 ; CheckObject) = "NONE" ]]
       then
          printf "\n"
-         printf "changed=yes comment='Deleted ${NODENAME} from "
+         printf "changed=yes comment='Deleted %s from " "${NODENAME}"
          printf "the directory'\n"
          exit 0
       fi
 
       local RND=$(shuf -i 1-15 -n 1)
       logger -p user.warn -t "pbis-join(nuke)" "Retrying nuke-attempt in $RND seconds"
-      sleep ${RND}
+      sleep "${RND}"
 
       (( LOOP++ ))
    done
 
    printf "\n"
-   printf "changed=no comment='Failed to delete ${NODENAME} "
+   printf "changed=no comment='Failed to delete %s " "${NODENAME}"
    printf "from the directory'\n"
    exit 1
 }
@@ -149,7 +151,7 @@ fi
 if [[ $(CheckObject) = NONE ]]
 then
    printf "\n"
-   printf "changed=no comment='No collisions for ${NODENAME} found "
+   printf "changed=no comment='No collisions for %s found " "${NODENAME}"
    printf "in the directory'\n"
    exit 0
 elif [[ -n "$(CheckMyJoinState)" ]]

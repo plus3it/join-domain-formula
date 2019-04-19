@@ -43,12 +43,12 @@ then
    else
       OLDFQDN=$(hostname)
       CURDOM=$(awk -F = '/HOSTNAME/{print $2}' /etc/sysconfig/network | \
-               sed 's/'$(hostname -s)'\.//')
+               sed "s/$(hostname -s)\.//")
       BASEIP=$(printf '%02X' \
-               $(ip addr show ${DEFIF} | \
+               "$(ip addr show "${DEFIF}" | \
                  awk '/inet /{print $2}' | \
                  sed -e 's#/.*$##' -e 's/\./ /g' \
-               ))
+               )")
 
       # Try to make new hostname fully-qualified
       if [[ ${CURDOM} = "" ]]
@@ -58,19 +58,20 @@ then
          NEWFQDN="ip-${BASEIP,,}.${CURDOM}"
       fi
 
-      if [[ $(hostname ${NEWFQDN})$? -eq 0 ]]
+      if [[ $(hostname "${NEWFQDN}" )$? -eq 0 ]]
       then
          # Create info-preservation files
-         echo ${OLDFQDN} > /etc/sysconfig/hostname.fqdn-orig
-         echo ${NEWFQDN} > /etc/sysconfig/hostname.fqdn-new
+         echo "${OLDFQDN}" > /etc/sysconfig/hostname.fqdn-orig
+         echo "${NEWFQDN}" > /etc/sysconfig/hostname.fqdn-new
 
          printf "\n"
-         printf "changed=yes comment='Changed hostname from ${OLDFQDN} to ${NEWFQDN}.'\n"
+         printf "changed=yes comment='Changed hostname from %s to " "${OLDFQDN}"
+         printf "%s.'\n" "${NEWFQDN}"
          exit 0
       else
          printf "\n"
          printf "changed=no comment='Failed to change hostname "
-         printf "to ${NEWFQDN}.'\n"
+         printf "to %s.'\n" "${NEWFQDN}
          exit 1
       fi
    fi
