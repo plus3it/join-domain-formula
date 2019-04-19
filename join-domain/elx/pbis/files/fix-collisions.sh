@@ -25,6 +25,10 @@
 #       takes the form "USERID@DOMAIN.F.Q.D.N"
 #
 #################################################################
+PROGNAME="$( basename "${0}" )"
+trap "exit 1" TERM
+export TOP_PID=$$
+
 
 # Check if enoug args were passed
 if [[ ${#@} -ge 4 ]]
@@ -74,13 +78,27 @@ function CheckMyJoinState() {
 function CheckObject() {
    local EXISTS=$(${ADTOOL} -d ${DOMAIN} -n ${USERID}@${DOMAIN} \
                   -x "${PASSWORD}" -a search-computer \
-                  --name cn="${NODENAME}" -t)
+                  --name cn="${NODENAME}" -t 2>&1 )
 
    if [[ -z ${EXISTS} ]]
    then
       echo "NONE"
    else
-      echo "${EXISTS}"
+      if [[ ${EXISTS} =~ "ERROR: 400090" ]]
+      then
+         printf "\n"
+         printf "changed=no comment='Could not check for collision: "
+         printf "authentication credentials not valid'\n"
+         kill ${TOP_PID}
+      elif [[ ${EXISTS} =~ "ERROR:_500008" ]]
+      then
+         printf "\n"
+         printf "changed=no comment='Could not check for collision: "
+         printf ""Stronger authentication required'\n"
+         kill -s TERM ${TOP_PID}
+      else
+         echo "${EXISTS}"
+      fi
    fi
 }
 
