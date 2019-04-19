@@ -91,13 +91,13 @@ function CheckObject() {
          printf "\n"
          printf "changed=no comment='Could not check for collision: "
          printf "authentication credentials not valid'\n"
-         kill ${TOP_PID}
+         kill -s TERM "${TOP_PID}"
       elif [[ ${EXISTS} =~ "ERROR:_500008" ]]
       then
          printf "\n"
          printf "changed=no comment='Could not check for collision: "
          printf "Stronger authentication required'\n"
-         kill ${TOP_PID}
+         kill -s TERM "${TOP_PID}"
       else
          echo "${EXISTS}"
       fi
