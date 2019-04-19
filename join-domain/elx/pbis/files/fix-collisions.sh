@@ -78,9 +78,9 @@ function CheckMyJoinState() {
 
 # Check for object-collisions
 function CheckObject() {
-   local EXISTS=$("${ADTOOL}" -d "${DOMAIN}" -n "${USERID}@${DOMAIN}" \
-                  -x "${PASSWORD}" -a search-computer \
-                  --name cn="${NODENAME}" -t 2>&1 )
+   local EXISTS=$( "${ADTOOL}" -d "${DOMAIN}" -n "${USERID}@${DOMAIN}" \
+                   -x "${PASSWORD}" -a search-computer \
+                   --name cn="${NODENAME}" -t 2>&1 | tr -d '\n' )
 
    if [[ -z ${EXISTS} ]]
    then

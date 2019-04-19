@@ -71,7 +71,7 @@ then
       else
          printf "\n"
          printf "changed=no comment='Failed to change hostname "
-         printf "to %s.'\n" "${NEWFQDN}
+         printf "to %s.'\n" "${NEWFQDN}"
          exit 1
       fi
    fi
