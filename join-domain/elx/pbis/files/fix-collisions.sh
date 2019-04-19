@@ -88,16 +88,12 @@ function CheckObject() {
    else
       if [[ ${EXISTS} =~ "ERROR: 400090" ]]
       then
-         OUTSTRING=$(
-            printf "changed=no comment='Could not check for collision: "
-            printf "authentication credentials not valid'\n"
-         )
+         OUTSTRING="authentication credentials not valid"
+         echo "ERROR"
       elif [[ ${EXISTS} =~ "ERROR:_500008" ]]
       then
-         OUTSTRING=$(
-            printf "changed=no comment='Could not check for collision: "
-            printf "Stronger authentication required'\n"
-         )
+         OUTSTRING="Stronger authentication required"
+         echo "ERROR"
       else
          echo "${EXISTS}"
       fi
@@ -148,23 +144,20 @@ then
   exit 1
 fi
 
-if [[ $(CheckObject) = NONE ]]
-then
-   printf "\n"
-   printf "changed=no comment='No collisions for %s found " "${NODENAME}"
-   printf "in the directory'\n"
-   exit 0
-elif [[ ! -z ${OUTSTRING+x} ]]
-then
-   printf "\n"
-   echo "${OUTSTRING}"
-   exit 0
-elif [[ -n "$(CheckMyJoinState)" ]]
-then
-   printf "\n"
-   printf "changed=no comment='Local system has active join config present "
-   printf "in the directory'\n"
-   exit 0
-else
-   NukeCollision
-fi
+case $(CheckObject) in
+   NONE)
+      printf "\n"
+      printf "changed=no comment='No collisions for %s found " "${NODENAME}"
+      printf "in the directory'\n"
+      exit 0
+      ;;
+   ERROR)
+      printf "\n"
+      printf "changed=no comment='Could not check for collision: "
+      printf "%s.\n" "${OUTSTRING}"
+      exit 0
+      ;;
+   *)
+      NukeCollision
+      ;;
+esac
