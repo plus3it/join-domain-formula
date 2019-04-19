@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # shellcheck disable=SC2155
 #
 # Under least-privileges security models, the PBIS installer can
@@ -27,6 +27,7 @@
 #
 #################################################################
 PROGNAME="$( basename "${0}" )"
+STATFILE="/tmp/.${PROGNAME}.stat"
 trap "exit 0" TERM
 export TOP_PID=$$
 
@@ -88,11 +89,11 @@ function CheckObject() {
    else
       if [[ ${EXISTS} =~ "ERROR: 400090" ]]
       then
-         OUTSTRING="authentication credentials not valid"
+         printf "authentication credentials not valid" > "${STATFILE}" || exit 1
          echo "ERROR"
       elif [[ ${EXISTS} =~ "ERROR:_500008" ]]
       then
-         OUTSTRING="Stronger authentication required"
+         printf "Stronger authentication required" > "${STATFILE}" || exit 1
          echo "ERROR"
       else
          echo "${EXISTS}"
@@ -152,6 +153,7 @@ case $(CheckObject) in
       exit 0
       ;;
    ERROR)
+      OUTSTRING=$(<"${STATFILE}")
       printf "\n"
       printf "changed=no comment='Could not check for collision: "
       printf "%s.\n" "${OUTSTRING}"
