@@ -91,7 +91,7 @@ function CheckObject() {
       then
          printf "authentication credentials not valid" > "${STATFILE}" || exit 1
          echo "ERROR"
-      elif [[ ${EXISTS} =~ "ERROR:_500008" ]]
+      elif [[ ${EXISTS} =~ "ERROR: 500008" ]]
       then
          printf "Stronger authentication required" > "${STATFILE}" || exit 1
          echo "ERROR"
@@ -162,7 +162,7 @@ case $(CheckObject) in
       OUTSTRING=$(<"${STATFILE}")
       printf "\n"
       printf "changed=no comment='Could not check for collision: "
-      printf "%s.\n" "${OUTSTRING}"
+      printf "%s'\n" "${OUTSTRING}"
       exit 0
       ;;
    NONE)
