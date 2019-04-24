@@ -95,6 +95,9 @@ function CheckObject() {
       then
          printf "Stronger authentication required" > "${STATFILE}" || exit 1
          echo "ERROR"
+      elif [[ ${EXISTS} =~ NERR_SetupNotJoined ]]
+      then
+         printf "Not setup/joined" > "${STATFILE}" || exit 1
       else
          echo "${EXISTS}"
       fi
