@@ -9,9 +9,6 @@
 {#- Set location for helper-files #}
 {%- set files = tpldir ~ '/files' %}
 
-include:
-  - .config
-
 RPM-installs:
   pkg.installed:
     - pkgs:
@@ -21,7 +18,10 @@ RPM-installs:
 
 LDAP-FindCollison:
   cmd.script:
-    - name: 'find-collisions.sh -d "{{ join_domain.dns_name }}" -u "{{ join_domain.username }}" -c "{{ join_domain.encrypted_password }}" -k "{{ join_domain.key }}" --mode saltstack'
-    - source: 'salt://{{ files }}/find-collisions.sh'
     - cwd: '/root'
+    - name: 'find-collisions.sh -d "{{ join_domain.dns_name }}" -u "{{ join_domain.username }}" -c "{{ join_domain.encrypted_password }}" -k "{{ join_domain.key }}" --mode saltstack'
+    - require:
+      - pkg: RPM-installs
+    - source: 'salt://{{ files }}/find-collisions.sh'
     - stateful: True
+
