@@ -56,6 +56,19 @@ function UsageMsg {
    exit 1
 }
 
+# Decrypt Join Password
+function PWdecrypt {
+   local PWCLEAR
+   PWCLEAR=$(echo "${CRYPTSTRING}" | openssl enc -aes-256-cbc -md sha256 -a -d \
+             -salt -pass pass:"${CRYPTKEY}")
+   if [[ $? -ne 0 ]]
+   then
+     echo "FAILURE"
+   else
+     echo "${PWCLEAR}"
+   fi
+}
+
 # Find domain controllers to talk to
 function FindDCs {
    local DNS_SEARCH_STRING
@@ -231,6 +244,13 @@ then
    UsageMsg
 fi
 
+# Decrypt our query password
+BINDPASS="$(PWdecrypt)"
+if [[ ${BINDPASS} == FAILURE ]]
+then
+   logIt "Failed decrypting password" 1
+fi
+
 # Search for Domain Controllers
 if [[ -z ${LDAPHOST+x} ]]
 then
@@ -252,4 +272,4 @@ SEARCHSCOPE="$( printf "DC=%s" "${DOMAINNAME//./,DC=}" )"
 
 # Perform search
 ldapsearch -LLL -x -h "${DCINFO//*;/}" -p "${DCINFO//;*/}" -D "${QUERYUSER}" \
-  -w "{BINDPASS}" -b "${SEARCHSCOPE}" -s sub cn="${HOSTNAME}" cn
+  -w "${BINDPASS}" -b "${SEARCHSCOPE}" -s sub cn="${HOSTNAME}" cn
