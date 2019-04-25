@@ -247,6 +247,8 @@ else
    QUERYUSER="${DIRUSER}"
 fi
 
+# Convert domain to a search scope
+SEARCHSCOPE="$( printf "DC=%s" "${DOMAINNAME//./,DC=}" )"
 
 # Perform search
 ldapsearch -LLL -x -h "${DCINFO//*;/}" -p "${DCINFO//;*/}" -D "${QUERYUSER}" \
