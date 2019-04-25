@@ -143,6 +143,9 @@ function FindComputer {
 # Nuke computer's DN
 function NukeObject {
    local SEARCHEXIT
+   local LDAPOBJECT
+
+   LDAPOBJECT="${1}"
 
    ldapdelete -x -h "${DCINFO//*;/}" -p "${DCINFO//;*/}" -D "${QUERYUSER}" \
      -w "${BINDPASS}" "${LDAPOBJECT}" || \
@@ -372,5 +375,5 @@ esac
 # Whether to try to NUKE
 if [[ ${CLEANUP} == TRUE ]]
 then
-   NukeObject
+   NukeObject "${OBJECTDN}"
 fi
