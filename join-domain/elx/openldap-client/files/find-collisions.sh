@@ -8,7 +8,9 @@ PROGNAME="$( basename "${0}" )"
 PROGDIR="$( dirname "${0}" )"
 LOGFACIL="user.err"
 DEBUGVAL="${DEBUG:-false}"
+LDAPTYPE="AD"
 
+# Miscellaneous output-engine
 function logIt {
    # Spit out message to calling-shell if debug-mode enabled
    if [[ ${DEBUGVAL} == true ]]
@@ -38,18 +40,23 @@ function UsageMsg {
       printf "\t-f <FORCED_HOSTNAME>  \n"
       printf "\t-h # print this message  \n"
       printf "\t-k <DECRYPTION_KEY>  \n"
+      printf "\t-l <LDAP_QUERY_HOST>  \n"
+      printf "\t-t <LDAP_TYPE>  \n"
       printf "\t-u <DIRECTORY_USER> \n"
       echo "  GNU long options:"
       printf "\t--domain-name <LONG_DOMAIN_NAME>  \n"
       printf "\t--help # print this message  \n"
       printf "\t--hostname <FORCED_HOSTNAME>  \n"
       printf "\t--join-crypt <ENCRYPTED_PASSWORD>  \n"
-      printf "\t--join-key  <DECRYPTION_KEY>  \n"
-      printf "\t--join-user  <DIRECTORY_USER> \n"
+      printf "\t--join-key <DECRYPTION_KEY>  \n"
+      printf "\t--join-user <DIRECTORY_USER> \n"
+      printf "\t--ldap-host <LDAP_QUERY_HOST>  \n"
+      printf "\t--ldap-type <LDAP_TYPE> \n"
    ) >&2
    exit 1
 }
 
+# Find domain controllers to talk to
 function FindDCs {
    local DNS_SEARCH_STRING
    local IDX
@@ -95,7 +102,7 @@ then
 fi
 
 # Define flags to look for..
-OPTIONBUFR=$(getopt -o c:d:f:hk:u: --long domain-name:,help,hostname:,join-user:,join-crypt:,join-key: -n "${PROGNAME}" -- "$@")
+OPTIONBUFR=$(getopt -o c:d:f:hk:l:u:t: --long domain-name:,help,hostname:,join-user:,join-crypt:,join-key:,ldap-host:,ldap-type: -n "${PROGNAME}" -- "$@")
 eval set -- "${OPTIONBUFR}"
 
 ###################################
@@ -159,6 +166,37 @@ do
                ;;
          esac
          ;;
+      -l|--ldap-host)
+         case "$2" in
+            "")
+               logIt "Error: option required but not specified" 1
+               shift 2;
+               exit 1
+               ;;
+            *)
+               LDAPHOST="${2}"
+               shift 2;
+               ;;
+         esac
+         ;;
+      -t|--ldap-type)
+         case "$2" in
+            "")
+               logIt "Error: option required but not specified" 1
+               shift 2;
+               exit 1
+               ;;
+            ad|AD)
+               LDAPTYPE="AD"
+               shift 2;
+               ;;
+            *)
+               logIt "Error: unsupported directory-type" 1
+               shift 2;
+               exit 1
+               ;;
+         esac
+         ;;
       -u|--join-user)
          case "$2" in
             "")
@@ -193,6 +231,23 @@ then
    UsageMsg
 fi
 
-
 # Search for Domain Controllers
-DCINFO=$( FindDCs "${DOMAINNAME}" )
+if [[ -z ${LDAPHOST+x} ]]
+then
+   DCINFO="$( FindDCs "${DOMAINNAME}" )"
+else
+   DCINFO="389;${LDAPHOST}"
+fi
+
+# Set directory-user value as appropriate
+if [[ ${LDAPTYPE} == AD ]]
+then
+   QUERYUSER="${DIRUSER}@${DOMAINNAME}"
+else
+   QUERYUSER="${DIRUSER}"
+fi
+
+
+# Perform search
+ldapsearch -LLL -x -h "${DCINFO//*;/}" -p "${DCINFO//;*/}" -D "${QUERYUSER}" \
+  -w "{BINDPASS}" -b "${SEARCHSCOPE}" -s sub cn="${HOSTNAME}" cn
