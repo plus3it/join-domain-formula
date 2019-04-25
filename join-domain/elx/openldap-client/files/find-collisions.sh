@@ -140,6 +140,27 @@ function FindComputer {
    fi
 }
 
+# Nuke computer's DN
+function NukeObject {
+   local SEARCHEXIT
+
+   ldapdelete -x -h "${DCINFO//*;/}" -p "${DCINFO//;*/}" -D "${QUERYUSER}" \
+     -w "${BINDPASS}" "${LDAPOBJECT}" || \
+   ldapdelete -Z -x -h "${DCINFO//*;/}" -p "${DCINFO//;*/}" -D "${QUERYUSER}" \
+     -w "${BINDPASS}" "${LDAPOBJECT}"
+
+   SEARCHEXIT="$?"
+
+   if [[ ${SEARCHEXIT} -eq 0 ]]
+   then
+      logIt "Delete of ${LDAPOBJECT} succeeded" 0
+      echo "SUCCESS"
+   else
+      logIt "Delete of ${LDAPOBJECT} failed" 0
+      echo "FAILED"
+   fi
+}
+
 
 
 #######################
@@ -153,7 +174,7 @@ then
 fi
 
 # Define flags to look for..
-OPTIONBUFR=$(getopt -o c:d:f:hk:l:u:t: --long domain-name:,help,hostname:,join-user:,join-crypt:,join-key:,ldap-host:,ldap-type: -n "${PROGNAME}" -- "$@")
+OPTIONBUFR=$(getopt -o c:d:f:hk:l:u:t: --long domain-name:,help,hostname:,join-user:,join-crypt:,join-key:,ldap-host:,ldap-type:,mode: -n "${PROGNAME}" -- "$@")
 eval set -- "${OPTIONBUFR}"
 
 ###################################
@@ -226,6 +247,30 @@ do
                ;;
             *)
                LDAPHOST="${2}"
+               shift 2;
+               ;;
+         esac
+         ;;
+      --mode)
+         case "$2" in
+            "")
+               logIt "Error: option required but not specified" 1
+               shift 2;
+               exit 1
+               ;;
+            cleanup)
+               CLEANUP=TRUE
+               OUTPUT=INTERACTIVE
+               shift 2;
+               ;;
+            saltstack)
+               CLEANUP=TRUE
+               OUTPUT=SALTMODE
+               shift 2;
+               ;;
+            *)
+               CLEANUP=FALSE
+               OUTPUT=INTERACTIVE
                shift 2;
                ;;
          esac
@@ -316,8 +361,16 @@ case "${OBJECTDN}" in
       ;;
    QUERYFAILURE)
       logIt "Query failure when looking for ${HOSTNAME} in ${SEARCHSCOPE}"
+      logIt "Skipping any requested cleanup attempts"
+      CLEANUP="FALSE"
       ;;
    *)
       logIt "Found ${OBJECTDN}"
       ;;
 esac
+
+# Whether to try to NUKE
+if [[ ${CLEANUP} == TRUE ]]
+then
+   NukeObject
+fi
