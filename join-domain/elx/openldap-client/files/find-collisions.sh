@@ -15,7 +15,7 @@ function logIt {
    # Spit out message to calling-shell if debug-mode enabled
    if [[ ${DEBUGVAL} == true ]]
    then
-      echo "${1}"
+      echo "${1}" >&2
    fi
 
    # Send to syslog if passed message-code is non-zero
@@ -129,10 +129,10 @@ function FindComputer {
    fi
 
    # Output based on exit status and/or what's found
-   if [[ ${SEARCHEXIT} -eq 0 ]] && [[ ! -z ${COMPUTERNAME+x} ]]
+   if [[ ${SEARCHEXIT} -eq 0 ]] && [[ ! -z ${COMPUTERNAME} ]]
    then
       echo ${COMPUTERNAME}
-   elif [[ ${SEARCHEXIT} -eq 0 ]] && [[ -z ${COMPUTERNAME+x} ]]
+   elif [[ ${SEARCHEXIT} -eq 0 ]] && [[ -z ${COMPUTERNAME} ]]
    then
       echo "NOTFOUND"
    else
@@ -361,6 +361,8 @@ OBJECTDN=$(FindComputer)
 case "${OBJECTDN}" in
    NOTFOUND)
       logIt "Could not find ${HOSTNAME} in ${SEARCHSCOPE}"
+      logIt "Skipping any requested cleanup attempts"
+      CLEANUP="FALSE"
       ;;
    QUERYFAILURE)
       logIt "Query failure when looking for ${HOSTNAME} in ${SEARCHSCOPE}"
