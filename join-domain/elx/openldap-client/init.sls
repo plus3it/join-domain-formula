@@ -21,7 +21,7 @@ RPM-installs:
 
 LDAP-FindCollison:
   cmd.script:
-    - name: 'find-collisions.sh "{{ join_domain.dns_name }}" "{{ join_domain.username }}" "{{ join_domain.encrypted_password }}" "{{ join_domain.key }}"'
-    - source: 'salt://{{ files }}/fix-collisions.sh'
+    - name: 'find-collisions.sh -d "{{ join_domain.dns_name }}" -u "{{ join_domain.username }}" -c "{{ join_domain.encrypted_password }}" -k "{{ join_domain.key }}" --mode saltstack'
+    - source: 'salt://{{ files }}/find-collisions.sh'
     - cwd: '/root'
     - stateful: True
