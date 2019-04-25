@@ -50,11 +50,50 @@ function UsageMsg {
    exit 1
 }
 
+function FindDCs {
+   local DNS_SEARCH_STRING
+   local IDX
+   local SEARCH_LIST
 
+   DNS_SEARCH_STRING="_ldap._tcp.dc._msdcs.${1}"
+   IDX=0
+   SEARCH_LIST=($( dig -t SRV "${DNS_SEARCH_STRING}" | awk '/IN SRV/{ printf("%s;%s\n",$7,$8)}' ))
+
+   # Parse list of domain-controllers to see who we can connect to
+   for DC in "${SEARCH_LIST[@]}"
+   do
+      timeout 1 bash -c "echo > /dev/tcp/${DC//*;/}/${DC//;*/}" &&
+        break
+      IDX=$(( ${IDX} + 1 ))
+   done
+
+   case "${DC//;*/}" in
+      389)
+        logIt "Contact ${DC//*;/} on port ${DC[${IDX}]//;*/}" 0
+         ;;
+      636)
+        logIt "Contact ${DC//*;/} on port ${DC[${IDX}]//;*/}" 0
+         ;;
+      *)
+        logIt "${DC//*;/} listening on unrecognized port [${DC[${IDX}]//;*/}]" 1
+         ;;
+   esac
+
+   # Return info
+   echo "${DC[${IDX}]}"
+}
+
+
+#######################
+## Main Program Flow ##
+#######################
+
+# Ensure parseable arguments have been passed
 if [[ $# -eq 0 ]]
 then
    logIt "No arguments given. Aborting" 1
 fi
+
 # Define flags to look for..
 OPTIONBUFR=$(getopt -o c:d:f:hk:u: --long domain-name:,help,hostname:,join-user:,join-crypt:,join-key: -n "${PROGNAME}" -- "$@")
 eval set -- "${OPTIONBUFR}"
@@ -153,3 +192,7 @@ then
    MISSINGARGS=true
    UsageMsg
 fi
+
+
+# Search for Domain Controllers
+DCINFO=$( FindDCs "${DOMAINNAME}" )
