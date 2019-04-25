@@ -26,6 +26,23 @@ function logIt {
    fi
 }
 
+# Stateful output messaging for Saltstack
+function saltOut {
+   if [[ ${OUTPUT} == SALTMODE ]]
+   then
+      case "${2}" in
+         no)
+            printf "\n"
+            printf "changed=no comment='%s'\n" "${1}"
+            ;;
+         yes)
+            printf "\n"
+            printf "changed=yes comment='%s'\n" "${1}"
+            ;;
+      esac
+   fi
+}
+
 # Print out a basic usage message
 function UsageMsg {
    (
@@ -157,10 +174,10 @@ function NukeObject {
    if [[ ${SEARCHEXIT} -eq 0 ]]
    then
       logIt "Delete of ${LDAPOBJECT} succeeded" 0
-      echo "SUCCESS"
+      saltOut "Delete of ${LDAPOBJECT} succeeded" yes
    else
       logIt "Delete of ${LDAPOBJECT} failed" 0
-      echo "FAILED"
+      saltOut "Delete of ${LDAPOBJECT} failed" no
    fi
 }
 
@@ -334,7 +351,9 @@ fi
 BINDPASS="$(PWdecrypt)"
 if [[ ${BINDPASS} == FAILURE ]]
 then
-   logIt "Failed decrypting password" 1
+   logIt "Failed decrypting password"
+   saltOut "Failed decrypting password" no
+   exit
 fi
 
 # Search for Domain Controllers
@@ -361,11 +380,13 @@ OBJECTDN=$(FindComputer)
 case "${OBJECTDN}" in
    NOTFOUND)
       logIt "Could not find ${HOSTNAME} in ${SEARCHSCOPE}"
+      saltOut "Could not find ${HOSTNAME} in ${SEARCHSCOPE}" no
       logIt "Skipping any requested cleanup attempts"
       CLEANUP="FALSE"
       ;;
    QUERYFAILURE)
       logIt "Query failure when looking for ${HOSTNAME} in ${SEARCHSCOPE}"
+      saltOut "Query failure when looking for ${HOSTNAME} in ${SEARCHSCOPE}" no
       logIt "Skipping any requested cleanup attempts"
       CLEANUP="FALSE"
       ;;
