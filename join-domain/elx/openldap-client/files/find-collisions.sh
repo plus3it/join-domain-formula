@@ -103,6 +103,43 @@ function FindDCs {
    echo "${DC[${IDX}]}"
 }
 
+# Find computer's DN
+function FindComputer {
+   local COMPUTERNAME
+   local SEARCHEXIT
+
+   # Searach without STARTLS
+   COMPUTERNAME=$( ldapsearch -LLL -x -h "${DCINFO//*;/}" -p "${DCINFO//;*/}" \
+      -D "${QUERYUSER}" -w "${BINDPASS}" -b "${SEARCHSCOPE}" -s sub \
+      cn="${HOSTNAME}" cn 2>&1 | awk '/^dn:/{ print $2 }'
+   )
+
+   SEARCHEXIT="$?"
+
+   # Fallback: Try Searach with STARTLS
+   if [[ ${SEARCHEXIT} -ne 0 ]]
+   then
+   else
+      COMPUTERNAME=$( ldapsearch -LLL -Z -x -h "${DCINFO//*;/}" -p \
+           "${DCINFO//;*/}" -D "${QUERYUSER}" -w "${BINDPASS}" \
+           -b "${SEARCHSCOPE}" -s sub cn="${HOSTNAME}" cn 2>&1 | \
+         awk '/^dn:/{ print $2 }'
+      )
+   fi
+
+   #
+   if [[ ${SEARCHEXIT} -eq 0 ]] && [[ ! -z ${COMPUTERNAME+x} ]]
+   then
+      echo ${COMPUTERNAME}
+   elif [[ ${SEARCHEXIT} -eq 0 ]] && [[ -z ${COMPUTERNAME+x} ]]
+   then
+      echo "NOTFOUND"
+   else
+      echo "QUERYFAILURE"
+   fi
+}
+
+
 
 #######################
 ## Main Program Flow ##
@@ -270,6 +307,16 @@ fi
 # Convert domain to a search scope
 SEARCHSCOPE="$( printf "DC=%s" "${DOMAINNAME//./,DC=}" )"
 
-# Perform search
-ldapsearch -LLL -x -h "${DCINFO//*;/}" -p "${DCINFO//;*/}" -D "${QUERYUSER}" \
-  -w "${BINDPASS}" -b "${SEARCHSCOPE}" -s sub cn="${HOSTNAME}" cn
+# Do search
+OBJECTDN=$(FindComputer)
+case "${OBJECTDN}" in
+   NOTFOUND)
+      logIt "Could not find ${HOSTNAME} in ${SEARCHSCOPE}"
+      ;;
+   QUERYFAILURE)
+      logIt "Query failure when looking for ${HOSTNAME} in ${SEARCHSCOPE}"
+      ;;
+   *)
+      logIt "Found ${OBJECTDN}"
+      ;;
+esac
