@@ -119,15 +119,16 @@ function FindComputer {
    # Fallback: Try Searach with STARTLS
    if [[ ${SEARCHEXIT} -ne 0 ]]
    then
-   else
       COMPUTERNAME=$( ldapsearch -LLL -Z -x -h "${DCINFO//*;/}" -p \
            "${DCINFO//;*/}" -D "${QUERYUSER}" -w "${BINDPASS}" \
            -b "${SEARCHSCOPE}" -s sub cn="${HOSTNAME}" cn 2>&1 | \
          awk '/^dn:/{ print $2 }'
       )
+
+      SEARCHEXIT="$?"
    fi
 
-   #
+   # Output based on exit status and/or what's found
    if [[ ${SEARCHEXIT} -eq 0 ]] && [[ ! -z ${COMPUTERNAME+x} ]]
    then
       echo ${COMPUTERNAME}
