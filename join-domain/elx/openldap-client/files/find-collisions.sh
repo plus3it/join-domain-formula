@@ -21,7 +21,7 @@ function logIt {
    # Send to syslog if passed message-code is non-zero
    if [[ ! -z ${2} ]] && [[ ${2} -gt 0 ]]
    then
-      logger -t "${PROGNAME}" -p ${LOGFACIL} "${1}"
+      logger -st "${PROGNAME}" -p ${LOGFACIL} "${1}"
       exit ${2}
    fi
 }
@@ -46,10 +46,15 @@ function saltOut {
 # Print out a basic usage message
 function UsageMsg {
    (
+      # Special cases
       if [[ ! -z ${MISSINGARGS+x} ]]
       then
          printf "Failed to pass one or more mandatory arguments\n\n"
+      elif [[ ! -z ${EXCLUSIVEARGS+x} ]]
+      then
+         printf "Passed two or more exclusive arguments\n\n"
       fi
+
       echo "Usage: ${0} [GNU long option] [option] ..."
       echo "  Options:"
       printf "\t-c <ENCRYPTED_PASSWORD>  \n"
@@ -194,7 +199,17 @@ then
 fi
 
 # Define flags to look for..
-OPTIONBUFR=$(getopt -o c:d:f:hk:l:u:t: --long domain-name:,help,hostname:,join-user:,join-crypt:,join-key:,ldap-host:,ldap-type:,mode: -n "${PROGNAME}" -- "$@")
+OPTIONBUFR=$(getopt -o c:d:f:hk:l:p:u:t: --long domain-name:,help,hostname:,join-user:,join-crypt:,join-key:,join-password:,ldap-host:,ldap-type:,mode: -n "${PROGNAME}" -- "$@")
+
+# Check for mutually-exclusive arguments
+if [[ ${OPTIONBUFR} =~ p\ |join-password && ${OPTIONBUFR} =~ c\ |join-crypt ]] ||
+   [[ ${OPTIONBUFR} =~ p\ |join-password && ${OPTIONBUFR} =~ c\ |join-key ]]
+then
+   EXCLUSIVEARGS=TRUE
+   UsageMsg
+fi
+
+
 eval set -- "${OPTIONBUFR}"
 
 ###################################
@@ -212,6 +227,7 @@ do
                ;;
             *)
                CRYPTSTRING="${2}"
+               BINDPASS="TOBESET"
                shift 2;
                ;;
          esac
@@ -254,6 +270,7 @@ do
                ;;
             *)
                CRYPTKEY="${2}"
+               BINDPASS="TOBESET"
                shift 2;
                ;;
          esac
@@ -291,6 +308,19 @@ do
             *)
                CLEANUP=FALSE
                OUTPUT=INTERACTIVE
+               shift 2;
+               ;;
+         esac
+         ;;
+      -p|--join-password)
+         case "$2" in
+            "")
+               logIt "Error: option required but not specified" 1
+               shift 2;
+               exit 1
+               ;;
+            *)
+               BINDPASS="${2}"
                shift 2;
                ;;
          esac
@@ -340,21 +370,26 @@ done
 # Check that mandatory options have been passed
 if [[ -z  ${DOMAINNAME+x} ]] ||
    [[ -z  ${DIRUSER+x} ]] ||
-   [[ -z  ${CRYPTSTRING+x} ]] ||
-   [[ -z  ${CRYPTKEY+x} ]]
+   [[ -z  ${BINDPASS+x} ]]
 then
    MISSINGARGS=true
    UsageMsg
 fi
 
-# Decrypt our query password
-BINDPASS="$(PWdecrypt)"
-if [[ ${BINDPASS} == FAILURE ]]
+# Decrypt our query password (as necessary)
+if [[ ${BINDPASS} == TOBESET ]]
 then
-   logIt "Failed decrypting password"
-   saltOut "Failed decrypting password" no
-   exit
+   BINDPASS="$(PWdecrypt)"
+
+   # Bail if needed decrypt failed
+   if [[ ${BINDPASS} == FAILURE ]]
+   then
+      logIt "Failed decrypting password"
+      saltOut "Failed decrypting password" no
+      exit
+   fi
 fi
+
 
 # Search for Domain Controllers
 if [[ -z ${LDAPHOST+x} ]]
@@ -379,15 +414,23 @@ SEARCHSCOPE="$( printf "DC=%s" "${DOMAINNAME//./,DC=}" )"
 OBJECTDN=$(FindComputer)
 case "${OBJECTDN}" in
    NOTFOUND)
-      logIt "Could not find ${HOSTNAME} in ${SEARCHSCOPE}"
+      if [[ ${OUTPUT} != SALTMODE ]]
+      then
+         DOEXIT=1
+      fi
+      logIt "Could not find ${HOSTNAME} in ${SEARCHSCOPE}" "${DOEXIT}"
       saltOut "Could not find computer-object in directory" no
       logIt "Skipping any requested cleanup attempts"
       CLEANUP="FALSE"
       ;;
    QUERYFAILURE)
-      logIt "Query failure when looking for ${HOSTNAME} in ${SEARCHSCOPE}"
+      if [[ ${OUTPUT} != SALTMODE ]]
+      then
+         DOEXIT=1
+      fi
+      logIt "Query failure when looking for ${HOSTNAME} in ${SEARCHSCOPE}" "${DOEXIT}"
       saltOut "Query failure when looking for computer-object in directory" no
-      logIt "Skipping any requested cleanup attempts"
+      logIt "Skipping any requested cleanup attempts" 
       CLEANUP="FALSE"
       ;;
    *)
