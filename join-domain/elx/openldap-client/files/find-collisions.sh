@@ -136,7 +136,7 @@ function FindComputer {
          cn="${HOSTNAME}" cn 2> /dev/null || \
       ldapsearch -LLL -Z -x -h "${DCINFO//*;/}" -p \
          "${DCINFO//;*/}" -D "${QUERYUSER}" -w "${BINDPASS}" \
-         -b "${SEARCHSCOPE}" -s sub cn="${HOSTNAME}" cn 2> /dev/null | 
+         -b "${SEARCHSCOPE}" -s sub cn="${HOSTNAME}" cn 2> /dev/null 
    )
 
    COMPUTERNAME=$( echo ${COMPUTERNAME} | awk '/^dn:/{ print $2 }' )
@@ -158,9 +158,9 @@ function NukeObject {
    LDAPOBJECT="${1}"
 
    ldapdelete -x -h "${DCINFO//*;/}" -p "${DCINFO//;*/}" -D "${QUERYUSER}" \
-     -w "${BINDPASS}" "${LDAPOBJECT}" || \
+     -w "${BINDPASS}" "${LDAPOBJECT}" 2> /dev/null || \
    ldapdelete -Z -x -h "${DCINFO//*;/}" -p "${DCINFO//;*/}" -D "${QUERYUSER}" \
-     -w "${BINDPASS}" "${LDAPOBJECT}"
+     -w "${BINDPASS}" "${LDAPOBJECT}" 2> /dev/null
 
    SEARCHEXIT="$?"
 
