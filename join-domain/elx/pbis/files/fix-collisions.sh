@@ -98,6 +98,7 @@ function CheckObject() {
       elif [[ ${EXISTS} =~ NERR_SetupNotJoined ]]
       then
          printf "Not setup/joined" > "${STATFILE}" || exit 1
+         echo "ERROR"
       else
          echo "${EXISTS}"
       fi
