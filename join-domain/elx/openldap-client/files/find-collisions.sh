@@ -132,33 +132,21 @@ function FindComputer {
 
    # Searach without STARTLS
    COMPUTERNAME=$( ldapsearch -LLL -x -h "${DCINFO//*;/}" -p "${DCINFO//;*/}" \
-      -D "${QUERYUSER}" -w "${BINDPASS}" -b "${SEARCHSCOPE}" -s sub \
-      cn="${HOSTNAME}" cn 2>&1 | awk '/^dn:/{ print $2 }'
+         -D "${QUERYUSER}" -w "${BINDPASS}" -b "${SEARCHSCOPE}" -s sub \
+         cn="${HOSTNAME}" cn 2> /dev/null || \
+      ldapsearch -LLL -Z -x -h "${DCINFO//*;/}" -p \
+         "${DCINFO//;*/}" -D "${QUERYUSER}" -w "${BINDPASS}" \
+         -b "${SEARCHSCOPE}" -s sub cn="${HOSTNAME}" cn 2> /dev/null | 
    )
 
-   SEARCHEXIT="$?"
-
-   # Fallback: Try Searach with STARTLS
-   if [[ ${SEARCHEXIT} -ne 0 ]]
-   then
-      COMPUTERNAME=$( ldapsearch -LLL -Z -x -h "${DCINFO//*;/}" -p \
-           "${DCINFO//;*/}" -D "${QUERYUSER}" -w "${BINDPASS}" \
-           -b "${SEARCHSCOPE}" -s sub cn="${HOSTNAME}" cn 2>&1 | \
-         awk '/^dn:/{ print $2 }'
-      )
-
-      SEARCHEXIT="$?"
-   fi
+   COMPUTERNAME=$( echo ${COMPUTERNAME} | awk '/^dn:/{ print $2 }' )
 
    # Output based on exit status and/or what's found
-   if [[ ${SEARCHEXIT} -eq 0 ]] && [[ ! -z ${COMPUTERNAME} ]]
-   then
-      echo ${COMPUTERNAME}
-   elif [[ ${SEARCHEXIT} -eq 0 ]] && [[ -z ${COMPUTERNAME} ]]
+   if [[ -z ${COMPUTERNAME} ]]
    then
       echo "NOTFOUND"
    else
-      echo "QUERYFAILURE"
+      echo ${COMPUTERNAME}
    fi
 }
 
