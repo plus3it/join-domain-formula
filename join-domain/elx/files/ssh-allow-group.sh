@@ -16,13 +16,13 @@ fi
 if [[ $(grep -q "AllowGroups.*${ALLOWGRP}" ${SSHCFG})$? -eq 0 ]]
 then
    printf "\n"
-   printf "changed=no comment='${ALLOWGRP} already present in sshd_config "
+   printf "changed=no comment='%s already present in sshd_config " "${ALLOWGRP}"
    printf "AllowGroups directive.'\n"
    exit 0
 else
-   sed -i 's/AllowGroups.*$/& '${ALLOWGRP}'/' ${SSHCFG}
+   sed -i "s/AllowGroups.*$/& ${ALLOWGRP}/" ${SSHCFG}
    printf "\n"
-   printf "changed=yes comment='Added ${ALLOWGRP} to AllowGroups "
+   printf "changed=yes comment='Added %s to AllowGroups " "${ALLOWGRP}"
    printf "directive in sshd_config.'\n"
    exit 0
 fi

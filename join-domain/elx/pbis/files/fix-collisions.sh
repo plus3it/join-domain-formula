@@ -1,4 +1,5 @@
-#!/bin/sh
+#!/bin/bash
+# shellcheck disable=SC2155
 #
 # Under least-privileges security models, the PBIS installer can
 # have problems joining a client to the domain if the domain
@@ -25,6 +26,8 @@
 #       takes the form "USERID@DOMAIN.F.Q.D.N"
 #
 #################################################################
+PROGNAME="$( basename "${0}" )"
+
 
 # Check if enoug args were passed
 if [[ ${#@} -ge 4 ]]
@@ -36,8 +39,8 @@ then
    PASSCRYPT=${3}
    PASSULOCK=${4}
 else
-   printf "Usage: ${0} <DOMAIN.F.Q.D.N> <JOIN_USER> " > /dev/stderr
-   printf "<PASSWORD_CRYPT> <PASSWORD_UNLOCK>"  > /dev/stderr
+   printf "Usage: %s <DOMAIN.F.Q.D.N> <JOIN_USER> " "${PROGNAME}" >&2
+   printf "<PASSWORD_CRYPT> <PASSWORD_UNLOCK>"  >&2
    exit 1
 fi
 
@@ -55,6 +58,7 @@ function PWdecrypt() {
    local PWCLEAR
    PWCLEAR=$(echo "${PASSCRYPT}" | openssl enc -aes-256-cbc -md sha256 -a -d \
              -salt -pass pass:"${PASSULOCK}")
+   # shellcheck disable=SC2181
    if [[ $? -ne 0 ]]
    then
      echo ""
@@ -72,15 +76,29 @@ function CheckMyJoinState() {
 
 # Check for object-collisions
 function CheckObject() {
-   local EXISTS=$(${ADTOOL} -d ${DOMAIN} -n ${USERID}@${DOMAIN} \
-                  -x "${PASSWORD}" -a search-computer \
-                  --name cn="${NODENAME}" -t)
+   local EXISTS=$( "${ADTOOL}" -d "${DOMAIN}" -n "${USERID}@${DOMAIN}" \
+                   -x "${PASSWORD}" -a search-computer \
+                   --name cn="${NODENAME}" -t 2>&1 | tr -d '\n' )
 
    if [[ -z ${EXISTS} ]]
    then
       echo "NONE"
    else
-      echo "${EXISTS}"
+      if [[ ${EXISTS} =~ "ERROR: 400090" ]]
+      then
+         printf "authentication credentials not valid" > "${STATFILE}" || exit 1
+         echo "ERROR"
+      elif [[ ${EXISTS} =~ "ERROR: 500008" ]]
+      then
+         printf "Stronger authentication required" > "${STATFILE}" || exit 1
+         echo "ERROR"
+      elif [[ ${EXISTS} =~ NERR_SetupNotJoined ]]
+      then
+         printf "Not setup/joined" > "${STATFILE}" || exit 1
+         echo "ERROR"
+      else
+         echo "${EXISTS}"
+      fi
    fi
 }
 
@@ -91,26 +109,26 @@ function NukeCollision() {
 
    while [ $LOOP -le 5 ]
    do
-      ${ADTOOL} -d ${DOMAIN} -n ${USERID}@${DOMAIN} -x "${PASSWORD}" \
+      "${ADTOOL}" -d "${DOMAIN}" -n "${USERID}@${DOMAIN}" -x "${PASSWORD}" \
          -a delete-object --dn="$(CheckObject)" --force > /dev/null 2>&1
 
       if [[ $(sleep 5 ; CheckObject) = "NONE" ]]
       then
          printf "\n"
-         printf "changed=yes comment='Deleted ${NODENAME} from "
+         printf "changed=yes comment='Deleted %s from " "${NODENAME}"
          printf "the directory'\n"
          exit 0
       fi
 
       local RND=$(shuf -i 1-15 -n 1)
       logger -p user.warn -t "pbis-join(nuke)" "Retrying nuke-attempt in $RND seconds"
-      sleep ${RND}
+      sleep "${RND}"
 
       (( LOOP++ ))
    done
 
    printf "\n"
-   printf "changed=no comment='Failed to delete ${NODENAME} "
+   printf "changed=no comment='Failed to delete %s " "${NODENAME}"
    printf "from the directory'\n"
    exit 1
 }
@@ -119,8 +137,19 @@ function NukeCollision() {
 ######################
 ## Main program flow
 ######################
+# If already joined, no point proceeding further
+if [[ -n "$(CheckMyJoinState)" ]]
+then
+   printf "\n"
+   printf "changed=no comment='Local system has active join config present "
+   printf "in the directory'\n"
+   exit 0
+fi
+
+# Decrypt our password
 PASSWORD=$(PWdecrypt)
 
+# Bail if we can't decryption failed
 if [[ -z "${PASSWORD}" ]]
 then
   printf "\n"
@@ -128,18 +157,22 @@ then
   exit 1
 fi
 
-if [[ $(CheckObject) = NONE ]]
-then
-   printf "\n"
-   printf "changed=no comment='No collisions for ${NODENAME} found "
-   printf "in the directory'\n"
-   exit 0
-elif [[ -n "$(CheckMyJoinState)" ]]
-then
-   printf "\n"
-   printf "changed=no comment='Local system has active join config present "
-   printf "in the directory'\n"
-   exit 0
-else
-   NukeCollision
-fi
+# See if we can find an collision, try to nuke if we do
+case $(CheckObject) in
+   ERROR)
+      OUTSTRING=$(<"${STATFILE}")
+      printf "\n"
+      printf "changed=no comment='Could not check for collision: "
+      printf "%s'\n" "${OUTSTRING}"
+      exit 0
+      ;;
+   NONE)
+      printf "\n"
+      printf "changed=no comment='No collisions for %s found " "${NODENAME}"
+      printf "in the directory'\n"
+      exit 0
+      ;;
+   *)
+      NukeCollision
+      ;;
+esac
