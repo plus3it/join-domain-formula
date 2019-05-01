@@ -27,9 +27,6 @@
 #
 #################################################################
 PROGNAME="$( basename "${0}" )"
-STATFILE="/tmp/.${PROGNAME}.stat"
-trap "exit 0" TERM
-export TOP_PID=$$
 
 
 # Check if enoug args were passed
