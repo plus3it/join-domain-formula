@@ -87,3 +87,18 @@ PBIS-disable-NssEnumeration:
     - onlyif: test $({{ join_domain.install_bin_dir }}/bin/config --show NssEnumerationEnabled | grep -q -i "false")$? -ne 0
     - require:
       - pkg: PBIS-install
+
+PBIS-enable-LdapSignAndSeal:
+  cmd.run:
+    - name: '
+        {{ join_domain.install_bin_dir }}/bin/config LdapSignAndSeal true;
+        ret=$?;
+        if [[ $ret -eq 5 ]];
+        then
+            ret=0;
+        fi;
+        exit $ret;
+    '
+    - onlyif: test $({{ join_domain.install_bin_dir }}/bin/config --show LdapSignAndSeal | grep -q -i "true")$? -ne 0
+    - require:
+      - pkg: PBIS-install
