@@ -7,7 +7,7 @@
 
 {#- Set location for helper-files #}
 {%- set files = tpldir ~ '/files' %}
-{%- set usePbisDdns = salt.pillar.get('ash-linux:lookup:pbis-dns', []) %}
+{%- set usePbisDdns = salt.pillar.get('join-domain:lookup:pbis-ddns') %}
 
 include:
   - .config
@@ -62,16 +62,12 @@ PBIS-PamSystemDemunge:
     - require:
       - cmd: PBIS-join
 
-{%- if usePbisDdns = true %}
+{%- if usePbisDdns %}
 PBIS-DDNS:
-  cmd.script:
+  cmd.run:
     - name: '
-        {{ join_domain.install_bin_dir }}/bin/update-dns ;
+        {{ join_domain.install_bin_dir }}/bin/update-dns;
         ret=$?;
-        if [[ $ret -eq 5 ]];
-        then
-            ret=0;
-        fi;
         exit $ret;
     '
     - require:
