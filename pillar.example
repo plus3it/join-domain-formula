@@ -67,7 +67,8 @@ join-domain:
     #  - lwi_events.db
     #  - lsass-adcache.filedb.FQDN
 
-    # Whether to try to use PBIS's `update-dns` utility to send a DDNS update request.
+    # Whether to try to use AD-integration subsystem's associated utility for
+    # issuing a DDNS update request.
     #    Note: this is only known to work with DNS systems based on Microsoft's
     #          DNS-integrated Active Directory service.
-    #pbis-ddns: true
+    #update-dns: true
