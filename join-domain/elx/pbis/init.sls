@@ -66,7 +66,6 @@ PBIS-PamSystemDemunge:
 PBIS-DDNS:
   cmd.run:
     - name: {{ join_domain.install_bin_dir }}/bin/update-dns
-    '
     - require:
       - cmd: PBIS-join
 {%- endif %}
