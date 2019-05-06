@@ -7,7 +7,7 @@
 
 {#- Set location for helper-files #}
 {%- set files = tpldir ~ '/files' %}
-{%- set usePbisDdns = salt.pillar.get('join-domain:lookup:pbis-ddns') %}
+{%- set usePbisDdns = salt.pillar.get('join-domain:lookup:update-dns') %}
 
 include:
   - .config
