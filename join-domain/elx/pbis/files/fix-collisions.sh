@@ -106,7 +106,7 @@ function CheckObject() {
       if [[ ${ADTOOLERR} =~ "ERROR:_400090" ]]
       then
          logIt "authentication credentials not valid"
-         echo "authentication credentials not valid" > "${STATFILE}"
+         printf "authentication credentials not valid" > "${STATFILE}"
          echo "ERROR"
       elif [[ ${ADTOOLERR} =~ "ERROR:_500008" ]]
       then
