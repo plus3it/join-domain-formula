@@ -5,7 +5,6 @@
 #
 ######################################################################
 PROGNAME="$( basename "${0}" )"
-PROGDIR="$( dirname "${0}" )"
 LOGFACIL="user.err"
 DEBUGVAL="${DEBUG:-false}"
 LDAPTYPE="AD"
@@ -22,7 +21,7 @@ function logIt {
    if [[ ! -z ${2} ]] && [[ ${2} -gt 0 ]]
    then
       logger -st "${PROGNAME}" -p ${LOGFACIL} "${1}"
-      exit ${2}
+      exit "${2}"
    fi
 }
 
@@ -83,6 +82,8 @@ function PWdecrypt {
    local PWCLEAR
    PWCLEAR=$(echo "${CRYPTSTRING}" | openssl enc -aes-256-cbc -md sha256 -a -d \
              -salt -pass pass:"${CRYPTKEY}")
+
+   # shellcheck disable=SC2181
    if [[ $? -ne 0 ]]
    then
      echo "FAILURE"
@@ -106,7 +107,7 @@ function FindDCs {
    do
       timeout 1 bash -c "echo > /dev/tcp/${DC//*;/}/${DC//;*/}" &&
         break
-      IDX=$(( ${IDX} + 1 ))
+      IDX=$(( IDX + 1 ))
    done
 
    case "${DC//;*/}" in
@@ -139,14 +140,14 @@ function FindComputer {
          -b "${SEARCHSCOPE}" -s sub cn="${HOSTNAME}" cn 2> /dev/null 
    )
 
-   COMPUTERNAME=$( echo ${COMPUTERNAME} | awk '/^dn:/{ print $2 }' )
+   COMPUTERNAME=$( echo "${COMPUTERNAME}" | awk '/^dn:/{ print $2 }' )
 
    # Output based on exit status and/or what's found
    if [[ -z ${COMPUTERNAME} ]]
    then
       echo "NOTFOUND"
    else
-      echo ${COMPUTERNAME}
+      echo "${COMPUTERNAME}"
    fi
 }
 

@@ -27,6 +27,23 @@
 #
 #################################################################
 PROGNAME="$( basename "${0}" )"
+STATFILE="/tmp/.${PROGNAME}.err"
+
+# Miscellaneous output-engine
+function logIt {
+   # Spit out message to calling-shell if debug-mode enabled
+   if [[ ${DEBUGVAL} == true ]]
+   then
+      echo "${1}" >&2
+   fi
+
+   # Send to syslog if passed message-code is non-zero
+   if [[ ! -z ${2} ]] && [[ ${2} -gt 0 ]]
+   then
+      logger -st "${PROGNAME}" -p "${LOGFACIL}" "${1}"
+      exit "${2}"
+   fi
+}
 
 
 # Check if enoug args were passed
@@ -76,27 +93,33 @@ function CheckMyJoinState() {
 
 # Check for object-collisions
 function CheckObject() {
+   local ADTOOLERR
    local EXISTS=$( "${ADTOOL}" -d "${DOMAIN}" -n "${USERID}@${DOMAIN}" \
                    -x "${PASSWORD}" -a search-computer \
                    --name cn="${NODENAME}" -t 2>&1 | tr -d '\n' )
+   ADTOOLERR=$( ${EXISTS// /_} | sed -e 's/(//g' -e 's/)//g' )
 
    if [[ -z ${EXISTS} ]]
    then
       echo "NONE"
    else
-      if [[ ${EXISTS} =~ "ERROR: 400090" ]]
+      if [[ ${ADTOOLERR} =~ "ERROR:_400090" ]]
       then
-         printf "authentication credentials not valid" > "${STATFILE}" || exit 1
+         logIt "authentication credentials not valid"
+         printf "authentication credentials not valid" > "${STATFILE}"
          echo "ERROR"
-      elif [[ ${EXISTS} =~ "ERROR: 500008" ]]
+      elif [[ ${ADTOOLERR} =~ "ERROR:_500008" ]]
       then
-         printf "Stronger authentication required" > "${STATFILE}" || exit 1
+         logIt "Stronger authentication required"
+         printf "Stronger authentication required" > "${STATFILE}"
          echo "ERROR"
-      elif [[ ${EXISTS} =~ NERR_SetupNotJoined ]]
+      elif [[ ${ADTOOLERR} =~ NERR_SetupNotJoined ]]
       then
-         printf "Not setup/joined" > "${STATFILE}" || exit 1
+         logIt "Not setup/joined"
+         printf "Not setup/joined" > "${STATFILE}"
          echo "ERROR"
       else
+         logIt "${EXISTS}"
          echo "${EXISTS}"
       fi
    fi
@@ -164,6 +187,7 @@ case $(CheckObject) in
       printf "\n"
       printf "changed=no comment='Could not check for collision: "
       printf "%s'\n" "${OUTSTRING}"
+      rm "${STATFILE}"
       exit 0
       ;;
    NONE)
