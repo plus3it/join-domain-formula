@@ -40,8 +40,8 @@ function logIt {
    # Send to syslog if passed message-code is non-zero
    if [[ ! -z ${2} ]] && [[ ${2} -gt 0 ]]
    then
-      logger -st "${PROGNAME}" -p ${LOGFACIL} "${1}"
-      exit ${2}
+      logger -st "${PROGNAME}" -p "${LOGFACIL}" "${1}"
+      exit "${2}"
    fi
 }
 
