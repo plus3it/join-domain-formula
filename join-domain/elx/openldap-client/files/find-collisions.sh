@@ -100,7 +100,7 @@ function FindDCs {
 
    DNS_SEARCH_STRING="_ldap._tcp.dc._msdcs.${1}"
    IDX=0
-   SEARCH_LIST=($( dig -t SRV "${DNS_SEARCH_STRING}" | awk '/ IN SRV /{ printf("%s;%s\n",$7,$8)}' ))
+   SEARCH_LIST=($( dig -t SRV "${DNS_SEARCH_STRING}" | awk '/\sIN SRV\s/{ printf("%s;%s\n",$7,$8)}' ))
 
    # Parse list of domain-controllers to see who we can connect to
    for DC in "${SEARCH_LIST[@]}"
@@ -130,14 +130,18 @@ function FindDCs {
 function FindComputer {
    local COMPUTERNAME
    local SEARCHEXIT
+   local SEARCHTERM
+
+   SEARCHTERM="(&(objectCategory=computer)(|(cn=${HOSTNAME})(cn=${HOSTNAME^^})(cn=${HOSTNAME,,})))"
 
    # Searach without STARTLS
    COMPUTERNAME=$( ldapsearch -LLL -x -h "${DCINFO//*;/}" -p "${DCINFO//;*/}" \
-         -D "${QUERYUSER}" -w "${BINDPASS}" -b "${SEARCHSCOPE}" -s sub \
-         cn="${HOSTNAME}" cn 2> /dev/null || \
+        -D "${QUERYUSER}" -w "${BINDPASS}" -b "${SEARCHSCOPE}" -s sub \
+        "${SEARCHTERM}" cn 2> /dev/null || \
       ldapsearch -LLL -Z -x -h "${DCINFO//*;/}" -p \
-         "${DCINFO//;*/}" -D "${QUERYUSER}" -w "${BINDPASS}" \
-         -b "${SEARCHSCOPE}" -s sub cn="${HOSTNAME}" cn 2> /dev/null 
+        "${DCINFO//;*/}" -D "${QUERYUSER}" -w "${BINDPASS}" \
+        -b "${SEARCHSCOPE}" -s sub \
+        "${SEARCHTERM}" cn 2> /dev/null
    )
 
    COMPUTERNAME=$( echo "${COMPUTERNAME}" | awk '/^dn:/{ print $2 }' )
