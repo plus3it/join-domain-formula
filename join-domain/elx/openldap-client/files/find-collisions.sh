@@ -130,14 +130,18 @@ function FindDCs {
 function FindComputer {
    local COMPUTERNAME
    local SEARCHEXIT
+   local SEARCHTERM
+
+   SEARCHTERM="(&(objectCategory=computer)(|(cn=${HOSTNAME})(cn=${HOSTNAME^^})(cn=${HOSTNAME,,})))"
 
    # Searach without STARTLS
    COMPUTERNAME=$( ldapsearch -LLL -x -h "${DCINFO//*;/}" -p "${DCINFO//;*/}" \
-         -D "${QUERYUSER}" -w "${BINDPASS}" -b "${SEARCHSCOPE}" -s sub \
-         cn="${HOSTNAME}" cn 2> /dev/null || \
+        -D "${QUERYUSER}" -w "${BINDPASS}" -b "${SEARCHSCOPE}" -s sub \
+        "${SEARCHTERM}" cn 2> /dev/null || \
       ldapsearch -LLL -Z -x -h "${DCINFO//*;/}" -p \
-         "${DCINFO//;*/}" -D "${QUERYUSER}" -w "${BINDPASS}" \
-         -b "${SEARCHSCOPE}" -s sub cn="${HOSTNAME}" cn 2> /dev/null 
+        "${DCINFO//;*/}" -D "${QUERYUSER}" -w "${BINDPASS}" \
+        -b "${SEARCHSCOPE}" -s sub \
+        "${SEARCHTERM}" cn 2> /dev/null
    )
 
    COMPUTERNAME=$( echo "${COMPUTERNAME}" | awk '/^dn:/{ print $2 }' )
