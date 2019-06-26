@@ -87,7 +87,12 @@ function PWdecrypt() {
 
 # Am I already joined
 function CheckMyJoinState() {
-   /opt/pbis/bin/lsa ad-get-machine account
+   /opt/pbis/bin/lsa ad-get-machine account > /dev/null 2>&1
+
+   if [[ $? -eq 0 ]]
+   then
+      echo "IS_JOINED"
+   fi
 }
 
 
@@ -161,7 +166,7 @@ function NukeCollision() {
 ## Main program flow
 ######################
 # If already joined, no point proceeding further
-if [[ -n "$(CheckMyJoinState)" ]]
+if [[ $(CheckMyJoinState) == IS_JOINED ]]
 then
    printf "\n"
    printf "changed=no comment='Local system has active join config present "
