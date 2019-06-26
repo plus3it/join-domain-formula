@@ -102,7 +102,7 @@ function CheckObject() {
    local EXISTS=$( "${ADTOOL}" -d "${DOMAIN}" -n "${USERID}@${DOMAIN}" \
                    -x "${PASSWORD}" -a search-computer \
                    --name cn="${NODENAME}" -t 2>&1 | tr -d '\n' )
-   ADTOOLERR=$( ${EXISTS// /_} | sed -e 's/(//g' -e 's/)//g' )
+   ADTOOLERR=$( echo ${EXISTS// /_} | sed -e 's/(//g' -e 's/)//g' )
 
    if [[ -z ${EXISTS} ]]
    then
