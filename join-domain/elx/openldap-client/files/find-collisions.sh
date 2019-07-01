@@ -1,6 +1,8 @@
 #!/bin/bash
 # shellcheck disable=
 #
+set -euo pipefail
+#
 # Script to locate collisions within an LDAP directory service
 #
 ######################################################################
@@ -8,20 +10,27 @@ PROGNAME="$( basename "${0}" )"
 LOGFACIL="user.err"
 DEBUGVAL="${DEBUG:-false}"
 LDAPTYPE="AD"
+DOEXIT="0"
 
 # Miscellaneous output-engine
 function logIt {
+   local LOGSTR
+   local ERREXT
+
+   LOGSTR="${1}"
+   ERREXT="${2:-}"
+
    # Spit out message to calling-shell if debug-mode enabled
    if [[ ${DEBUGVAL} == true ]]
    then
-      echo "${1}" >&2
+      echo "${LOGSTR}" >&2
    fi
 
    # Send to syslog if passed message-code is non-zero
-   if [[ ! -z ${2} ]] && [[ ${2} -gt 0 ]]
+   if [[ ! -z ${ERREXT} ]] && [[ ${ERREXT} -gt 0 ]]
    then
-      logger -st "${PROGNAME}" -p ${LOGFACIL} "${1}"
-      exit "${2}"
+      logger -st "${PROGNAME}" -p ${LOGFACIL} "${LOGSTR}"
+      exit "${ERREXT}"
    fi
 }
 
@@ -131,17 +140,23 @@ function FindComputer {
    local COMPUTERNAME
    local SEARCHEXIT
    local SEARCHTERM
+   local SHORTHOST
 
-   SEARCHTERM="(&(objectCategory=computer)(|(cn=${HOSTNAME})(cn=${HOSTNAME^^})(cn=${HOSTNAME,,})))"
+   # AD-hosted objects will always be shortnames
+   SHORTHOST=${HOSTNAME//.*/}
+
+   # Need to ensure we look for literal, all-cap and all-lower
+   SEARCHTERM="(&(objectCategory=computer)(|(cn=${SHORTHOST})(cn=${SHORTHOST^^})(cn=${SHORTHOST,,})))"
+   export SEARCHTERM
 
    # Searach without STARTLS
    COMPUTERNAME=$( ldapsearch -LLL -x -h "${DCINFO//*;/}" -p "${DCINFO//;*/}" \
         -D "${QUERYUSER}" -w "${BINDPASS}" -b "${SEARCHSCOPE}" -s sub \
-        "${SEARCHTERM}" cn 2> /dev/null || \
+        "${SEARCHTERM}" dn 2> /dev/null || \
       ldapsearch -LLL -Z -x -h "${DCINFO//*;/}" -p \
         "${DCINFO//;*/}" -D "${QUERYUSER}" -w "${BINDPASS}" \
         -b "${SEARCHSCOPE}" -s sub \
-        "${SEARCHTERM}" cn 2> /dev/null
+        "${SEARCHTERM}" dn 2> /dev/null
    )
 
    COMPUTERNAME=$( echo "${COMPUTERNAME}" | awk '/^dn:/{ print $2 }' )
@@ -373,6 +388,7 @@ fi
 if [[ ${BINDPASS} == TOBESET ]]
 then
    BINDPASS="$(PWdecrypt)"
+   export BINDPASS
 
    # Bail if needed decrypt failed
    if [[ ${BINDPASS} == FAILURE ]]
@@ -391,6 +407,7 @@ then
 else
    DCINFO="389;${LDAPHOST}"
 fi
+export DCINFO
 
 # Set directory-user value as appropriate
 if [[ ${LDAPTYPE} == AD ]]
@@ -399,9 +416,11 @@ then
 else
    QUERYUSER="${DIRUSER}"
 fi
+export QUERYUSER
 
 # Convert domain to a search scope
 SEARCHSCOPE="$( printf "DC=%s" "${DOMAINNAME//./,DC=}" )"
+export SEARCHSCOPE
 
 # Do search
 OBJECTDN=$(FindComputer)
