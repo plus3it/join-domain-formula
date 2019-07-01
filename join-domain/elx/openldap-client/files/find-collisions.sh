@@ -132,7 +132,7 @@ function FindComputer {
    local SEARCHEXIT
    local SEARCHTERM
 
-   SEARCHTERM="(&(objectCategory=computer)(|(cn=${HOSTNAME})(cn=${HOSTNAME^^})(cn=${HOSTNAME,,})))"
+   export SEARCHTERM="(&(objectCategory=computer)(|(cn=${HOSTNAME})(cn=${HOSTNAME^^})(cn=${HOSTNAME,,})))"
 
    # Searach without STARTLS
    COMPUTERNAME=$( ldapsearch -LLL -x -h "${DCINFO//*;/}" -p "${DCINFO//;*/}" \
@@ -372,7 +372,7 @@ fi
 # Decrypt our query password (as necessary)
 if [[ ${BINDPASS} == TOBESET ]]
 then
-   BINDPASS="$(PWdecrypt)"
+   export BINDPASS="$(PWdecrypt)"
 
    # Bail if needed decrypt failed
    if [[ ${BINDPASS} == FAILURE ]]
@@ -387,21 +387,21 @@ fi
 # Search for Domain Controllers
 if [[ -z ${LDAPHOST+x} ]]
 then
-   DCINFO="$( FindDCs "${DOMAINNAME}" )"
+   export DCINFO="$( FindDCs "${DOMAINNAME}" )"
 else
-   DCINFO="389;${LDAPHOST}"
+   export DCINFO="389;${LDAPHOST}"
 fi
 
 # Set directory-user value as appropriate
 if [[ ${LDAPTYPE} == AD ]]
 then
-   QUERYUSER="${DIRUSER}@${DOMAINNAME}"
+   export QUERYUSER="${DIRUSER}@${DOMAINNAME}"
 else
-   QUERYUSER="${DIRUSER}"
+   export QUERYUSER="${DIRUSER}"
 fi
 
 # Convert domain to a search scope
-SEARCHSCOPE="$( printf "DC=%s" "${DOMAINNAME//./,DC=}" )"
+export SEARCHSCOPE="$( printf "DC=%s" "${DOMAINNAME//./,DC=}" )"
 
 # Do search
 OBJECTDN=$(FindComputer)
