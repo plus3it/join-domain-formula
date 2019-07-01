@@ -87,28 +87,38 @@ function PWdecrypt() {
 
 # Am I already joined
 function CheckMyJoinState() {
-   /opt/pbis/bin/lsa ad-get-machine account
+   /opt/pbis/bin/lsa ad-get-machine account > /dev/null 2>&1
+
+   # shellcheck disable=SC2181
+   if [[ $? -eq 0 ]]
+   then
+      echo "IS_JOINED"
+   fi
 }
 
 
 # Check for object-collisions
 function CheckObject() {
    local ADTOOLERR
-   local EXISTS=$( "${ADTOOL}" -d "${DOMAIN}" -n "${USERID}@${DOMAIN}" \
+   local EXISTS
+
+   EXISTS=$( "${ADTOOL}" -d "${DOMAIN}" -n "${USERID}@${DOMAIN}" \
                    -x "${PASSWORD}" -a search-computer \
                    --name cn="${NODENAME}" -t 2>&1 | tr -d '\n' )
-   ADTOOLERR=$( ${EXISTS// /_} | sed -e 's/(//g' -e 's/)//g' )
+   ADTOOLERR=$( echo "${EXISTS// /_}" | sed -e 's/(//g' -e 's/)//g' )
 
+   # Return NONE if EXISTS is null
    if [[ -z ${EXISTS} ]]
    then
       echo "NONE"
+   # Strcmp the value returned
    else
-      if [[ ${ADTOOLERR} =~ "ERROR:_400090" ]]
+      if [[ ${ADTOOLERR} =~ ERROR:_400090 ]]
       then
          logIt "authentication credentials not valid"
          printf "authentication credentials not valid" > "${STATFILE}"
          echo "ERROR"
-      elif [[ ${ADTOOLERR} =~ "ERROR:_500008" ]]
+      elif [[ ${ADTOOLERR} =~ ERROR:_500008 ]]
       then
          logIt "Stronger authentication required"
          printf "Stronger authentication required" > "${STATFILE}"
@@ -161,7 +171,7 @@ function NukeCollision() {
 ## Main program flow
 ######################
 # If already joined, no point proceeding further
-if [[ -n "$(CheckMyJoinState)" ]]
+if [[ $(CheckMyJoinState) == IS_JOINED ]]
 then
    printf "\n"
    printf "changed=no comment='Local system has active join config present "
