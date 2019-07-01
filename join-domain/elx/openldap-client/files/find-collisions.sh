@@ -1,6 +1,8 @@
 #!/bin/bash
 # shellcheck disable=
 #
+set -euo pipefail
+#
 # Script to locate collisions within an LDAP directory service
 #
 ######################################################################
@@ -8,20 +10,27 @@ PROGNAME="$( basename "${0}" )"
 LOGFACIL="user.err"
 DEBUGVAL="${DEBUG:-false}"
 LDAPTYPE="AD"
+DOEXIT="0"
 
 # Miscellaneous output-engine
 function logIt {
+   local LOGSTR
+   local ERREXT
+
+   LOGSTR="${1}"
+   ERREXT="${2:-}"
+
    # Spit out message to calling-shell if debug-mode enabled
    if [[ ${DEBUGVAL} == true ]]
    then
-      echo "${1}" >&2
+      echo "${LOGSTR}" >&2
    fi
 
    # Send to syslog if passed message-code is non-zero
-   if [[ ! -z ${2} ]] && [[ ${2} -gt 0 ]]
+   if [[ ! -z ${ERREXT} ]] && [[ ${ERREXT} -gt 0 ]]
    then
-      logger -st "${PROGNAME}" -p ${LOGFACIL} "${1}"
-      exit "${2}"
+      logger -st "${PROGNAME}" -p ${LOGFACIL} "${LOGSTR}"
+      exit "${ERREXT}"
    fi
 }
 
@@ -137,7 +146,8 @@ function FindComputer {
    SHORTHOST=${HOSTNAME//.*/}
 
    # Need to ensure we look for literal, all-cap and all-lower
-   export SEARCHTERM="(&(objectCategory=computer)(|(cn=${SHORTHOST})(cn=${SHORTHOST^^})(cn=${SHORTHOST,,})))"
+   SEARCHTERM="(&(objectCategory=computer)(|(cn=${SHORTHOST})(cn=${SHORTHOST^^})(cn=${SHORTHOST,,})))"
+   export SEARCHTERM
 
    # Searach without STARTLS
    COMPUTERNAME=$( ldapsearch -LLL -x -h "${DCINFO//*;/}" -p "${DCINFO//;*/}" \
@@ -377,7 +387,8 @@ fi
 # Decrypt our query password (as necessary)
 if [[ ${BINDPASS} == TOBESET ]]
 then
-   export BINDPASS="$(PWdecrypt)"
+   BINDPASS="$(PWdecrypt)"
+   export BINDPASS
 
    # Bail if needed decrypt failed
    if [[ ${BINDPASS} == FAILURE ]]
@@ -392,21 +403,24 @@ fi
 # Search for Domain Controllers
 if [[ -z ${LDAPHOST+x} ]]
 then
-   export DCINFO="$( FindDCs "${DOMAINNAME}" )"
+   DCINFO="$( FindDCs "${DOMAINNAME}" )"
 else
-   export DCINFO="389;${LDAPHOST}"
+   DCINFO="389;${LDAPHOST}"
 fi
+export DCINFO
 
 # Set directory-user value as appropriate
 if [[ ${LDAPTYPE} == AD ]]
 then
-   export QUERYUSER="${DIRUSER}@${DOMAINNAME}"
+   QUERYUSER="${DIRUSER}@${DOMAINNAME}"
 else
-   export QUERYUSER="${DIRUSER}"
+   QUERYUSER="${DIRUSER}"
 fi
+export QUERYUSER
 
 # Convert domain to a search scope
-export SEARCHSCOPE="$( printf "DC=%s" "${DOMAINNAME//./,DC=}" )"
+SEARCHSCOPE="$( printf "DC=%s" "${DOMAINNAME//./,DC=}" )"
+export SEARCHSCOPE
 
 # Do search
 OBJECTDN=$(FindComputer)
