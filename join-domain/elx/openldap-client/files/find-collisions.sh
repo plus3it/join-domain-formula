@@ -131,17 +131,22 @@ function FindComputer {
    local COMPUTERNAME
    local SEARCHEXIT
    local SEARCHTERM
+   local SHORTHOST
 
-   export SEARCHTERM="(&(objectCategory=computer)(|(cn=${HOSTNAME})(cn=${HOSTNAME^^})(cn=${HOSTNAME,,})))"
+   # AD-hosted objects will always be shortnames
+   SHORTHOST=${HOSTNAME//.*/}
+
+   # Need to ensure we look for literal, all-cap and all-lower
+   export SEARCHTERM="(&(objectCategory=computer)(|(cn=${SHORTHOST})(cn=${SHORTHOST^^})(cn=${SHORTHOST,,})))"
 
    # Searach without STARTLS
    COMPUTERNAME=$( ldapsearch -LLL -x -h "${DCINFO//*;/}" -p "${DCINFO//;*/}" \
         -D "${QUERYUSER}" -w "${BINDPASS}" -b "${SEARCHSCOPE}" -s sub \
-        "${SEARCHTERM}" cn 2> /dev/null || \
+        "${SEARCHTERM}" dn 2> /dev/null || \
       ldapsearch -LLL -Z -x -h "${DCINFO//*;/}" -p \
         "${DCINFO//;*/}" -D "${QUERYUSER}" -w "${BINDPASS}" \
         -b "${SEARCHSCOPE}" -s sub \
-        "${SEARCHTERM}" cn 2> /dev/null
+        "${SEARCHTERM}" dn 2> /dev/null
    )
 
    COMPUTERNAME=$( echo "${COMPUTERNAME}" | awk '/^dn:/{ print $2 }' )
