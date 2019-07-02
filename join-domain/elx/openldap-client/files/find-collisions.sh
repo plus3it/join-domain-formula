@@ -105,9 +105,11 @@ function PWdecrypt {
 function FindDCs {
    local DNS_SEARCH_STRING
    local IDX
+   local DC
    local SEARCH_LIST
 
    DNS_SEARCH_STRING="_ldap._tcp.dc._msdcs.${1}"
+   DC=()
    IDX=0
    SEARCH_LIST=($( dig -t SRV "${DNS_SEARCH_STRING}" | awk '/\sIN SRV\s/{ printf("%s;%s\n",$7,$8)}' ))
 
