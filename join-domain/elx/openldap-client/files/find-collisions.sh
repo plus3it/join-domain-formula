@@ -160,7 +160,8 @@ function FindComputer {
         "${SEARCHTERM}" dn 2> /dev/null
    )
 
-   COMPUTERNAME=$( echo "${COMPUTERNAME}" | awk '/^dn:/{ print $2 }' )
+   COMPUTERNAME=$( echo "${COMPUTERNAME}" | \
+        sed -e 's/^.*dn: *//' -e '/^$/d' -e '/#/d' )
 
    # Output based on exit status and/or what's found
    if [[ -z ${COMPUTERNAME} ]]
