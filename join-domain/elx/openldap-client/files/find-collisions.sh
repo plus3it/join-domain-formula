@@ -1,7 +1,7 @@
 #!/bin/bash
 # shellcheck disable=
 #
-set -euo pipefail
+# set -euo pipefail
 #
 # Script to locate collisions within an LDAP directory service
 #
@@ -151,10 +151,10 @@ function FindComputer {
    export SEARCHTERM
 
    # Searach without STARTLS
-   COMPUTERNAME=$( ldapsearch -LLL -x -h "${DCINFO//*;/}" -p "${DCINFO//;*/}" \
-        -D "${QUERYUSER}" -w "${BINDPASS}" -b "${SEARCHSCOPE}" -s sub \
-        "${SEARCHTERM}" dn 2> /dev/null || \
-      ldapsearch -LLL -Z -x -h "${DCINFO//*;/}" -p \
+   COMPUTERNAME=$( ldapsearch -o ldif-wrap=no -LLL -x -h "${DCINFO//*;/}" \
+        -p "${DCINFO//;*/}" -D "${QUERYUSER}" -w "${BINDPASS}" \
+        -b "${SEARCHSCOPE}" -s sub "${SEARCHTERM}" dn 2> /dev/null || \
+      ldapsearch ldif-wrap=no -LLL -Z -x -h "${DCINFO//*;/}" -p \
         "${DCINFO//;*/}" -D "${QUERYUSER}" -w "${BINDPASS}" \
         -b "${SEARCHSCOPE}" -s sub \
         "${SEARCHTERM}" dn 2> /dev/null
