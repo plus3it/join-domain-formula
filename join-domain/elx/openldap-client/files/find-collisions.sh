@@ -12,6 +12,10 @@ DEBUGVAL="${DEBUG:-false}"
 LDAPTYPE="AD"
 DOEXIT="0"
 
+# Need to ignore value set in parent shell because that value is set
+# before any wam-initiated renames complete
+HOSTNAME=$( hostname -f )
+
 # Miscellaneous output-engine
 function logIt {
    local LOGSTR
