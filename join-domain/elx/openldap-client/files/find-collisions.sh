@@ -158,7 +158,7 @@ function FindComputer {
    COMPUTERNAME=$( ldapsearch -o ldif-wrap=no -LLL -x -h "${DCINFO//*;/}" \
         -p "${DCINFO//;*/}" -D "${QUERYUSER}" -w "${BINDPASS}" \
         -b "${SEARCHSCOPE}" -s sub "${SEARCHTERM}" dn 2> /dev/null || \
-      ldapsearch ldif-wrap=no -LLL -Z -x -h "${DCINFO//*;/}" -p \
+      ldapsearch -o ldif-wrap=no -LLL -Z -x -h "${DCINFO//*;/}" -p \
         "${DCINFO//;*/}" -D "${QUERYUSER}" -w "${BINDPASS}" \
         -b "${SEARCHSCOPE}" -s sub \
         "${SEARCHTERM}" dn 2> /dev/null
