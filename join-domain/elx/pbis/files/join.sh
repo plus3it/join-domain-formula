@@ -59,25 +59,20 @@ function DomainJoin() {
       none|None|NONE|UNDEF)
          domainjoin-cli join --assumeDefaultDomain \
            yes --userDomainPrefix "${DOMSHORT}" "${DOMFQDN}" \
-           "${SVCACCT}" "${SVCPASS}" # > /dev/null 2>&1
+           "${SVCACCT}" "${SVCPASS}" > /dev/null 2>&1
          ;;
       *)
          domainjoin-cli join --ou "${JOINOU}" --assumeDefaultDomain \
            yes --userDomainPrefix "${DOMSHORT}" "${DOMFQDN}" \
-           "${SVCACCT}" "${SVCPASS}" # > /dev/null 2>&1
+           "${SVCACCT}" "${SVCPASS}" > /dev/null 2>&1
          ;;
 esac
 
    if [[ $? -eq 0 ]]
    then
-      printf "\n"
-      printf "changed=yes comment='Joined client to domain %s.'\n" "${DOMSHORT}"
-      exit 0
+      echo "SUCCESS"
    else
-      printf "\n"
-      printf "changed=no comment='Failed to join client to domain "
-      printf "%s.'\n" "${DOMSHORT}"
-      exit 1
+      echo "FAILED"
    fi
 }
 
@@ -110,7 +105,27 @@ case $(JoinStatus) in
         printf "changed=no comment='Failed to decrypt password'\n"
         exit 1
       fi
-      DomainJoin
+
+      # Make 10 attempts in case DC-syncs are slow
+      for RETRY in {1..10}
+      do
+         if [[ $(DomainJoin) == SUCCESS ]]
+         then
+            printf "\n"
+            printf "changed=yes comment='Joined client to domain %s.'\n" "${DOMSHORT}"
+            exit 0
+         else
+            echo "Retrying in $(( RETRY * 10 )) seconds" > /dev/null
+            # Increase retry-delay on each iteration...
+            sleep $(( RETRY * 10 ))
+         fi
+      done
+
+      # Report err-exit if final retry fails
+      printf "\n"
+      printf "changed=no comment='Failed to join client to domain "
+      printf "%s.'\n" "${DOMSHORT}"
+      exit 1
       ;;
    Online)
       printf "\n"

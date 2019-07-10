@@ -1,7 +1,7 @@
 #!/bin/bash
 # shellcheck disable=
 #
-set -euo pipefail
+# set -euo pipefail
 #
 # Script to locate collisions within an LDAP directory service
 #
@@ -11,6 +11,10 @@ LOGFACIL="user.err"
 DEBUGVAL="${DEBUG:-false}"
 LDAPTYPE="AD"
 DOEXIT="0"
+
+# Need to ignore value set in parent shell because that value is set
+# before any wam-initiated renames complete
+HOSTNAME=$( hostname -f )
 
 # Miscellaneous output-engine
 function logIt {
@@ -106,30 +110,29 @@ function FindDCs {
    local DNS_SEARCH_STRING
    local IDX
    local DC
-   local SEARCH_LIST
 
    DNS_SEARCH_STRING="_ldap._tcp.dc._msdcs.${1}"
-   DC=()
    IDX=0
-   SEARCH_LIST=($( dig -t SRV "${DNS_SEARCH_STRING}" | awk '/\sIN SRV\s/{ printf("%s;%s\n",$7,$8)}' ))
+   DC=($( dig -t SRV "${DNS_SEARCH_STRING}" | awk '/\sIN SRV\s/{ printf("%s;%s\n",$7,$8)}' ))
 
    # Parse list of domain-controllers to see who we can connect to
-   for DC in "${SEARCH_LIST[@]}"
+   for CTLR in "${DC[@]}"
    do
-      timeout 1 bash -c "echo > /dev/tcp/${DC//*;/}/${DC//;*/}" &&
+      DC[${IDX}]="${CTLR}"
+      timeout 1 bash -c "echo > /dev/tcp/${CTLR//*;/}/${CTLR//;*/}" &&
         break
       IDX=$(( IDX + 1 ))
    done
 
-   case "${DC//;*/}" in
+   case "${DC[${IDX}]//;*/}" in
       389)
-        logIt "Contact ${DC//*;/} on port ${DC[${IDX}]//;*/}" 0
+        logIt "Contact ${DC[${IDX}]//*;/} on port ${DC[${IDX}]//;*/}" 0
          ;;
       636)
-        logIt "Contact ${DC//*;/} on port ${DC[${IDX}]//;*/}" 0
+        logIt "Contact ${DC[${IDX}]//*;/} on port ${DC[${IDX}]//;*/}" 0
          ;;
       *)
-        logIt "${DC//*;/} listening on unrecognized port [${DC[${IDX}]//;*/}]" 1
+        logIt "${DC[${IDX}]//*;/} listening on unrecognized port [${DC[${IDX}]//;*/}]" 1
          ;;
    esac
 
@@ -152,16 +155,17 @@ function FindComputer {
    export SEARCHTERM
 
    # Searach without STARTLS
-   COMPUTERNAME=$( ldapsearch -LLL -x -h "${DCINFO//*;/}" -p "${DCINFO//;*/}" \
-        -D "${QUERYUSER}" -w "${BINDPASS}" -b "${SEARCHSCOPE}" -s sub \
-        "${SEARCHTERM}" dn 2> /dev/null || \
-      ldapsearch -LLL -Z -x -h "${DCINFO//*;/}" -p \
+   COMPUTERNAME=$( ldapsearch -o ldif-wrap=no -LLL -x -h "${DCINFO//*;/}" \
+        -p "${DCINFO//;*/}" -D "${QUERYUSER}" -w "${BINDPASS}" \
+        -b "${SEARCHSCOPE}" -s sub "${SEARCHTERM}" dn 2> /dev/null || \
+      ldapsearch -o ldif-wrap=no -LLL -Z -x -h "${DCINFO//*;/}" -p \
         "${DCINFO//;*/}" -D "${QUERYUSER}" -w "${BINDPASS}" \
         -b "${SEARCHSCOPE}" -s sub \
         "${SEARCHTERM}" dn 2> /dev/null
    )
 
-   COMPUTERNAME=$( echo "${COMPUTERNAME}" | awk '/^dn:/{ print $2 }' )
+   COMPUTERNAME=$( echo "${COMPUTERNAME}" | \
+        sed -e 's/^.*dn: *//' -e '/^$/d' -e '/#/d' )
 
    # Output based on exit status and/or what's found
    if [[ -z ${COMPUTERNAME} ]]
