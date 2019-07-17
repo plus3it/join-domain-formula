@@ -29,6 +29,7 @@ PWCRYPT=${4:-UNDEF}
 PWUNLOCK=${5:-UNDEF}
 JOINOU=${6:-UNDEF}
 JOINOU=${JOINOU// /\ }
+JOINOPOUTFILE="/var/run/.join.mesg"
 
 
 # Get clear-text password from crypt
@@ -59,12 +60,12 @@ function DomainJoin() {
       none|None|NONE|UNDEF)
          domainjoin-cli join --assumeDefaultDomain \
            yes --userDomainPrefix "${DOMSHORT}" "${DOMFQDN}" \
-           "${SVCACCT}" "${SVCPASS}" > /dev/null 2>&1
+           "${SVCACCT}" "${SVCPASS}" > "${JOINOPOUTFILE}" 2>&1
          ;;
       *)
          domainjoin-cli join --ou "${JOINOU}" --assumeDefaultDomain \
            yes --userDomainPrefix "${DOMSHORT}" "${DOMFQDN}" \
-           "${SVCACCT}" "${SVCPASS}" > /dev/null 2>&1
+           "${SVCACCT}" "${SVCPASS}" > "${JOINOPOUTFILE}" 2>&1
          ;;
 esac
 
@@ -101,20 +102,31 @@ case $(JoinStatus) in
       SVCPASS="$(PWdecrypt)"
       if [[ -z "${SVCPASS}" ]]
       then
-        printf "\n"
-        printf "changed=no comment='Failed to decrypt password'\n"
-        exit 1
+         printf "\n"
+         printf "changed=no comment='Failed to decrypt password'\n"
+         exit 1
+      else
+         printf "Decrypted password for sevice-account [%s]\n\n" "${SVCACCT}"
       fi
 
       # Make 10 attempts in case DC-syncs are slow
       for RETRY in {1..10}
       do
+         printf "Join-attempt #%s... " "${RETRY}"
          if [[ $(DomainJoin) == SUCCESS ]]
          then
+            echo "Join-operation succeded"
+            printf "##########\n\n"
+            cat "${JOINOPOUTFILE}" && rm "${JOINOPOUTFILE}"
+            printf "\n\n##########\n"
             printf "\n"
             printf "changed=yes comment='Joined client to domain %s.'\n" "${DOMSHORT}"
             exit 0
          else
+            printf "Join-operation failed:\n\n"
+            printf "##########\n\n"
+            cat "${JOINOPOUTFILE}" && rm "${JOINOPOUTFILE}"
+            printf "\n\n##########\n"
             echo "Retrying in $(( RETRY * 10 )) seconds" > /dev/null
             # Increase retry-delay on each iteration...
             sleep $(( RETRY * 10 ))

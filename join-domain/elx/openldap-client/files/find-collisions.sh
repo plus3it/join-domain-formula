@@ -193,10 +193,10 @@ function NukeObject {
    if [[ ${SEARCHEXIT} -eq 0 ]]
    then
       logIt "Delete of ${LDAPOBJECT} succeeded" 0
-      saltOut "Delete of computer-object succeeded" yes
+      saltOut "Delete of computer-object [${HOSTNAME}] succeeded" yes
    else
       logIt "Delete of ${LDAPOBJECT} failed" 0
-      saltOut "Delete of computer-object failed" no
+      saltOut "Delete of computer-object [${HOSTNAME}] failed" no
    fi
 }
 
@@ -437,7 +437,7 @@ case "${OBJECTDN}" in
          DOEXIT=1
       fi
       logIt "Could not find ${HOSTNAME} in ${SEARCHSCOPE}" "${DOEXIT}"
-      saltOut "Could not find computer-object in directory" no
+      saltOut "Could not find computer-object [${HOSTNAME}] in directory" no
       logIt "Skipping any requested cleanup attempts"
       CLEANUP="FALSE"
       ;;
@@ -447,7 +447,7 @@ case "${OBJECTDN}" in
          DOEXIT=1
       fi
       logIt "Query failure when looking for ${HOSTNAME} in ${SEARCHSCOPE}" "${DOEXIT}"
-      saltOut "Query failure when looking for computer-object in directory" no
+      saltOut "Query failure when looking for computer-object [${HOSTNAME}] in directory" no
       logIt "Skipping any requested cleanup attempts" 
       CLEANUP="FALSE"
       ;;
