@@ -12,9 +12,13 @@ DEBUGVAL="${DEBUG:-false}"
 LDAPTYPE="AD"
 DOEXIT="0"
 
+# Function-abort hooks
+trap "exit 1" TERM
+export TOP_PID=$$
+
 # Need to ignore value set in parent shell because that value is set
 # before any wam-initiated renames complete
-HOSTNAME=$( hostname -f )
+HOSTNAME=$( uname -n )
 
 # Miscellaneous output-engine
 function logIt {
@@ -90,6 +94,30 @@ function UsageMsg {
    exit 1
 }
 
+# Verify tool-dependencies
+function VerifyDependencies {
+   local CHKRPMS
+   local RPM
+
+   # RPMs to check for
+   CHKRPMS=(
+         bind-utils
+         openldap-clients
+      )
+
+   for RPM in "${CHKRPMS[@]}"
+   do
+      printf "Is dependency on %s satisfied? " "${RPM}"
+      if [[ $( rpm --quiet -q "${RPM}" )$? -eq 0 ]]
+      then
+         echo "Yes"
+      else
+         ( echo "No. Aborting..." ; kill -s TERM " ${TOP_PID}" )
+      fi
+      
+   done
+}
+
 # Decrypt Join Password
 function PWdecrypt {
    local PWCLEAR
@@ -113,7 +141,10 @@ function FindDCs {
 
    DNS_SEARCH_STRING="_ldap._tcp.dc._msdcs.${1}"
    IDX=0
-   DC=($( dig -t SRV "${DNS_SEARCH_STRING}" | awk '/\sIN SRV\s/{ printf("%s;%s\n",$7,$8)}' ))
+   DC=($( 
+         dig -t SRV "${DNS_SEARCH_STRING}" | \
+         awk '/[ 	]*IN[ 	]*SRV[ 	]*/{ printf("%s;%s\n",$7,$8)}'
+      ))
 
    # Parse list of domain-controllers to see who we can connect to
    for CTLR in "${DC[@]}"
@@ -389,6 +420,9 @@ then
    MISSINGARGS=true
    UsageMsg
 fi
+
+# Ensure dependencies are met
+VerifyDependencies 
 
 # Decrypt our query password (as necessary)
 if [[ ${BINDPASS} == TOBESET ]]
