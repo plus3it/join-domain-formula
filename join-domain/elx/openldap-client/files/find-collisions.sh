@@ -12,6 +12,10 @@ DEBUGVAL="${DEBUG:-false}"
 LDAPTYPE="AD"
 DOEXIT="0"
 
+# Function-abort hooks
+trap "exit 1" TERM
+export TOP_PID=$$
+
 # Need to ignore value set in parent shell because that value is set
 # before any wam-initiated renames complete
 HOSTNAME=$( uname -n )
@@ -88,6 +92,30 @@ function UsageMsg {
       printf "\t--ldap-type <LDAP_TYPE> \n"
    ) >&2
    exit 1
+}
+
+# Verify tool-dependencies
+function VerifyDependencies {
+   local CHKRPMS
+   local RPM
+
+   # RPMs to check for
+   CHKRPMS=(
+         bind-utils
+         openldap-clients
+      )
+
+   for RPM in "${CHKRPMS[@]}"
+   do
+      printf "Is dependency on %s satisfied? " "${RPM}"
+      if [[ $( rpm --quiet -q "${RPM}" )$? -eq 0 ]]
+      then
+         echo "Yes"
+      else
+         ( echo "No. Aborting..." ; kill -s TERM " ${TOP_PID}" )
+      fi
+      
+   done
 }
 
 # Decrypt Join Password
@@ -392,6 +420,9 @@ then
    MISSINGARGS=true
    UsageMsg
 fi
+
+# Ensure dependencies are met
+VerifyDependencies 
 
 # Decrypt our query password (as necessary)
 if [[ ${BINDPASS} == TOBESET ]]
