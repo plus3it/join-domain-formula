@@ -113,7 +113,10 @@ function FindDCs {
 
    DNS_SEARCH_STRING="_ldap._tcp.dc._msdcs.${1}"
    IDX=0
-   DC=($( dig -t SRV "${DNS_SEARCH_STRING}" | awk '/\sIN SRV\s/{ printf("%s;%s\n",$7,$8)}' ))
+   DC=($( 
+         dig -t SRV "${DNS_SEARCH_STRING}" | \
+         awk '/[ 	]*IN[ 	]*SRV[ 	]*/{ printf("%s;%s\n",$7,$8)}'
+      ))
 
    # Parse list of domain-controllers to see who we can connect to
    for CTLR in "${DC[@]}"
