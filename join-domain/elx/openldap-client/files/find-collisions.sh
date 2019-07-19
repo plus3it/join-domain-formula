@@ -14,7 +14,7 @@ DOEXIT="0"
 
 # Need to ignore value set in parent shell because that value is set
 # before any wam-initiated renames complete
-HOSTNAME=$( hostname -f )
+HOSTNAME=$( uname -n )
 
 # Miscellaneous output-engine
 function logIt {
