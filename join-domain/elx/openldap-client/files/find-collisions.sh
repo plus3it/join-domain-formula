@@ -153,33 +153,40 @@ function FindDCs {
     
    IDX=0
    DC=($( 
-         dig -t SRV "${DNS_SEARCH_STRING}" | \
+         dig -t SRV "${DNS_SEARCH_STRING}" | sed -e '/^$/d' -e '/;/d' | \
          awk '/[ 	]*IN[ 	]*SRV[ 	]*/{ printf("%s;%s\n",$7,$8)}'
       ))
 
    # Parse list of domain-controllers to see who we can connect to
-   for CTLR in "${DC[@]}"
-   do
-      DC[${IDX}]="${CTLR}"
-      timeout 1 bash -c "echo > /dev/tcp/${CTLR//*;/}/${CTLR//;*/}" &&
-        break
-      IDX=$(( IDX + 1 ))
-   done
+   if [[ ${#DC} -ne 0 ]]
+   then
+      for CTLR in "${DC[@]}"
+      do
+         DC[${IDX}]="${CTLR}"
+         timeout 1 bash -c "echo > /dev/tcp/${CTLR//*;/}/${CTLR//;*/}" &&
+           break
+         IDX=$(( IDX + 1 ))
+      done
+   
+      case "${DC[${IDX}]//;*/}" in
+         389)
+           logIt "Contact ${DC[${IDX}]//*;/} on port ${DC[${IDX}]//;*/}" 0
+            ;;
+         636)
+           logIt "Contact ${DC[${IDX}]//*;/} on port ${DC[${IDX}]//;*/}" 0
+            ;;
+         *)
+           logIt "${DC[${IDX}]//*;/} listening on unrecognized port [${DC[${IDX}]//;*/}]" 1
+            ;;
+      esac
 
-   case "${DC[${IDX}]//;*/}" in
-      389)
-        logIt "Contact ${DC[${IDX}]//*;/} on port ${DC[${IDX}]//;*/}" 0
-         ;;
-      636)
-        logIt "Contact ${DC[${IDX}]//*;/} on port ${DC[${IDX}]//;*/}" 0
-         ;;
-      *)
-        logIt "${DC[${IDX}]//*;/} listening on unrecognized port [${DC[${IDX}]//;*/}]" 1
-         ;;
-   esac
+      # Return info
+      echo "${DC[${IDX}]}"
+   else
+      # Return error
+      echo "DC_NOT_FOUND"
+   fi
 
-   # Return info
-   echo "${DC[${IDX}]}"
 }
 
 # Find computer's DN
@@ -487,8 +494,20 @@ SEARCHSCOPE="$( printf "DC=%s" "${DOMAINNAME//./,DC=}" )"
 export SEARCHSCOPE
 
 # Do search
-OBJECTDN=$(FindComputer)
+if [[ ${DCINFO} = DC_NOT_FOUND ]]
+then
+   OBJECTDN="${DCINFO}"
+else
+   OBJECTDN=$(FindComputer)
+fi
+
 case "${OBJECTDN}" in
+   DC_NOT_FOUND)
+      logIt "Could not find domain-controller to query for ${HOSTNAME}" "${DOEXIT}"
+      saltOut "Could not find domain-controller to query for ${HOSTNAME}" no
+      logIt "Skipping any requested cleanup attempts"
+      CLEANUP="FALSE"
+      ;;
    NOTFOUND)
       if [[ ${OUTPUT} != SALTMODE ]]
       then
