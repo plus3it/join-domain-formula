@@ -1,5 +1,5 @@
 #!/bin/bash
-# shellcheck disable=
+# shellcheck disable=SC2236,SC2207
 #
 # set -euo pipefail
 #
@@ -73,6 +73,7 @@ function UsageMsg {
 
       echo "Usage: ${0} [GNU long option] [option] ..."
       echo "  Options:"
+      printf "\t-a <AD_SITENAME> \n"
       printf "\t-c <ENCRYPTED_PASSWORD>  \n"
       printf "\t-d <LONG_DOMAIN_NAME>  \n"
       printf "\t-f <FORCED_HOSTNAME>  \n"
@@ -90,6 +91,7 @@ function UsageMsg {
       printf "\t--join-user <DIRECTORY_USER> \n"
       printf "\t--ldap-host <LDAP_QUERY_HOST>  \n"
       printf "\t--ldap-type <LDAP_TYPE> \n"
+      printf "\t--ad-site <AD_SITENAME> \n"
    ) >&2
    exit 1
 }
@@ -139,36 +141,52 @@ function FindDCs {
    local IDX
    local DC
 
-   DNS_SEARCH_STRING="_ldap._tcp.dc._msdcs.${1}"
+   # Select whether to try to use AD 
+   if [[ ! -z ${ADSITE} ]]
+   then
+      DNS_SEARCH_STRING="_ldap._tcp.${ADSITE}._sites.dc._msdcs.${1}"
+   else
+      DNS_SEARCH_STRING="_ldap._tcp.dc._msdcs.${1}"
+   fi
+
+   export DNS_SEARCH_STRING
+    
    IDX=0
    DC=($( 
-         dig -t SRV "${DNS_SEARCH_STRING}" | \
+         dig -t SRV "${DNS_SEARCH_STRING}" | sed -e '/^$/d' -e '/;/d' | \
          awk '/[ 	]*IN[ 	]*SRV[ 	]*/{ printf("%s;%s\n",$7,$8)}'
       ))
 
    # Parse list of domain-controllers to see who we can connect to
-   for CTLR in "${DC[@]}"
-   do
-      DC[${IDX}]="${CTLR}"
-      timeout 1 bash -c "echo > /dev/tcp/${CTLR//*;/}/${CTLR//;*/}" &&
-        break
-      IDX=$(( IDX + 1 ))
-   done
+   if [[ ${#DC} -ne 0 ]]
+   then
+      for CTLR in "${DC[@]}"
+      do
+         DC[${IDX}]="${CTLR}"
+         timeout 1 bash -c "echo > /dev/tcp/${CTLR//*;/}/${CTLR//;*/}" &&
+           break
+         IDX=$(( IDX + 1 ))
+      done
+   
+      case "${DC[${IDX}]//;*/}" in
+         389)
+           logIt "Contact ${DC[${IDX}]//*;/} on port ${DC[${IDX}]//;*/}" 0
+            ;;
+         636)
+           logIt "Contact ${DC[${IDX}]//*;/} on port ${DC[${IDX}]//;*/}" 0
+            ;;
+         *)
+           logIt "${DC[${IDX}]//*;/} listening on unrecognized port [${DC[${IDX}]//;*/}]" 1
+            ;;
+      esac
 
-   case "${DC[${IDX}]//;*/}" in
-      389)
-        logIt "Contact ${DC[${IDX}]//*;/} on port ${DC[${IDX}]//;*/}" 0
-         ;;
-      636)
-        logIt "Contact ${DC[${IDX}]//*;/} on port ${DC[${IDX}]//;*/}" 0
-         ;;
-      *)
-        logIt "${DC[${IDX}]//*;/} listening on unrecognized port [${DC[${IDX}]//;*/}]" 1
-         ;;
-   esac
+      # Return info
+      echo "${DC[${IDX}]}"
+   else
+      # Return error
+      echo "DC_NOT_FOUND"
+   fi
 
-   # Return info
-   echo "${DC[${IDX}]}"
 }
 
 # Find computer's DN
@@ -243,8 +261,8 @@ then
    logIt "No arguments given. Aborting" 1
 fi
 
-# Define flags to look for..
-OPTIONBUFR=$(getopt -o c:d:f:hk:l:p:u:t: --long domain-name:,help,hostname:,join-user:,join-crypt:,join-key:,join-password:,ldap-host:,ldap-type:,mode: -n "${PROGNAME}" -- "$@")
+# Define flags to look for...
+OPTIONBUFR=$(getopt -o c:d:f:hk:l:p:s:t:u: --long domain-name:,help,hostname:,join-crypt:,join-key:,join-password:,join-user:,ldap-host:,ldap-type:,mode:,ad-site: -n "${PROGNAME}" -- "$@")
 
 # Check for mutually-exclusive arguments
 if [[ ${OPTIONBUFR} =~ p\ |join-password && ${OPTIONBUFR} =~ c\ |join-crypt ]] ||
@@ -370,6 +388,19 @@ do
                ;;
          esac
          ;;
+      -s|--ad-site)
+         case "$2" in
+            "")
+               logIt "Error: option required but not specified" 1
+               shift 2;
+               exit 1
+               ;;
+            *)
+               ADSITE="${2}"
+               shift 2;
+               ;;
+         esac
+         ;;
       -t|--ldap-type)
          case "$2" in
             "")
@@ -463,8 +494,20 @@ SEARCHSCOPE="$( printf "DC=%s" "${DOMAINNAME//./,DC=}" )"
 export SEARCHSCOPE
 
 # Do search
-OBJECTDN=$(FindComputer)
+if [[ ${DCINFO} = DC_NOT_FOUND ]]
+then
+   OBJECTDN="${DCINFO}"
+else
+   OBJECTDN=$(FindComputer)
+fi
+
 case "${OBJECTDN}" in
+   DC_NOT_FOUND)
+      logIt "Could not find domain-controller to query for ${HOSTNAME}" "${DOEXIT}"
+      saltOut "Could not find domain-controller to query for ${HOSTNAME}" no
+      logIt "Skipping any requested cleanup attempts"
+      CLEANUP="FALSE"
+      ;;
    NOTFOUND)
       if [[ ${OUTPUT} != SALTMODE ]]
       then

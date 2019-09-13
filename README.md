@@ -79,13 +79,17 @@ See the [pillar.example](pillar.example) file for pillar-data structuring.
 
 Set of parameters used for joining a AD-client to its domain:
 
--   *`ad_domain_fqdn`*: The fully-qualified DNS name for the AD domain (e.g.,
+-   *`dns_name`*: The fully-qualified DNS name for the AD domain (e.g.,
     'aws.lab')
 
--   *`ad_domain_short`*: The "short" or NETBIOS name for the AD domain (e.g.,
+-   *`ad_site_name`*: (OPTIONAL) The logical name of an Active Directory Sites
+    and Services [site](https://docs.microsoft.com/en-us/windows-server/identity/ad-ds/plan/site-functions)
+    to query for domain-controllers.
+
+-   *`netbios_name`*: The "short" or NETBIOS name for the AD domain (e.g.,
     'AWSLAB')
 
--   *`join_svc_acct`*: The account name used to perform automated joins of
+-   *`username`*: The account name used to perform automated joins of
     clients to the AD domain (e.g., 'svc_domjoin_aws'). It is recommended to
     create a service account that has the bare-minimum permissions necessary to
     (re)join a client to an AD domain.
@@ -101,24 +105,31 @@ Set of parameters used for joining a AD-client to its domain:
 -   *`key`*: The string passed to `openssl` to encrypt/decrypt the
     `join_svc_acct` service account's password.
 
+### Information used configure domain-joined client's behvior
+
+-   *`admin_users`*: (OPTIONAL) List of users to add to the sudoers system
+-   *`admin_groups`*: (OPTIONAL) List of groups to add to the sudoers system
+-   *`login_users`*: (OPTIONAL) List of users to add to SSH daemon's `AllowUsers`
+    list.  Note: all `admin_users` are automatically included in this list.
+-   *`login_groups`*: (OPTIONAL) List of groups to add to SSH daemon's
+    `AllowGroups` list. Note: (OPTIONAL)all `admin_groups` are automatically
+    included in this list.
+-   *`trusted_domains`*: (OPTIONAL) List of domains (within a multi-domin
+    forest) to trust
+
 ### Settings for the URI path-elements to the PBIS installer
 
 These two values are used to determine where to locate the AD-client's
 installer software. HTTP is the expected (read "tested") download method. Other
 download methods may also work (but have not been tested).
 
--   *`repo_uri_host`*: '<http://S3BUCKET.F.Q.D.N>'
--   *`repo_uri_root_path`*: 'beyond-trust/linux/pbis'
-
-### Name of installer and hash-file to download
-
-Name of the installation package to download from the repo. The installer
-staging-routines expect the downloaded file to have a signature file. The
-signature file is used to ensure that the package download was not corrupted
-in transit.
-
--   *`package_name`*: 'pbis-open-8.3.0.3287.linux.x86_64.rpm.sh'
--   *`package_hash`*: 'pbis-open-8.3.0.3287.linux.x86_64.rpm.sh.SHA512'
+-   *`connector_rpms`*: Top-level search-key for PBIS-related elements.
+    Remaining keys in this block are sub-keys of this key.
+-   *`pbis-open`*: URL of the `pbis-open` RPM
+-   *`pbis-open-devel`*: URL of the `pbis-open-devel` RPM (rarely used)
+-   *`pbis-open-gui`*: URL of the `pbis-open-gui` RPM (rarely used)
+-   *`pbis-open-legacy`*: URL of the `pbis-open-legacy` RPM (infrequently used)
+-   *`pbis-open-upgrade`*: URL of the `pbis-open-upgrade` RPM
 
 ### Tool used for joining client to AD domain
 
