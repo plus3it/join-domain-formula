@@ -141,7 +141,12 @@ function FindDCs {
    local IDX
    local DC
 
-   DNS_SEARCH_STRING="_ldap._tcp.dc._msdcs.${1}"
+   if [[ ! -z ${ADSITE} ]]
+   then
+      DNS_SEARCH_STRING="_ldap._tcp.${ADSITE}.sites.dc._msdcs.${1}"
+   else
+      DNS_SEARCH_STRING="_ldap._tcp.dc._msdcs.${1}"
+   fi
    IDX=0
    DC=($( 
          dig -t SRV "${DNS_SEARCH_STRING}" | \
