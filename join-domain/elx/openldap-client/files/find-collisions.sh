@@ -73,6 +73,7 @@ function UsageMsg {
 
       echo "Usage: ${0} [GNU long option] [option] ..."
       echo "  Options:"
+      printf "\t-a <AD_SITENAME> \n"
       printf "\t-c <ENCRYPTED_PASSWORD>  \n"
       printf "\t-d <LONG_DOMAIN_NAME>  \n"
       printf "\t-f <FORCED_HOSTNAME>  \n"
@@ -90,6 +91,7 @@ function UsageMsg {
       printf "\t--join-user <DIRECTORY_USER> \n"
       printf "\t--ldap-host <LDAP_QUERY_HOST>  \n"
       printf "\t--ldap-type <LDAP_TYPE> \n"
+      printf "\t--ad-site <AD_SITENAME> \n"
    ) >&2
    exit 1
 }
@@ -243,8 +245,8 @@ then
    logIt "No arguments given. Aborting" 1
 fi
 
-# Define flags to look for..
-OPTIONBUFR=$(getopt -o c:d:f:hk:l:p:u:t: --long domain-name:,help,hostname:,join-user:,join-crypt:,join-key:,join-password:,ldap-host:,ldap-type:,mode: -n "${PROGNAME}" -- "$@")
+# Define flags to look for...
+OPTIONBUFR=$(getopt -o c:d:f:hk:l:p:s:t:u: --long domain-name:,help,hostname:,join-crypt:,join-key:,join-password:,join-user:,ldap-host:,ldap-type:,mode:ad-site: -n "${PROGNAME}" -- "$@")
 
 # Check for mutually-exclusive arguments
 if [[ ${OPTIONBUFR} =~ p\ |join-password && ${OPTIONBUFR} =~ c\ |join-crypt ]] ||
@@ -366,6 +368,19 @@ do
                ;;
             *)
                BINDPASS="${2}"
+               shift 2;
+               ;;
+         esac
+         ;;
+      -s|--ad-site)
+         case "$2" in
+            "")
+               logIt "Error: option required but not specified" 1
+               shift 2;
+               exit 1
+               ;;
+            *)
+               ADSITE="${2}"
                shift 2;
                ;;
          esac
