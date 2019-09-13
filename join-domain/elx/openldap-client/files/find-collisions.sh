@@ -141,12 +141,16 @@ function FindDCs {
    local IDX
    local DC
 
+   # Select whether to try to use AD 
    if [[ ! -z ${ADSITE} ]]
    then
-      DNS_SEARCH_STRING="_ldap._tcp.${ADSITE}.sites.dc._msdcs.${1}"
+      DNS_SEARCH_STRING="_ldap._tcp.${ADSITE}._sites.dc._msdcs.${1}"
    else
       DNS_SEARCH_STRING="_ldap._tcp.dc._msdcs.${1}"
    fi
+
+   export DNS_SEARCH_STRING
+    
    IDX=0
    DC=($( 
          dig -t SRV "${DNS_SEARCH_STRING}" | \
@@ -251,7 +255,7 @@ then
 fi
 
 # Define flags to look for...
-OPTIONBUFR=$(getopt -o c:d:f:hk:l:p:s:t:u: --long domain-name:,help,hostname:,join-crypt:,join-key:,join-password:,join-user:,ldap-host:,ldap-type:,mode:ad-site: -n "${PROGNAME}" -- "$@")
+OPTIONBUFR=$(getopt -o c:d:f:hk:l:p:s:t:u: --long domain-name:,help,hostname:,join-crypt:,join-key:,join-password:,join-user:,ldap-host:,ldap-type:,mode:,ad-site: -n "${PROGNAME}" -- "$@")
 
 # Check for mutually-exclusive arguments
 if [[ ${OPTIONBUFR} =~ p\ |join-password && ${OPTIONBUFR} =~ c\ |join-crypt ]] ||
