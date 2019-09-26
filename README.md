@@ -52,6 +52,23 @@ $EncryptedStringBase64 = [System.Convert]::ToBase64String($EncryptedStringBytes)
 "encrypted_password = $EncryptedStringBase64"
 ```
 
+After generating the encrypted password, verify its reversibility by using the code snippet below:
+
+```powershell
+$AesObject = New-Object System.Security.Cryptography.AesCryptoServiceProvider
+$AesObject.IV = New-Object Byte[]($AesObject.IV.Length)
+$AesObject.Key = [System.Convert]::FromBase64String($KeyBase64)
+$EncryptedStringBytes = [System.Convert]::FromBase64String($EncryptedStringBase64)
+$UnencryptedString = [System.Text.UnicodeEncoding]::Unicode.GetString(($AesObject.CreateDecryptor()).TransformFinalBlock($EncryptedStringBytes, 0, $EncryptedStringBytes.Length))
+"unencrypted_password = $UnencryptedString"
+```
+
+Output of verification should display:
+
+```powershell
+unecrypted_password = Super secure password
+```
+
 ### Permissions required to join AD Domain
 
 The following are the permissions required for the service account used to join
