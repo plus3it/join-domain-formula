@@ -50,7 +50,7 @@ install:
         --volume=/sys/fs/cgroup:/sys/fs/cgroup:ro \
         --name centos-${OS_VERSION} local/centos:${OS_VERSION} init
       sudo docker exec centos-${OS_VERSION} yum -y install \
-        https://repo.saltstack.com/yum/redhat/salt-repo-latest-2.el${OS_VERSION}.noarch.rpm
+        https://repo.saltstack.com/yum/redhat/salt-repo-2018.3-2.el${OS_VERSION}.noarch.rpm
       sudo docker exec centos-${OS_VERSION} yum -y install salt-minion util-linux-ng
       sudo docker exec centos-${OS_VERSION} salt-call --versions-report
     fi
