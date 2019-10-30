@@ -4,7 +4,7 @@ env:
   global:
     - LD_PRELOAD=/lib/x86_64-linux-gnu/libSegFault.so
     - SEGFAULT_SIGNALS=all
-    - SALT_RPM_VERSION=2018.3-2
+    - SALT_RPM_VERSION=2019.2-2
 
 matrix:
   allow_failures:
