@@ -18,4 +18,4 @@
 
 /join-domain/elx/** text eol=lf
 /tests/** text eol=lf
-appveyor.yml eol=lf
+*.yml eol=lf
