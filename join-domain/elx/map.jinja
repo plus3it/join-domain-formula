@@ -13,7 +13,7 @@
 
 {%- set admin_groups = [] %}
 {%- for group in join_domain.get('admin_groups', []) +
-                 join_domain_grains.get('admin_groups', [])
+                join_domain_grains.get('admin_groups', [])
 %}
     {%- if group not in admin_groups %}
         {%- do admin_groups.append(group) %}
@@ -22,7 +22,7 @@
 
 {%- set login_groups = [] %}
 {%- for group in join_domain.get('login_groups', []) +
-                 join_domain_grains.get('login_groups', [])
+                join_domain_grains.get('login_groups', [])
 %}
     {%- if group not in login_groups %}
         {%- do login_groups.append(group) %}

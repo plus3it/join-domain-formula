@@ -14,18 +14,23 @@ Param(
 
     [parameter(Mandatory = $true)]
     [String]
+        #Username of account used to domain join the target computer
+    $UserName,
+
+    [parameter(Mandatory = $true, ParameterSetName = 'EncryptedPassword')]
+    [String]
         #Key used to decrypt the join domain key
     $Key,
 
-    [parameter(Mandatory = $true)]
+    [parameter(Mandatory = $true, ParameterSetName = 'EncryptedPassword')]
     [String]
         #Encrypted join domain password
     $EncryptedPassword,
 
-    [parameter(Mandatory = $true)]
+    [parameter(Mandatory = $true, ParameterSetName = 'Password')]
     [String]
-        #Username of account used to domain join the target computer
-    $UserName,
+        #Unencrypted join domain password
+    $Password,
 
     [parameter(Mandatory = $false)]
     [String]
@@ -116,7 +121,7 @@ Function Get-LdapConnection
         }
         $LdapConnection.Timeout = $Timeout
         $LdapConnection
-     }
+    }
 
 }
 
@@ -272,7 +277,7 @@ Function Find-LdapObject
             #prepare template for output object
             foreach($prop in $PropertiesToLoad)
             {
-               $propDef.Add($prop,@())
+              $propDef.Add($prop,@())
             }
 
             #define additional properties
@@ -567,13 +572,13 @@ Function xAdd-Computer
     )
 
     #wrapper for the Add-Computer cmdlet that adds an OU conditional
-    if($TargetOU  -eq "" -and $TargetOU -eq [String]::Empty)
+    if($TargetOU -eq "" -and $TargetOU -eq [String]::Empty)
     {
         Add-Computer -DomainName $DomainName -Credential $cred @Args;
     }
     else
     {
-        Add-Computer -DomainName $DomainName -Credential $cred -OUPath $targetOU @Args;
+        Add-Computer -DomainName $DomainName -Credential $cred -OUPath $TargetOU @Args;
     }
 }
 
@@ -584,13 +589,22 @@ $DomainJoinStatus = Get-DomainJoinStatus -DomainFQDN $DomainName
 if($DomainJoinStatus -eq $null)
 {
     #If the object is found, remove it, else add the computer to the domain.
-    #Create the credential
-    $AesObject = New-Object System.Security.Cryptography.AesCryptoServiceProvider
-    $AesObject.IV = New-Object Byte[]($AesObject.IV.Length)
-    $AesObject.Key = [System.Convert]::FromBase64String($Key)
-    $EncryptedStringBytes = [System.Convert]::FromBase64String($EncryptedPassword)
-    $ReEncryptedPassword = ConvertTo-SecureString -String "$([System.Text.UnicodeEncoding]::Unicode.GetString(($AesObject.CreateDecryptor()).TransformFinalBlock($EncryptedStringBytes, 0, $EncryptedStringBytes.Length)))" -AsPlainText -Force
-    $cred = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $UserName, $ReEncryptedPassword
+    #Create the credential from the Password parameter set
+    if($PSCmdlet.ParameterSetName -eq "Password")
+    {
+        $SecPassword = ConvertTo-SecureString -String $Password -AsPlainText -Force
+        $cred = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $UserName, $SecPassword
+    }
+    else
+    {
+        #Create the credential from the EncryptedPassword parameter set
+        $AesObject = New-Object System.Security.Cryptography.AesCryptoServiceProvider
+        $AesObject.IV = New-Object Byte[]($AesObject.IV.Length)
+        $AesObject.Key = [System.Convert]::FromBase64String($Key)
+        $EncryptedStringBytes = [System.Convert]::FromBase64String($EncryptedPassword)
+        $ReEncryptedPassword = ConvertTo-SecureString -String "$([System.Text.UnicodeEncoding]::Unicode.GetString(($AesObject.CreateDecryptor()).TransformFinalBlock($EncryptedStringBytes, 0, $EncryptedStringBytes.Length)))" -AsPlainText -Force
+        $cred = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $UserName, $ReEncryptedPassword
+    }
 
     #Create the ldap connection
     $Ldap = Get-LdapConnection -LdapServer:$DomainName -Credential:$cred
@@ -609,7 +623,7 @@ if($DomainJoinStatus -eq $null)
     if($result)
     {
         $resultOU = $result.distinguishedName.substring((($result.distinguishedName -replace '\,(.*)').length+1))
-        if($resultOU -ne $targetOU)
+        if($resultOU -ne $TargetOU)
         {
             #if the computer object is found in AD, remove it
             Remove-LdapObject $result.distinguishedName -LdapConnection:$Ldap
@@ -617,15 +631,15 @@ if($DomainJoinStatus -eq $null)
     }
 
     #Try to add the computer to the domain until AD catches up
-    Retry-TestCommand -Test xAdd-Computer -Args @{DomainName=$DomainName; Credential=$cred; TargetOU=$targetOU; args=@{Options="JoinWithNewName,AccountCreate"; Force=$true; Verbose=$true; Passthru=$true; ErrorAction="SilentlyContinue";}} -Tries $Tries -InitialDelay 10 -TestProperty "hasSucceeded"
+    Retry-TestCommand -Test xAdd-Computer -Args @{DomainName=$DomainName; Credential=$cred; TargetOU=$TargetOU; args=@{Options="JoinWithNewName,AccountCreate"; Force=$true; Verbose=$true; Passthru=$true; ErrorAction="SilentlyContinue";}} -Tries $Tries -InitialDelay 10 -TestProperty "hasSucceeded"
     Write-Host "changed=yes comment=`"Joined system to the domain [$DomainName].`" domain=$DomainName";
 
 }
 elseif($DomainJoinStatus -eq $DomainName)
-    {
-        Write-Host "changed=no comment=`"System is already joined to the correct domain [$DomainName].`" domain=$DomainName"
-    }
+{
+    Write-Host "changed=no comment=`"System is already joined to the correct domain [$DomainName].`" domain=$DomainName"
+}
 else
-    {
-        Throw "System is joined to another domain [$DomainJoinStatus]. To join a different domain, first remove it from the current domain."
-    }
+{
+    Throw "System is joined to another domain [$DomainJoinStatus]. To join a different domain, first remove it from the current domain."
+}

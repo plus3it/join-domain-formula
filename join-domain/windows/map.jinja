@@ -41,7 +41,13 @@
     'source' : 'salt://' ~ tpldir ~ '/files/New-LocalGroupMember.ps1'
 } %}
 
+{%- set script = {
+    'name' : opts['cachedir'] ~ '\\extfiles\\join-domain\\JoinDomain.ps1',
+    'source' : 'salt://' ~ tpldir ~ '/files/JoinDomain.ps1'
+} %}
+
 {%- do join_domain.update({
+    'script': script,
     'admins' : admins,
     'wrapper' : wrapper,
     'new_member' : new_member

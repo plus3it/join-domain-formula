@@ -1,18 +1,31 @@
 {%- from tpldir + '/map.jinja' import join_domain with context %}
 
+manage join domain script:
+  file.managed:
+    - name: {{ join_domain.script.name }}
+    - source: {{ join_domain.script.source }}
+    - makedirs: true
+
 join standalone system to domain:
-  cmd.script:
-    - name: salt://{{ tpldir }}/files/JoinDomain.ps1
-    - args: >-
+  cmd.run:
+    - name: >-
+        & "{{ join_domain.script.name }}"
         -DomainName "{{ join_domain.dns_name }}"
         -TargetOU "{{ join_domain.oupath }}"
+        {%- if join_domain.get("password") %}
+        -Password "{{ join_domain.password }}"
+        {%- else %}
         -Key "{{ join_domain.key }}"
         -EncryptedPassword "{{ join_domain.encrypted_password }}"
+        {%- endif %}
         -UserName "{{ join_domain.username }}"
         -Tries {{ join_domain.tries }}
         -ErrorAction Stop
     - shell: powershell
     - stateful: true
+    - output_loglevel: quiet
+    - require:
+      - file: manage join domain script
 
 {%- if join_domain.admins %}
 {%- set admins = [] %}
