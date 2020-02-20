@@ -34,6 +34,7 @@ PBIS-join:
     - source: 'salt://{{ files }}/join.sh'
     - cwd: '/root'
     - stateful: True
+    - output_loglevel: quiet
     - require:
       - cmd: PBIS-NETBIOSfix
 

@@ -14,22 +14,26 @@ This formula uses data externalized via the SaltStack "[Pillar](https://docs.sal
 feature. See the sections below for the data required to be present within the
 supporting pillar.
 
-## join-domain:windows
+## join-domain
 
 ```yaml
 join-domain:
   lookup:
-    windows:
-      dns_name:
-      netbios_name:
-      username:
-      encrypted_password:
-      key:
-      oupath:
-      admin_users:
-      admin_groups:
-      ec2config:
-      tries:
+    dns_name:
+    netbios_name:
+    username:
+
+    # Mutually Exclusive Required Settings
+    encrypted_password:
+    key:
+    # or
+    password:
+
+    oupath:
+    admin_users:
+    admin_groups:
+    ec2config:
+    tries:
 ```
 
 ### Generating `key` and `encrypted_password` for Windows
@@ -219,7 +223,7 @@ a method similar to the following.
 
 ```bash
 $ echo 'MyP@ssw*rd5tr1ng' | \
-   openssl enc -aes-256-cbc -md sha256 -a -e -salt -pass pass:'F_6ln9jV3X'
+  openssl enc -aes-256-cbc -md sha256 -a -e -salt -pass pass:'F_6ln9jV3X'
 U2FsdGVkX19pOx6FMnowkQ9vVGmHPuL5xWFwY5+EnB7Wy4rYze5HDmSZoTitwZDO
 ```
 
@@ -228,7 +232,7 @@ similar to the following:
 
 ```bash
 echo 'U2FsdGVkX19pOx6FMnowkQ9vVGmHPuL5xWFwY5+EnB7Wy4rYze5HDmSZoTitwZDO' | \
-   openssl enc -aes-256-cbc -md sha256 -a -d -salt -pass pass:'F_6ln9jV3X'
+  openssl enc -aes-256-cbc -md sha256 -a -d -salt -pass pass:'F_6ln9jV3X'
 MyP@ssw*rd5tr1ng
 ```
 
