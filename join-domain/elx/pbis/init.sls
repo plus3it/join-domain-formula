@@ -30,8 +30,13 @@ PBIS-NETBIOSfix:
 
 PBIS-join:
   cmd.script:
-    - name: 'join.sh "{{ join_domain.netbios_name }}" "{{ join_domain.dns_name }}" "{{ join_domain.username }}" "{{ join_domain.encrypted_password }}" "{{ join_domain.key }}" "{{ join_domain.oupath }}"'
+    {%- if join_domain.get("password") %}
+    - name: 'join.sh -n "{{ join_domain.netbios_name }}" -f "{{ join_domain.dns_name }}" -u "{{ join_domain.username }}" -p "{{ join_domain.password }}" -o "{{ join_domain.oupath }}"'
+    {%- else %}
+    - name: 'join.sh -n "{{ join_domain.netbios_name }}" -f "{{ join_domain.dns_name }}" -u "{{ join_domain.username }}" -c "{{ join_domain.encrypted_password }}" -k "{{ join_domain.key }}" -o "{{ join_domain.oupath }}"'
+    {%- endif %}
     - source: 'salt://{{ files }}/join.sh'
+    - template: jinja
     - cwd: '/root'
     - stateful: True
     - output_loglevel: quiet

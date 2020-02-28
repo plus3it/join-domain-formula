@@ -116,7 +116,6 @@ function VerifyDependencies {
       else
          ( echo "No. Aborting..." ; kill -s TERM " ${TOP_PID}" )
       fi
-      
    done
 }
 
@@ -141,7 +140,7 @@ function FindDCs {
    local IDX
    local DC
 
-   # Select whether to try to use AD 
+   # Select whether to try to use AD
    if [[ ! -z ${ADSITE} ]]
    then
       DNS_SEARCH_STRING="_ldap._tcp.${ADSITE}._sites.dc._msdcs.${1}"
@@ -150,9 +149,9 @@ function FindDCs {
    fi
 
    export DNS_SEARCH_STRING
-    
+
    IDX=0
-   DC=($( 
+   DC=($(
          dig -t SRV "${DNS_SEARCH_STRING}" | sed -e '/^$/d' -e '/;/d' | \
          awk '/[ 	]*IN[ 	]*SRV[ 	]*/{ printf("%s;%s\n",$7,$8)}'
       ))
@@ -167,7 +166,7 @@ function FindDCs {
            break
          IDX=$(( IDX + 1 ))
       done
-   
+
       case "${DC[${IDX}]//;*/}" in
          389)
            logIt "Contact ${DC[${IDX}]//*;/} on port ${DC[${IDX}]//;*/}" 0
@@ -453,7 +452,7 @@ then
 fi
 
 # Ensure dependencies are met
-VerifyDependencies 
+VerifyDependencies
 
 # Decrypt our query password (as necessary)
 if [[ ${BINDPASS} == TOBESET ]]
@@ -525,7 +524,7 @@ case "${OBJECTDN}" in
       fi
       logIt "Query failure when looking for ${HOSTNAME} in ${SEARCHSCOPE}" "${DOEXIT}"
       saltOut "Query failure when looking for computer-object [${HOSTNAME}] in directory" no
-      logIt "Skipping any requested cleanup attempts" 
+      logIt "Skipping any requested cleanup attempts"
       CLEANUP="FALSE"
       ;;
    *)
