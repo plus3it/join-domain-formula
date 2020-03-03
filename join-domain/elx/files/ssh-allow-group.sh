@@ -9,20 +9,20 @@ SSHCFG="/etc/ssh/sshd_config"
 
 if [[ ${ALLOWGRP} = "UNDEF" ]]
 then
-   echo "No group passed. Aborting..." > /dev/stderr
-   exit 1
+  echo "No group passed. Aborting..." > /dev/stderr
+  exit 1
 fi
 
 if [[ $(grep -q "AllowGroups.*${ALLOWGRP}" ${SSHCFG})$? -eq 0 ]]
 then
-   printf "\n"
-   printf "changed=no comment='%s already present in sshd_config " "${ALLOWGRP}"
-   printf "AllowGroups directive.'\n"
-   exit 0
+  printf "\n"
+  printf "changed=no comment='%s already present in sshd_config " "${ALLOWGRP}"
+  printf "AllowGroups directive.'\n"
+  exit 0
 else
-   sed -i "s/AllowGroups.*$/& ${ALLOWGRP}/" ${SSHCFG}
-   printf "\n"
-   printf "changed=yes comment='Added %s to AllowGroups " "${ALLOWGRP}"
-   printf "directive in sshd_config.'\n"
-   exit 0
+  sed -i "s/AllowGroups.*$/& ${ALLOWGRP}/" ${SSHCFG}
+  printf "\n"
+  printf "changed=yes comment='Added %s to AllowGroups " "${ALLOWGRP}"
+  printf "directive in sshd_config.'\n"
+  exit 0
 fi
