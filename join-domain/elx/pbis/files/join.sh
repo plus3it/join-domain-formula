@@ -254,13 +254,13 @@ then
   export SVCPASS
 
   # Bail if needed decrypt failed
-  if [[ ${SVCPASS} == FAILURE ]]
+  if [[ -z "${SVCPASS}" ]]
   then
     printf "\n"
     printf "changed=no comment='Failed to decrypt password'\n"
     exit 1
   else
-    printf "Decrypted password for sevice-account [%s]\n\n" "${SVCACCT}"
+    printf "Decrypted password for service-account [%s]\n\n" "${SVCACCT}"
   fi
 fi
 
