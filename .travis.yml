@@ -28,6 +28,11 @@ matrix:
         - TESTENV=shellcheck
         - SHELLCHECK_OPTS="-s bash"
       id: 10
+    - env:
+        - TESTENV=eclint
+        - ECLINT_OPTS="-s bash"
+        - NODE_VERSION=10.x
+        - NODE_SOURCE=https://deb.nodesource.com/setup_$NODE_VERSION
 
 before_install:
   - sudo apt-get update
@@ -54,6 +59,12 @@ install:
         https://repo.saltstack.com/yum/redhat/salt-repo-${SALT_RPM_VERSION}.el${OS_VERSION}.noarch.rpm
       sudo docker exec centos-${OS_VERSION} yum -y install salt-minion util-linux-ng
       sudo docker exec centos-${OS_VERSION} salt-call --versions-report
+    elif [ "${TESTENV}" = "eclint" ]
+    then
+      sudo curl $NODE_SOURCE | sudo bash -
+      sudo apt-get install nodejs -y
+      npm --version
+      sudo npm install -g eclint
     fi
 
 script:
@@ -76,6 +87,9 @@ script:
     elif [ "${TESTENV}" = "shellcheck" ]
     then
       find $TRAVIS_BUILD_DIR -name '*.sh' -type f -print0 | xargs -0 -n1 shellcheck
+    elif [ "${TESTENV}" = "eclint" ]
+    then
+      eclint check */*
     fi
 
 after_failure:

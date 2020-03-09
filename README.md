@@ -14,7 +14,7 @@ This formula uses data externalized via the SaltStack "[Pillar](https://docs.sal
 feature. See the sections below for the data required to be present within the
 supporting pillar.
 
-## join-domain
+## join-domain windows
 
 ```yaml
 join-domain:

@@ -8,8 +8,12 @@
 {%- set domainFqdn = pillar['join-domain']['lookup']['dns_name'] %}
 {%- set domainShort = pillar['join-domain']['lookup']['netbios_name'] %}
 {%- set domainAcct = pillar['join-domain']['lookup']['username'] %}
+{%- if join_domain.get("password") %}
+{%- set password = pillar['join-domain']['lookup']['password'] %}
+{%- else %}
 {%- set svcPasswdCrypt = pillar['join-domain']['lookup']['encrypted_password'] %}
 {%- set svcPasswdUlk = pillar['join-domain']['lookup']['key'] %}
+{%- endif %}
 {%- set domainOuPath = pillar['join-domain']['lookup']['oupath'] %}
 
 # Vars for getting PBIS install-media

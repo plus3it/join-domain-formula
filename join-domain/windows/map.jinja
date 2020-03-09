@@ -26,7 +26,7 @@
 %}
     {%- if admin not in admins %}
         {%- do admins.append(admin) %}
-   {%- endif %}
+  {%- endif %}
 {%- endfor %}
 
 {%- do join_domain.update(salt['grains.get']('join-domain', {})) %}

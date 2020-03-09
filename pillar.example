@@ -31,8 +31,12 @@ join-domain:
     dns_name:
     netbios_name:
     username:
+
+    # Mutually Exclusive Required Settings
     encrypted_password:
     key:
+    # or
+    password:
 
     # Optional domain-specific settings
     #ad_site_name:
