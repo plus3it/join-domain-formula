@@ -16,24 +16,20 @@
 
 {%- for user in auth_config.users %}
 # Create a group for {{ user }}, for sshd AllowGroups to work
-Create group for user {{ user }}:
+Create group and add as member for user {{ user }}:
   group.present:
     - name: {{ user }}
-
-Add member {{ user }}:
-  file.replace:
-    - name: /etc/group
-    - pattern: '(^{{ user }}:.*:.*:)(.*$)'
-    - repl: '\1{{ user }}'
-    - require:
-      - group: Create group for user {{ user }}
+    - addusers:
+      - {{ user }}
 {%- endfor %}
 
 {%- for admin in auth_config.admins %}
-# Add to /etc/suders.d/group_{{ admin }} file
+# Replace periods in filenames for sudoers.d
+{%- set append_name = admin | replace(".","_") %}
+# Add to /etc/suders.d/group_{{ append_name }} file
 admin_group-{{ admin }}:
   file.managed:
-    - name: '{{ sudo_d }}/group_{{ admin }}'
+    - name: '{{ sudo_d }}/group_{{ append_name }}'
     - contents: '%{{ admin }}	ALL=(root)	NOPASSWD:ALL'
 {%- endfor %}
 
