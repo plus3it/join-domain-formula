@@ -12,13 +12,6 @@ matrix:
   include:
     - env:
         - TESTENV=salt
-        - OS_VERSION=6
-        - SALT_PILLARROOT=$TRAVIS_BUILD_DIR/tests/pillar/test-linux-main
-        - SALT_STATE=join-domain
-      services:
-        - docker
-    - env:
-        - TESTENV=salt
         - OS_VERSION=7
         - SALT_PILLARROOT=$TRAVIS_BUILD_DIR/tests/pillar/test-linux-main
         - SALT_STATE=join-domain
