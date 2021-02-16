@@ -4,7 +4,6 @@ env:
   global:
     - LD_PRELOAD=/lib/x86_64-linux-gnu/libSegFault.so
     - SEGFAULT_SIGNALS=all
-    - SALT_RPM_VERSION=2019.2-2
 
 matrix:
   allow_failures:
@@ -15,6 +14,7 @@ matrix:
         - OS_VERSION=7
         - SALT_PILLARROOT=$TRAVIS_BUILD_DIR/tests/pillar/test-linux-main
         - SALT_STATE=join-domain
+        - SALT_RPM_URL=https://archive.repo.saltstack.com/yum/redhat/salt-repo-2019.2-2.el7.noarch.rpm
       services:
         - docker
     - env:
@@ -48,8 +48,7 @@ install:
         --volume="${TRAVIS_BUILD_DIR}":"${TRAVIS_BUILD_DIR}":ro \
         --volume=/sys/fs/cgroup:/sys/fs/cgroup:ro \
         --name centos-${OS_VERSION} local/centos:${OS_VERSION} init
-      sudo docker exec centos-${OS_VERSION} yum -y install \
-        https://repo.saltstack.com/yum/redhat/salt-repo-${SALT_RPM_VERSION}.el${OS_VERSION}.noarch.rpm
+      sudo docker exec centos-${OS_VERSION} yum -y install ${SALT_RPM_URL}
       sudo docker exec centos-${OS_VERSION} yum -y install salt-minion util-linux-ng
       sudo docker exec centos-${OS_VERSION} salt-call --versions-report
     elif [ "${TESTENV}" = "eclint" ]
