@@ -51,7 +51,7 @@ register startup task:
     - args: >-
         -InvokeScript "{{ join_domain.wrapper.name }}"
         -RunOnceScript "{{ join_domain.new_member.name }}"
-        -Members {{ admins | join(',') }}
+        -Members "{{ admins | join(',') }}"
         -DomainNetBiosName {{ join_domain.netbios_name }}
     - shell: powershell
     - require:
