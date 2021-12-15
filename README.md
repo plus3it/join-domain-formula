@@ -83,11 +83,14 @@ computer clients to the AD domain:
 | Create/delete computer objects | This object and all descendant objects |
 | Validated write to DNS hostname | Descendant Computer objects |
 | Validated write to service principal name | Descendant Computer objects |
+| Write Description | Descendant Computer objects |
+| Write msDS-SupportedEncryptionTypes | Descendant Computer objects |
 | Write operating system | Descendant Computer objects |
 | Write operating system version | Descendant Computer objects |
 | Write operating system service pack | Descendant Computer objects |
 | Write operating system hot fix | Descendant Computer objects |
-| Write description | Descendant Computer objects |
+| Write public information | Descendant Computer objects |
+| Write servicePrincipalName | Descendant Computer objects |
 | Read/Write account restrictions | Descendant Computer objects |
 | Read all properties | Descendant Computer objects |
 
