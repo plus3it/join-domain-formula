@@ -14,7 +14,7 @@ matrix:
         - OS_VERSION=7
         - SALT_PILLARROOT=$TRAVIS_BUILD_DIR/tests/pillar/test-linux-main
         - SALT_STATE=join-domain
-        - SALT_REPO_URL=https://repo.saltproject.io/py3/redhat/7/x86_64/3003.repo
+        - SALT_REPO_URL=https://repo.saltproject.io/py3/redhat/7/x86_64/3004.repo
       services:
         - docker
     - env:
