@@ -24,14 +24,14 @@ $PowerShellArgs = @(
 )
 
 $WrapperArgs = @(
-    "`"${InvokeScript}`""
+    "'${InvokeScript}'"
     "-Path"
-    "`"${RunOnceScript}`""
+    "'${RunOnceScript}'"
     "-TaskName"
-    "`"${TaskName}`""
+    "'${TaskName}'"
 )
 
-$TaskArgs = ${PowerShellArgs} + ${WrapperArgs} + ${RemainingArgs}
+$TaskArgs = ${PowerShellArgs} + @("`"&") + ${WrapperArgs} + ${RemainingArgs} + @("`"")
 
 # Credit for the bulk of this structure:
 # https://ryanschlagel.wordpress.com/2012/07/09/managing-scheduled-tasks-with-powershell/
