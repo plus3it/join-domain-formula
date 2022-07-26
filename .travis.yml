@@ -6,8 +6,6 @@ env:
     - SEGFAULT_SIGNALS=all
 
 matrix:
-  allow_failures:
-    - id: 10
   include:
     - env:
         - TESTENV=salt
@@ -20,7 +18,6 @@ matrix:
     - env:
         - TESTENV=shellcheck
         - SHELLCHECK_OPTS="-s bash"
-      id: 10
     - env:
         - TESTENV=eclint
         - ECLINT_OPTS="-s bash"

@@ -53,7 +53,7 @@ Write-Debug "RemainingArgsHash = $((
 
 # Run the script
 Write-Verbose "Running script ${Path}"
-Invoke-Expression "& ${Path} @RemainingArgsHash"
+Invoke-Expression "& `"${Path}`" @RemainingArgsHash"
 
 # Delete the scheduled task
 $SchTasks = "${Env:SystemRoot}\system32\schtasks.exe"
