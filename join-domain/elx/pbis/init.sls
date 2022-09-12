@@ -27,7 +27,6 @@ PBIS-NETBIOSfix:
     - require:
       - pkg: PBIS-install
 
-
 PBIS-join:
   cmd.script:
     {%- if join_domain.get("password") %}
@@ -41,24 +40,6 @@ PBIS-join:
     - output_loglevel: quiet
     - require:
       - cmd: PBIS-NETBIOSfix
-
-PBIS-PamPasswordDemunge:
-  cmd.script:
-    - name: 'fix-pam.sh "/etc/pam.d/password-auth"'
-    - source: 'salt://{{ files }}/fix-pam.sh'
-    - cwd: '/root'
-    - stateful: True
-    - require:
-      - cmd: PBIS-join
-
-PBIS-PamSystemDemunge:
-  cmd.script:
-    - name: 'fix-pam.sh "/etc/pam.d/system-auth"'
-    - source: 'salt://{{ files }}/fix-pam.sh'
-    - cwd: '/root'
-    - stateful: True
-    - require:
-      - cmd: PBIS-join
 
 {%- if usePbisDdns %}
 PBIS-DDNS:
