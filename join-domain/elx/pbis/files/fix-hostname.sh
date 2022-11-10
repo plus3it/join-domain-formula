@@ -43,7 +43,7 @@ then
   else
       OLDFQDN=$(hostname)
       CURDOM=$(awk -F = '/HOSTNAME/{print $2}' /etc/sysconfig/network | \
-              sed "s/$(hostname -s)\.//")
+              sed -e "s/$(hostname -s)\.//" -e 's/"//g')
       read -ra IPTOKENS < <(ip addr show "${DEFIF}" | awk '/inet /{print $2}' | sed -e 's#/.*$##' -e 's/\./ /g')
       BASEIP=$(printf '%02X' "${IPTOKENS[@]}")
 
