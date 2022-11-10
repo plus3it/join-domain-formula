@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 # The NETBIOS character-limit for hostnames is fifteen
 # characters. If PBIS attempts to join the host to a domain and
@@ -42,8 +42,7 @@ then
       exit 1
   else
       OLDFQDN=$(hostname)
-      CURDOM=$(awk -F = '/HOSTNAME/{print $2}' /etc/sysconfig/network | \
-              sed -e "s/$(hostname -s)\.//" -e 's/"//g')
+      CURDOM=$(hostname -d)
       read -ra IPTOKENS < <(ip addr show "${DEFIF}" | awk '/inet /{print $2}' | sed -e 's#/.*$##' -e 's/\./ /g')
       BASEIP=$(printf '%02X' "${IPTOKENS[@]}")
 
