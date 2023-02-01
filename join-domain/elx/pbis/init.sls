@@ -21,7 +21,7 @@ PBIS-install:
 PBIS-NETBIOSfix:
   cmd.script:
     - name: 'fix-hostname.sh'
-    - source: 'salt://{{ files }}/fix-hostname.sh'
+    - source: 'salt://{{ tpldir }}/../common-tools/fix-hostname.sh'
     - cwd: '/root'
     - stateful: True
     - require:
