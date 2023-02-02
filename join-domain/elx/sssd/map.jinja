@@ -1,0 +1,52 @@
+{#- Grab the dns_name to use it in the defaults #}
+{%- set dns_name = salt.grains.get(
+    'join-domain:dns_name',
+    salt.pillar.get('join-domain:lookup:dns_name')
+) %}
+
+{#- Set join-domain defaults for this ad connector #}
+{%- load_yaml as defaults %}
+
+oupath: ''
+install_bin_dir: /opt/pbis
+install_var_dir: /var/lib/pbis
+install_db_dir: /var/lib/pbis/db
+check_files:
+  - registry.db
+  - sam.db
+  - lwi_events.db
+  - lsass-adcache.filedb.{{ dns_name }}
+connector_rpms:
+  - pbis-open-legacy: https://s3.amazonaws.com/bits-public/beyond-trust/pbiso/pbis-open-8.5.3-293.x86_64.rpm
+  - pbis-open: https://s3.amazonaws.com/bits-public/beyond-trust/pbiso/pbis-open-legacy-8.5.3-293.x86_64.rpm
+  - pbis-open-upgrade: https://s3.amazonaws.com/bits-public/beyond-trust/pbiso/pbis-open-upgrade-8.5.3-293.x86_64.rpm
+pbis_user_home:
+  - HomeDirTemplate
+  - Local_HomeDirTemplate
+pbis_user_shell:
+  - LoginShellTemplate
+  - Local_LoginShellTemplate
+login_home: '%H/%D/%U'
+login_shell: /bin/bash
+
+{%- endload %}
+
+{#-
+    Lookup settings in pillar, merging them with defaults, and overriding them
+    with grains
+#}
+{%- set join_domain = salt.pillar.get(
+    'join-domain:lookup',
+    default = defaults,
+    merge = True
+) %}
+
+{%- do join_domain.update({
+    'connector_rpms': salt.pillar.get(
+        'join-domain:lookup:connector_rpms',
+        default = defaults.connector_rpms)
+}) %}
+
+{% do join_domain.update(
+    salt.grains.get('join-domain', {})
+) %}
