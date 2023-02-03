@@ -38,14 +38,6 @@ function PWdecrypt() {
   fi
 }
 
-# Clear lsass service and get current join-status
-function JoinStatus() {
-  /opt/pbis/bin/lwsm restart lsass > /dev/null 2>&1
-  # Will take a few seconds for the status to refresh
-  sleep 3
-  /opt/pbis/bin/pbis-status | awk '/^[\t][\t]*Status:/{print $2}'
-}
-
 # Attempt to join client to domain
 function DomainJoin() {
   # Srsly? Shellacked by '/" encapsulation...
@@ -264,48 +256,3 @@ then
   fi
 fi
 
-
-# Execute join-attempt as necessary...
-case $(JoinStatus) in
-  Unknown)
-      # Make 10 attempts in case DC-syncs are slow
-      for RETRY in {1..10}
-      do
-        printf "Join-attempt #%s... " "${RETRY}"
-        if [[ $(DomainJoin) == SUCCESS ]]
-        then
-            echo "Join-operation succeded"
-            printf "##########\n\n"
-            cat "${JOINOPOUTFILE}" && rm "${JOINOPOUTFILE}"
-            printf "\n\n##########\n"
-            printf "\n"
-            printf "changed=yes comment='Joined client to domain %s.'\n" "${DOMSHORT}"
-            exit 0
-        else
-            printf "Join-operation failed:\n\n"
-            printf "##########\n\n"
-            cat "${JOINOPOUTFILE}" && rm "${JOINOPOUTFILE}"
-            printf "\n\n##########\n"
-            echo "Retrying in $(( RETRY * 10 )) seconds" > /dev/null
-            # Increase retry-delay on each iteration...
-            sleep $(( RETRY * 10 ))
-        fi
-      done
-
-      # Report err-exit if final retry fails
-      printf "\n"
-      printf "changed=no comment='Failed to join client to domain "
-      printf "%s.'\n" "${DOMSHORT}"
-      exit 1
-      ;;
-  Online)
-      printf "\n"
-      printf "changed=no comment='Already joined to a domain.'\n"
-      exit 0
-      ;;
-  *)
-      printf "\n"
-      printf "changed=no comment='Unable to determine status.'\n"
-      exit 1
-      ;;
-esac
