@@ -50,26 +50,3 @@ login_shell: /bin/bash
 {% do join_domain.update(
     salt.grains.get('join-domain', {})
 ) %}
-
-{% set sssd_pkgs = {
-     el7 = [
-       'adcli',
-       'authconfig',
-       'krb5-workstation',
-       'oddjob',
-       'oddjob-mkhomedir',
-       'realmd',
-       'sssd'
-     ],
-     el8 = [
-       'adcli',
-       'authselect-compat',
-       'krb5-workstation',
-       'oddjob',
-       'oddjob-mkhomedir',
-       'realmd',
-       'samba-common',
-       'samba-common-tools',
-       'sssd'
-     ]
-} %}
