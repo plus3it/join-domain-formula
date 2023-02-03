@@ -50,3 +50,26 @@ login_shell: /bin/bash
 {% do join_domain.update(
     salt.grains.get('join-domain', {})
 ) %}
+
+{%- set pkg_map = {
+    '7': [
+      'adcli',
+      'authconfig',
+      'krb5-workstation',
+      'oddjob',
+      'oddjob-mkhomedir',
+      'realmd',
+      'sssd',
+    ],
+    '8': [
+      'adcli',
+      'authselect-compat',
+      'krb5-workstation',
+      'oddjob',
+      'oddjob-mkhomedir',
+      'realmd',
+      'samba-common-tools',
+      'sssd',
+    ]
+} %}
+{%- set pkg_list = pkg_map[salt.grains.get('osmajorrelease')|string] %}
