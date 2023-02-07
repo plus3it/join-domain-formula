@@ -59,8 +59,9 @@ function JoinDomain {
       printf "Joining to %s... " "${JOIN_DOMAIN}"
       echo "$( PWdecrypt )" | \
       realm join -U "${JOIN_USER}" \
+        --unattended \
         --os-name="${CLIENT_OSNAME}" \
-        --os-version="${CLIENT_OSVERS}" "${JOIN_DOMAIN}" || \
+        --os-version="${CLIENT_OSVERS}" "${JOIN_DOMAIN}" > /dev/null 2>&1 || \
       ( echo "FAILED" ; exit 1)
       echo "Success"
 
@@ -69,9 +70,10 @@ function JoinDomain {
       printf "Joining to %s under %s OU... " "${JOIN_DOMAIN}" "${JOIN_OU}"
       echo "$( PWdecrypt )" | \
       realm join -U "${JOIN_USER}" \
+        --unattended \
         --computer-ou="${JOIN_OU}" \
         --os-name="${CLIENT_OSNAME}" \
-        --os-version="${CLIENT_OSVERS}" "${JOIN_DOMAIN}" || \
+        --os-version="${CLIENT_OSVERS}" "${JOIN_DOMAIN}" > /dev/null 2>&1 || \
       ( echo "FAILED" ; exit 1)
       echo "Success"
    else
