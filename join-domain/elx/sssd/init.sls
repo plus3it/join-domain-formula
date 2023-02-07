@@ -16,6 +16,8 @@ install_sssd:
 
 fix_domain_separator:
   file.replace:
+    - create: True
+    - makedirs: True
     - name: '/etc/sssd/sssd.conf'
     - pattern: '(^\[sssd]\n)'
     - repl: '\1override_space = ^\n'
