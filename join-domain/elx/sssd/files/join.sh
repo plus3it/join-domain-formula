@@ -56,24 +56,30 @@ function JoinDomain {
 
    if [[ -z ${JOIN_OU} ]]
    then
+      printf "Joining to %s... " "${JOIN_DOMAIN}"
       echo "$( PWdecrypt )" | \
       realm join -U "${JOIN_USER}" \
         --os-name="${CLIENT_OSNAME}" \
-        --os-version="${CLIENT_OSVERS}" "${JOIN_DOMAIN}"
+        --os-version="${CLIENT_OSVERS}" "${JOIN_DOMAIN}" || \
+      ( echo "FAILED" ; exit 1)
+      echo "Success"
+
    elif [[ -n ${JOIN_OU} ]]
    then
+      printf "Joining to %s under %s OU... " "${JOIN_DOMAIN}" "${JOIN_OU}"
       echo "$( PWdecrypt )" | \
       realm join -U "${JOIN_USER}" \
         --computer-ou="${JOIN_OU}" \
         --os-name="${CLIENT_OSNAME}" \
-        --os-version="${CLIENT_OSVERS}" "${JOIN_DOMAIN}"
+        --os-version="${CLIENT_OSVERS}" "${JOIN_DOMAIN}" || \
+      ( echo "FAILED" ; exit 1)
+      echo "Success"
    else
       echo "Unsupported configuration-options"
       return 1
    fi
 
    return 0
-
 }
 
 IsDiscoverable
