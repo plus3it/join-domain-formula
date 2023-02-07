@@ -14,6 +14,13 @@ install_sssd:
     - allow_updates: True
     - pkgs: {{ pkg_list }}
 
+fix_domain_separator:
+  file.replace:
+    - name: '/etc/sssd/sssd.conf'
+    - pattern: '(^\[sssd]\n)'
+    - repl: '\1override_space = ^\n'
+    - unless: 'grep -q "^override_space" /etc/sssd/sssd.conf'
+
 domain_defaults-{{ join_domain.dns_name }}:
   file.managed:
     - contents: |
@@ -27,7 +34,13 @@ domain_defaults-{{ join_domain.dns_name }}:
     - user: root
 
 join_realm-{{ join_domain.dns_name }}:
-  cmd.run:
+  cmd.script:
+    - env:
+      - ENCRYPT_PASS: '{{ join_domain.encrypted_password }}'
+      - ENCRYPT_KEY: '{{ join_domain.key }}'
+      - JOIN_DOMAIN: '{{ join_domain.dns_name }}'
+      - JOIN_OU:
+      - JOIN_USER: '{{ join_domain.username }}'
     - unless: 'realm list | grep {{ join_domain.dns_name }}'
     - name: 'echo "Join host to {{ join_domain.dns_name }}"'
     ## - name: echo '<password>' | realm join -U <user> <domain>
