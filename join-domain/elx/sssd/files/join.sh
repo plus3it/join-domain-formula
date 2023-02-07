@@ -4,7 +4,6 @@ set -eu
 # Script to join host to domain
 #
 #################################################################
-PROGNAME="$( basename "${0}" )"
 JOIN_DOMAIN="${JOIN_DOMAIN:-UNDEF}"
 JOIN_OU="${JOIN_OU:-}"
 JOIN_USER="${JOIN_USER:-Administrator}"
@@ -24,11 +23,14 @@ CLIENT_OSVERS="$(
 function PWdecrypt {
   local PWCLEAR
 
+  # Get cleartext password-string
   PWCLEAR=$(
      echo "${PWCRYPT}" | \
      openssl enc -aes-256-cbc -md sha256 -a -d -salt -pass pass:"${PWUNLOCK}"
   )
 
+  # This sucks, but...
+  # shellcheck disable=SC2181
   if [[ $? -ne 0 ]]
   then
     echo ""
@@ -54,10 +56,21 @@ function IsDiscoverable {
 # Try to join host to domain
 function JoinDomain {
 
+   # Toggle SELinux if necessary
+   if [[ $( getenforce ) == "Enforcing" ]]
+   then
+      SEL_TARG="1"
+      printf "Toggling SELinux mode... "
+      setenforce 0 || (echo "FAILED" ; exit 1 )
+      echo SUCCESS
+   else
+      SEL_TARG=0
+   fi
+
    if [[ -z ${JOIN_OU} ]]
    then
       printf "Joining to %s... " "${JOIN_DOMAIN}"
-      echo "$( PWdecrypt )" | \
+      "$( PWdecrypt )" | \
       realm join -U "${JOIN_USER}" \
         --unattended \
         --os-name="${CLIENT_OSNAME}" \
@@ -68,7 +81,7 @@ function JoinDomain {
    elif [[ -n ${JOIN_OU} ]]
    then
       printf "Joining to %s under %s OU... " "${JOIN_DOMAIN}" "${JOIN_OU}"
-      echo "$( PWdecrypt )" | \
+      "$( PWdecrypt )" | \
       realm join -U "${JOIN_USER}" \
         --unattended \
         --computer-ou="${JOIN_OU}" \
@@ -81,7 +94,21 @@ function JoinDomain {
       return 1
    fi
 
+   # Revert SEL as necessary
+   if [[ ${SEL_TARG} -eq 1 ]]
+   then
+      printf "Resetting SELinux mode... "
+      setenforce "${SEL_TARG}" || ( echo "FAILED" ; exit 1 )
+      echo "Success" 
+   fi
+
    return 0
+}
+
+# Toggle SELinux state
+function ToggleSel {
+    local SEL_TARG
+
 }
 
 IsDiscoverable
