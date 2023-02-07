@@ -14,7 +14,19 @@ install_sssd:
     - allow_updates: True
     - pkgs: {{ pkg_list }}
 
-join_realm:
+domain_defaults-{{ join_domain.dns_name }}:
+  file.managed:
+    - contents: |
+        [domain/{{ join_domain.dns_name }}]
+        override_homedir = /home/%d/%u
+        use_fully_qualified_names = False
+    - group: root
+    - mode: '0600'
+    - name: '/etc/sssd/conf.d/{{ join_domain.netbios_name }}.conf'
+    - replace: true
+    - user: root
+
+join_realm-{{ join_domain.dns_name }}:
   cmd.run:
     - unless: 'realm list | grep {{ join_domain.dns_name }}'
     - name: 'echo "Join host to {{ join_domain.dns_name }}"'
