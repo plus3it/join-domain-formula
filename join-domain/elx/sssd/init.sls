@@ -39,8 +39,9 @@ join_realm-{{ join_domain.dns_name }}:
       - ENCRYPT_PASS: '{{ join_domain.encrypted_password }}'
       - ENCRYPT_KEY: '{{ join_domain.key }}'
       - JOIN_DOMAIN: '{{ join_domain.dns_name }}'
-      - JOIN_OU:
+      - JOIN_OU: '{{ join_domain.oupath }}'
       - JOIN_USER: '{{ join_domain.username }}'
+    - cwd: '/root'
+    - name: 'join.sh'
+    - source: 'salt://{{ joiner_files }}/join.sh'
     - unless: 'realm list | grep {{ join_domain.dns_name }}'
-    - name: 'echo "Join host to {{ join_domain.dns_name }}"'
-    ## - name: echo '<password>' | realm join -U <user> <domain>
