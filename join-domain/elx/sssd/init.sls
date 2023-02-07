@@ -15,25 +15,19 @@ install_sssd:
     - pkgs: {{ pkg_list }}
 
 fix_domain_separator:
-  file.replace:
-    - create: True
-    - makedirs: True
+  ini.options_present:
     - name: '/etc/sssd/sssd.conf'
-    - pattern: '(^\[sssd]\n)'
-    - repl: '\1override_space = ^\n'
-    - unless: 'grep -q "^override_space" /etc/sssd/sssd.conf'
+    - sections:
+        sssd:
+          override_space: '^'
 
 domain_defaults-{{ join_domain.dns_name }}:
-  file.managed:
-    - contents: |
-        [domain/{{ join_domain.dns_name }}]
-        override_homedir = /home/%d/%u
-        use_fully_qualified_names = False
-    - group: root
-    - mode: '0600'
+  ini.options_present:
     - name: '/etc/sssd/conf.d/{{ join_domain.netbios_name }}.conf'
-    - replace: true
-    - user: root
+    - sections:
+        domain/{{ join_domain.dns_name }}:
+          override_homedir: '/home/%d/%u'
+          use_fully_qualified_names: 'False'
 
 join_realm-{{ join_domain.dns_name }}:
   cmd.script:
