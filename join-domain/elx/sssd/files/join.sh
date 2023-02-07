@@ -70,7 +70,8 @@ function JoinDomain {
    if [[ -z ${JOIN_OU} ]]
    then
       printf "Joining to %s... " "${JOIN_DOMAIN}"
-      "$( PWdecrypt )" | \
+      # shellcheck disable=SC2005
+      echo "$( PWdecrypt )" | \
       realm join -U "${JOIN_USER}" \
         --unattended \
         --os-name="${CLIENT_OSNAME}" \
@@ -81,7 +82,8 @@ function JoinDomain {
    elif [[ -n ${JOIN_OU} ]]
    then
       printf "Joining to %s under %s OU... " "${JOIN_DOMAIN}" "${JOIN_OU}"
-      "$( PWdecrypt )" | \
+      # shellcheck disable=SC2005
+      echo "$( PWdecrypt )" | \
       realm join -U "${JOIN_USER}" \
         --unattended \
         --computer-ou="${JOIN_OU}" \
