@@ -36,8 +36,8 @@ function PWdecrypt {
       echo ""
       return 1
    else
-     echo "${PWCLEAR}"
-     return 0
+      echo "${PWCLEAR}"
+      return 0
    fi
 }
 
@@ -73,9 +73,9 @@ function JoinDomain {
       # shellcheck disable=SC2005
       echo "$( PWdecrypt )" | \
       realm join -U "${JOIN_USER}" \
-        --unattended \
-        --os-name="${CLIENT_OSNAME}" \
-        --os-version="${CLIENT_OSVERS}" "${JOIN_DOMAIN}" > /dev/null 2>&1 || \
+         --unattended \
+         --os-name="${CLIENT_OSNAME}" \
+         --os-version="${CLIENT_OSVERS}" "${JOIN_DOMAIN}" > /dev/null 2>&1 || \
       ( echo "FAILED" ; exit 1)
       echo "Success"
 
@@ -85,10 +85,10 @@ function JoinDomain {
       # shellcheck disable=SC2005
       echo "$( PWdecrypt )" | \
       realm join -U "${JOIN_USER}" \
-        --unattended \
-        --computer-ou="${JOIN_OU}" \
-        --os-name="${CLIENT_OSNAME}" \
-        --os-version="${CLIENT_OSVERS}" "${JOIN_DOMAIN}" > /dev/null 2>&1 || \
+         --unattended \
+         --computer-ou="${JOIN_OU}" \
+         --os-name="${CLIENT_OSNAME}" \
+         --os-version="${CLIENT_OSVERS}" "${JOIN_DOMAIN}" > /dev/null 2>&1 || \
       ( echo "FAILED" ; exit 1)
       echo "Success"
    else
@@ -101,16 +101,10 @@ function JoinDomain {
    then
       printf "Resetting SELinux mode... "
       setenforce "${SEL_TARG}" || ( echo "FAILED" ; exit 1 )
-      echo "Success" 
+      echo "Success"
    fi
 
    return 0
-}
-
-# Toggle SELinux state
-function ToggleSel {
-    local SEL_TARG
-
 }
 
 IsDiscoverable
