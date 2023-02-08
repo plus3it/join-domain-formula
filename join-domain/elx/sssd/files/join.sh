@@ -21,24 +21,24 @@ CLIENT_OSVERS="$(
 
 # Get clear-text password from crypt
 function PWdecrypt {
-  local PWCLEAR
+   local PWCLEAR
 
-  # Get cleartext password-string
-  PWCLEAR=$(
-     echo "${PWCRYPT}" | \
-     openssl enc -aes-256-cbc -md sha256 -a -d -salt -pass pass:"${PWUNLOCK}"
-  )
+   # Get cleartext password-string
+   PWCLEAR=$(
+      echo "${PWCRYPT}" | \
+      openssl enc -aes-256-cbc -md sha256 -a -d -salt -pass pass:"${PWUNLOCK}"
+   )
 
-  # This sucks, but...
-  # shellcheck disable=SC2181
-  if [[ $? -ne 0 ]]
-  then
-    echo ""
-    return 1
-  else
-    echo "${PWCLEAR}"
-    return 0
-  fi
+   # This sucks, but...
+   # shellcheck disable=SC2181
+   if [[ $? -ne 0 ]]
+   then
+      echo ""
+      return 1
+   else
+     echo "${PWCLEAR}"
+     return 0
+   fi
 }
 
 # Make sure domain is discoverable
