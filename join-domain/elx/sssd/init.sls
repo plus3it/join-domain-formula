@@ -26,7 +26,9 @@ domain_defaults-{{ join_domain.dns_name }}:
     - name: '/etc/sssd/conf.d/{{ join_domain.netbios_name }}.conf'
     - sections:
         domain/{{ join_domain.dns_name }}:
+          default_shell: '/bin/bash'
           override_homedir: '/home/%d/%u'
+          shell_fallback: '/bin/bash'
           use_fully_qualified_names: 'False'
 
 join_realm-{{ join_domain.dns_name }}:
