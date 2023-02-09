@@ -4,6 +4,16 @@
     salt.pillar.get('join-domain:lookup:dns_name')
 ) %}
 
+{#- Set join-domain defaults for this ad connector #}
+{%- load_yaml as defaults %}
+
+oupath: ''
+login_home: '/home/%d/%u'
+login_shell: /bin/bash
+
+{%- endload %}
+
+
 {#-
     Lookup settings in pillar, merging them with defaults, and overriding them
     with grains
