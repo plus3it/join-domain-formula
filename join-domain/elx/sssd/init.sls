@@ -17,6 +17,8 @@ install_sssd:
 fix_domain_separator:
   ini.options_present:
     - name: '/etc/sssd/sssd.conf'
+    - require:
+      - pkg: install_sssd
     - sections:
         sssd:
           override_space: '^'
@@ -24,6 +26,8 @@ fix_domain_separator:
 domain_defaults-{{ join_domain.dns_name }}:
   ini.options_present:
     - name: '/etc/sssd/conf.d/{{ join_domain.netbios_name }}.conf'
+    - require:
+      - pkg: install_sssd
     - sections:
         domain/{{ join_domain.dns_name }}:
           default_shell: '/bin/bash'
@@ -41,5 +45,8 @@ join_realm-{{ join_domain.dns_name }}:
       - JOIN_USER: '{{ join_domain.username }}'
     - cwd: '/root'
     - name: 'join.sh'
+    - require:
+      - ini: 'fix_domain_separator'
+      - ini: 'domain_defaults-{{ join_domain.dns_name }}'
     - source: 'salt://{{ joiner_files }}/join.sh'
     - unless: 'realm list | grep {{ join_domain.dns_name }}'
