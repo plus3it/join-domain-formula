@@ -49,4 +49,4 @@ join_realm-{{ join_domain.dns_name }}:
       - ini: 'fix_domain_separator'
       - ini: 'domain_defaults-{{ join_domain.dns_name }}'
     - source: 'salt://{{ joiner_files }}/join.sh'
-    - unless: 'realm list | grep {{ join_domain.dns_name }}'
+    - unless: 'realm list | grep -qs {{ join_domain.dns_name }}'
