@@ -31,7 +31,7 @@ domain_defaults-{{ join_domain.dns_name }}:
     - sections:
         domain/{{ join_domain.dns_name }}:
           default_shell: '/bin/bash'
-          override_homedir: '/home/%d/%u'
+          override_homedir: '{{ join_domain.login_home }}'
           shell_fallback: '/bin/bash'
           use_fully_qualified_names: 'False'
 
