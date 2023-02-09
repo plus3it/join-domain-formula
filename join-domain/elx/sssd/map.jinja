@@ -52,7 +52,7 @@ login_shell: /bin/bash
 ) %}
 
 {%- set pkg_map = {
-    '7': [
+    7: [
       'adcli',
       'authconfig',
       'krb5-workstation',
@@ -62,7 +62,7 @@ login_shell: /bin/bash
       'samba-common-tools',
       'sssd',
     ],
-    '8': [
+    8: [
       'adcli',
       'authselect-compat',
       'krb5-workstation',
@@ -73,4 +73,4 @@ login_shell: /bin/bash
       'sssd',
     ]
 } %}
-{%- set pkg_list = pkg_map[salt.grains.get('osmajorrelease')|string] %}
+{%- set pkg_list = salt.grains.filter_by(pkg_map, grain='osmajorrelease') %}
