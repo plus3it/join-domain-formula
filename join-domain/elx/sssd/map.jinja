@@ -24,11 +24,6 @@ login_shell: /bin/bash
     merge = True
 ) %}
 
-{%- do join_domain.update({
-    'connector_rpms': salt.pillar.get(
-        'join-domain:lookup:connector_rpms',
-        default = defaults.connector_rpms)
-}) %}
 
 {% do join_domain.update(
     salt.grains.get('join-domain', {})
