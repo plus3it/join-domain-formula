@@ -35,6 +35,20 @@ domain_defaults-{{ join_domain.dns_name }}:
           shell_fallback: '/bin/bash'
           use_fully_qualified_names: 'False'
 
+domain_defaults-{{ join_domain.dns_name }}_ensure_permissions:
+  file.managed:
+    - group: 'root'
+    - mode: '0600'
+    - name: '/etc/sssd/conf.d/{{ join_domain.netbios_name }}.conf'
+    - require:
+      - ini: 'domain_defaults-{{ join_domain.dns_name }}'
+    - selinux:
+        serange: 's0'
+        serole: 'object_r'
+        setype: 'sssd_conf_t'
+        seuser: 'system_u'
+    - user: 'root'
+
 join_realm-{{ join_domain.dns_name }}:
   cmd.script:
     - env:
@@ -47,6 +61,6 @@ join_realm-{{ join_domain.dns_name }}:
     - name: 'join.sh'
     - require:
       - ini: 'fix_domain_separator'
-      - ini: 'domain_defaults-{{ join_domain.dns_name }}'
+      - file: 'domain_defaults-{{ join_domain.dns_name }}_ensure_permissions'
     - source: 'salt://{{ joiner_files }}/join.sh'
     - unless: 'realm list | grep -qs {{ join_domain.dns_name }}'
