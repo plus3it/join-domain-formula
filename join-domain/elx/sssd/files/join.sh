@@ -29,11 +29,11 @@ function PWdecrypt {
     openssl enc -aes-256-cbc -md sha256 -a -d -salt -pass pass:"${PWUNLOCK}"
   )
   then
-    echo ""
-    return 1
-  else
     echo "${PWCLEAR}"
     return 0
+  else
+    echo "Decryption FAILED!"
+    return 1
   fi
 }
 
