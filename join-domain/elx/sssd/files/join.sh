@@ -24,14 +24,10 @@ function PWdecrypt {
   local PWCLEAR
 
   # Get cleartext password-string
-  PWCLEAR=$(
+  if PWCLEAR=$(
     echo "${PWCRYPT}" | \
     openssl enc -aes-256-cbc -md sha256 -a -d -salt -pass pass:"${PWUNLOCK}"
   )
-
-  # This sucks, but...
-  # shellcheck disable=SC2181
-  if [[ $? -ne 0 ]]
   then
     echo ""
     return 1
