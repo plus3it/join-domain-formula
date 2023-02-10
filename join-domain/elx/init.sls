@@ -1,6 +1,6 @@
 {%- set ad_connector = salt['pillar.get'](
     'join-domain:lookup:ad_connector',
-    'sssd'
+    'pbis'
 ) %}
 
 include:
