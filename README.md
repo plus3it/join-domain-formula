@@ -183,7 +183,7 @@ cache-databases (e.g., `/var/lib/pbis/db`)
 ### List of RPMs to look for
 
 This is a list of RPMs associated with the AD client. For some client-types
-(PBIS is know to require this), the formula will evaluate the presence/version
+(PBIS is known to require this), the formula will evaluate the presence/version
 of these RPMs to help determine whether the requested install should be
 performed as a new install or an upgrade (where possible).
 
