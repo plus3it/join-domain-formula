@@ -33,7 +33,7 @@ domain_defaults-{{ join_domain.dns_name }}:
         domain/{{ join_domain.dns_name }}:
           default_shell: '{{ join_domain.login_shell }}'
           override_homedir: '{{ join_domain.login_home }}'
-          shell_fallback: '/bin/bash'
+          shell_fallback: '{{ join_domain.login_shell }}'
           use_fully_qualified_names: 'False'
 
 domain_defaults-{{ join_domain.dns_name }}_ensure_permissions:
