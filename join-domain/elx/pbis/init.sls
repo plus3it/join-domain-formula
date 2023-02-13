@@ -4,9 +4,9 @@
 #
 #################################################################
 {%- from tpldir ~ '/map.jinja' import join_domain with context %}
-
 {#- Set location for helper-files #}
 {%- set files = tpldir ~ '/files' %}
+{%- set common_tools = 'salt://' ~ salt.file.dirname(tpldir) ~ '/common-tools'  %}
 {%- set usePbisDdns = salt.pillar.get('join-domain:lookup:update-dns') %}
 
 include:
@@ -21,7 +21,7 @@ PBIS-install:
 PBIS-NETBIOSfix:
   cmd.script:
     - name: 'fix-hostname.sh'
-    - source: 'salt://{{ files }}/fix-hostname.sh'
+    - source: '{{ common_tools }}/fix-hostname.sh'
     - cwd: '/root'
     - stateful: True
     - require:

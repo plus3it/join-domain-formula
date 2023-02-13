@@ -44,19 +44,21 @@ join-domain:
     #admin_users:
     #admin_groups:
     #  - linux^admins
+    #login_home: (PBIS and sssd each use differnt substitution-tokens - see man pages)
+    #login_shell: (defaults to '/bin/bash')
     #login_users:
     #login_groups:
     #  - linux^operators
-    #trusted_domains
+    #trusted_domains (PBIS only)
     #  - trusted.ad.domain1
     #  - trusted.ad.domain2
     #  - ...
     #  - trusted.ad.domainn
 
     # AD-connector Tool
-    #ad_connector: pbis
+    #ad_connector: [pbis|sssd]
 
-    # List of RPM sources to install
+    # List of RPM sources to install (PBIS-only)
     #connector_rpms:
     #  - pbis-open-legacy: https://s3.amazonaws.com/bits-public/beyond-trust/pbiso/pbis-open-legacy-8.5.3-293.x86_64.rpm
     #  - pbis-open: https://s3.amazonaws.com/bits-public/beyond-trust/pbiso/pbis-open-8.5.3-293.x86_64.rpm
@@ -64,12 +66,12 @@ join-domain:
     #  - pbis-open-gui: https://s3.amazonaws.com/bits-public/beyond-trust/pbiso/pbis-open-gui-8.5.3-293.x86_64.rpm
     #  - pbis-open-upgrade: https://s3.amazonaws.com/bits-public/beyond-trust/pbiso/pbis-open-upgrade-8.5.3-293.x86_64.rpm
 
-    # Directories where PBIS is installed to the system
+    # Directories where PBIS is installed to the system (PBIS-only)
     #install_bin_dir: /opt/pbis
     #install_var_dir: /var/lib/pbis
     #install_db_dir: /var/lib/pbis/db
 
-    # List of critical files to look for
+    # List of critical files to look for (PBIS-only)
     #check_files:
     #  - registry.db
     #  - sam.db
@@ -77,7 +79,7 @@ join-domain:
     #  - lsass-adcache.filedb.FQDN
 
     # Whether to try to use AD-integration subsystem's associated utility for
-    # issuing a DDNS update request.
+    # issuing a DDNS update request. (PBIS-only)
     #    Note: this is only known to work with DNS systems based on Microsoft's
     #          DNS-integrated Active Directory service.
     #update-dns: true

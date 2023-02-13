@@ -108,7 +108,8 @@ Set of parameters used for joining a AD-client to its domain:
 
 -   *`ad_site_name`*: (OPTIONAL) The logical name of an Active Directory Sites
     and Services [site](https://docs.microsoft.com/en-us/windows-server/identity/ad-ds/plan/site-functions)
-    to query for domain-controllers.
+    to query for domain-controllers. This is used primarily for the
+    'openldap-client' connector-option
 
 -   *`netbios_name`*: The "short" or NETBIOS name for the AD domain (e.g.,
     'AWSLAB')
@@ -161,11 +162,12 @@ There are a number of third-party and native options available for joining
 Linux clients to AD domains. This parameter is used to tell the formula which
 client-behavior should be used. Expected valid values will be 'centrify',
 'pbis', 'quest', 'sssd' and 'winbind'. As of this version of the formula,
-only 'pbis' is supported.
+'pbis' and 'sssd' are supported (though use of 'pbis' is now HIGHLY
+discouraged due to its discontinuation in late 2019).
 
--   *` ad_connector`*: (e.g., 'pbis')
+-   *` ad_connector`*: (e.g., 'sssd')
 
-### Directories where AD-client utilities are installed to the system
+### Directories where (the PBIS) AD-client utilities are installed to the system
 
 List of directories associated with the chosen `ad_connector` software/method.
 
@@ -180,10 +182,10 @@ cache-databases (e.g., `/var/lib/pbis/db`)
 
 ### List of RPMs to look for
 
-This is a list of RPMs associated with the AD client. For some client-types,
-the formula will evaluate the presence/version of these RPMs to help determine
-whether the requested install should be performed as a new install or an
-upgrade (where possible).
+This is a list of RPMs associated with the AD client. For some client-types
+(PBIS is known to require this), the formula will evaluate the presence/version
+of these RPMs to help determine whether the requested install should be
+performed as a new install or an upgrade (where possible).
 
 - *`connectorRpms`*:
 
@@ -196,7 +198,8 @@ upgrade (where possible).
 
 This is a list of critical files - typically configuration files - that the
 formula will look for to help determine whether the requested install should
-be performed as a new install or an upgrade (where possible).
+be performed as a new install or an upgrade (where possible). This is only
+known to be required for the PBIS integration.
 
 - *`checkFiles`*:
 
