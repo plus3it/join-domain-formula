@@ -22,8 +22,6 @@ fix_domain_separator:
     - sections:
         sssd:
           override_space: '^'
-    - require:
-      - pkg: install_sssd
 domain_defaults-{{ join_domain.dns_name }}:
   ini.options_present:
     - name: '/etc/sssd/conf.d/{{ join_domain.netbios_name }}.conf'
