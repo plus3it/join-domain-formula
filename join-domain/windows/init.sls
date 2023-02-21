@@ -12,15 +12,16 @@ join standalone system to domain:
         & "{{ join_domain.script.name }}"
         -DomainName "{{ join_domain.dns_name }}"
         -TargetOU "{{ join_domain.oupath }}"
-        {%- if join_domain.get("password") %}
-        -Password "{{ join_domain.password }}"
-        {%- else %}
-        -Key "{{ join_domain.key }}"
-        -EncryptedPassword "{{ join_domain.encrypted_password }}"
-        {%- endif %}
         -UserName "{{ join_domain.username }}"
         -Tries {{ join_domain.tries }}
         -ErrorAction Stop
+    - env:
+      {%- if join_domain.get("password") %}
+      - JoinDomainPassword: {{ join_domain.password }}
+      {%- else %}
+      - JoinDomainKey: {{ join_domain.key }}
+      - JoinDomainEncryptedPassword: {{ join_domain.encrypted_password }}
+      {%- endif %}
     - shell: powershell
     - stateful: true
     - output_loglevel: quiet
