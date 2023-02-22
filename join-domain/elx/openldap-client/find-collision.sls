@@ -30,7 +30,7 @@ LDAP-FindCollison:
 {%- elif join_domain.ad_site_name and join_domain.get("password") %}
     - name: 'find-collisions.sh -d "{{ join_domain.dns_name }}" -s "{{ join_domain.ad_site_name }}" -u "{{ join_domain.username }}" -p "{{ join_domain.password }}" --mode saltstack'
 {%- elif join_domain.get("encrypted_password") %}
-    - name: 'find-collisions.sh -d "{{ join_domain.dns_name }}" -u "{{ join_domain.username }}" --mode saltstack'
+    - name: 'find-collisions.sh -d "{{ join_domain.dns_name }}" --mode saltstack'
 {%- else %}
     - name: 'find-collisions.sh -d "{{ join_domain.dns_name }}" -u "{{ join_domain.username }}" -p "{{ join_domain.password }}" --mode saltstack'
 {%- endif %}
