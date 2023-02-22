@@ -152,7 +152,7 @@ function FindDCs {
   local DC
 
   # Select whether to try to use AD
-  if [[ ! -z ${ADSITE} ]]
+  if [[ ! -z ${ADSITE:-} ]]
   then
       DNS_SEARCH_STRING="_ldap._tcp.${ADSITE}._sites.dc._msdcs.${1}"
   else
