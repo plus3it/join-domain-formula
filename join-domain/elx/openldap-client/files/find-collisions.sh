@@ -129,7 +129,7 @@ function PWdecrypt {
   local PWCLEAR
 
   # Bail if either of crypt-string or decrpytion-key are null
-  if [[ -z ${CRYPTSTRING} ]] || [[ -z ${CRYPTKEY} ]] 
+  if [[ -z ${CRYPTSTRING} ]] || [[ -z ${CRYPTKEY} ]]
   then
      logIt "Missing keystring-decryption values" 1
   fi
@@ -456,7 +456,7 @@ done
 
 # Check that mandatory options have been passed
 if [[ -z ${DOMAINNAME} ]] ||
-  [[ -z ${DIRUSER} ]] 
+  [[ -z ${DIRUSER} ]]
 then
   MISSINGARGS=true
   UsageMsg
