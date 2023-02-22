@@ -131,7 +131,7 @@ function PWdecrypt {
   # Bail if either of crypt-string or decrpytion-key are null
   if [[ -z ${CRYPTSTRING} ]] || [[ -z ${CRYPTKEY} ]]
   then
-     logIt "Missing keystring-decryption values" 1
+    logIt "Missing keystring-decryption values" 1
   fi
 
   # Lets decrypt!
