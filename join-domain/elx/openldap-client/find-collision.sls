@@ -28,6 +28,7 @@ LDAP-FindCollison:
 {%- else %}
     - name: 'find-collisions.sh -d "{{ join_domain.dns_name }}" -u "{{ join_domain.username }}" -p "{{ join_domain.password }}" --mode saltstack'
 {%- endif %}
+    - output_loglevel: quiet
     - require:
       - pkg: RPM-installs
     - source: 'salt://{{ files }}/find-collisions.sh'
