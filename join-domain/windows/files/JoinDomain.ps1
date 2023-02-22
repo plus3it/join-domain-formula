@@ -17,26 +17,26 @@ Param(
         #Username of account used to domain join the target computer
     $UserName,
 
-    [parameter(Mandatory = $true, ParameterSetName = 'EncryptedPassword')]
+    [parameter(Mandatory = $false)]
     [String]
         #Key used to decrypt the join domain key
-    $Key,
+    $Key = $env:JoinDomainKey,
 
-    [parameter(Mandatory = $true, ParameterSetName = 'EncryptedPassword')]
+    [parameter(Mandatory = $false)]
     [String]
         #Encrypted join domain password
-    $EncryptedPassword,
+    $EncryptedPassword = $env:JoinDomainEncryptedPassword,
 
-    [parameter(Mandatory = $true, ParameterSetName = 'Password')]
+    [parameter(Mandatory = $false)]
     [String]
         #Unencrypted join domain password
-    $Password,
+    $Password = $env:JoinDomainPassword,
 
     [parameter(Mandatory = $false)]
     [String]
         #Number of times to attempt the domain join
     $Tries = 3
-    )
+)
 
 Add-Type @'
 public enum EncryptionType
@@ -584,13 +584,26 @@ Function xAdd-Computer
 
 #JoinDomain Main
 
+# Validate parameters
+if($Password)
+{
+  $ParameterSetType = "Password"
+}
+else
+{
+  if(-not $Key -or -not $EncryptedPassword)
+  {
+    throw "Both `$Key and `$EncryptedPassword must be set when using the EncryptedPassword method!"
+  }
+}
+
 #Check local system for domain join status.
 $DomainJoinStatus = Get-DomainJoinStatus -DomainFQDN $DomainName
 if($DomainJoinStatus -eq $null)
 {
     #If the object is found, remove it, else add the computer to the domain.
     #Create the credential from the Password parameter set
-    if($PSCmdlet.ParameterSetName -eq "Password")
+    if($ParameterSetType -eq "Password")
     {
         $SecPassword = ConvertTo-SecureString -String $Password -AsPlainText -Force
         $cred = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $UserName, $SecPassword
