@@ -1,12 +1,14 @@
 #!/bin/bash
 # shellcheck disable=SC2236,SC2207
 #
-# set -euo pipefail
+set -euo pipefail
 #
 # Script to locate collisions within an LDAP directory service
 #
 ######################################################################
 PROGNAME="$( basename "${0}" )"
+CRYPTKEY="${CRYPTKEY:-}"
+CRYPTSTRING="${CRYPTSTRING:-}"
 LOGFACIL="user.err"
 DEBUGVAL="${DEBUG:-false}"
 LDAPTYPE="AD"
@@ -122,15 +124,24 @@ function VerifyDependencies {
 # Decrypt Join Password
 function PWdecrypt {
   local PWCLEAR
-  PWCLEAR=$(echo "${CRYPTSTRING}" | openssl enc -aes-256-cbc -md sha256 -a -d \
-            -salt -pass pass:"${CRYPTKEY}")
 
-  # shellcheck disable=SC2181
-  if [[ $? -ne 0 ]]
+  # Bail if either of crypt-string or decrpytion-key are null
+  if [[ -z ${CRYPTSTRING} ]] || [[ -z ${CRYPTKEY} ]] 
   then
-    echo "FAILURE"
-  else
+     logIt "Missing keystring-decryption values" 1
+  fi
+
+  # Lets decrypt!
+  if PWCLEAR=$(
+    echo "${CRYPTSTRING}" | \
+    openssl enc -aes-256-cbc -md sha256 -a -d -salt -pass pass:"${CRYPTKEY}"
+  )
+  then
     echo "${PWCLEAR}"
+    return 0
+  else
+    echo "Decryption FAILED!"
+    return 1
   fi
 }
 
