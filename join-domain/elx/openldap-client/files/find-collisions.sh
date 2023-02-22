@@ -7,12 +7,15 @@ set -euo pipefail
 #
 ######################################################################
 PROGNAME="$( basename "${0}" )"
+BINDPASS="${CLEARPASS:-UNDEF}"
 CRYPTKEY="${CRYPTKEY:-}"
 CRYPTSTRING="${CRYPTSTRING:-}"
-LOGFACIL="user.err"
 DEBUGVAL="${DEBUG:-false}"
-LDAPTYPE="AD"
+DIRUSER="${DIRUSER:-}"
 DOEXIT="0"
+DOMAINNAME="${DOMAINNAME:-}"
+LDAPTYPE="AD"
+LOGFACIL="user.err"
 
 # Function-abort hooks
 trap "exit 1" TERM
@@ -300,7 +303,6 @@ do
               ;;
             *)
               CRYPTSTRING="${2}"
-              BINDPASS="TOBESET"
               shift 2;
               ;;
         esac
@@ -343,7 +345,6 @@ do
               ;;
             *)
               CRYPTKEY="${2}"
-              BINDPASS="TOBESET"
               shift 2;
               ;;
         esac
@@ -454,9 +455,8 @@ do
 done
 
 # Check that mandatory options have been passed
-if [[ -z  ${DOMAINNAME+x} ]] ||
-  [[ -z  ${DIRUSER+x} ]] ||
-  [[ -z  ${BINDPASS+x} ]]
+if [[ -z ${DOMAINNAME} ]] ||
+  [[ -z ${DIRUSER} ]] 
 then
   MISSINGARGS=true
   UsageMsg
@@ -466,13 +466,13 @@ fi
 VerifyDependencies
 
 # Decrypt our query password (as necessary)
-if [[ ${BINDPASS} == TOBESET ]]
+if [[ -z ${BINDPASS} ]]
 then
   BINDPASS="$(PWdecrypt)"
   export BINDPASS
 
   # Bail if needed decrypt failed
-  if [[ ${BINDPASS} == FAILURE ]]
+  if [[ ${BINDPASS} == "FAILURE" ]]
   then
       logIt "Failed decrypting password"
       saltOut "Failed decrypting password" no
