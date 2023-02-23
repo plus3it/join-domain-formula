@@ -8,6 +8,8 @@ JOIN_DOMAIN="${JOIN_DOMAIN:-UNDEF}"
 JOIN_OU="${JOIN_OU:-}"
 JOIN_USER="${JOIN_USER:-Administrator}"
 JOIN_CNAME="${JOIN_CNAME:-UNDEF}"
+OS_NAME_SET="${OS_NAME_SET:-False}"
+OS_VERS_SET="${OS_VERS_SET:-False}"
 PWCRYPT="${ENCRYPT_PASS:-UNDEF}"
 PWUNLOCK="${ENCRYPT_KEY:-UNDEF}"
 CLIENT_OSNAME="$(
@@ -52,6 +54,8 @@ function IsDiscoverable {
 # Try to join host to domain
 function JoinDomain {
 
+  local AD_ATTRIB_OPTS
+
   # Toggle SELinux if necessary
   if [[ $( getenforce ) == "Enforcing" ]]
   then
@@ -63,6 +67,16 @@ function JoinDomain {
     SEL_TARG=0
   fi
 
+  if [[ ${OS_NAME_SET} = "True" ]]
+  then
+      AD_ATTRIB_OPTS="${AD_ATTRIB_OPTS} --os-name=${CLIENT_OSNAME}"
+  fi
+
+  if [[ ${OS_VERS_SET} = "True" ]]
+  then
+      AD_ATTRIB_OPTS="${AD_ATTRIB_OPTS} --os-version=${CLIENT_OSVERS}"
+  fi
+
   if [[ -z ${JOIN_OU} ]]
   then
     printf "Joining to %s... " "${JOIN_DOMAIN}"
@@ -70,8 +84,8 @@ function JoinDomain {
     echo "$( PWdecrypt )" | \
     realm join -U "${JOIN_USER}" \
       --unattended \
-      --os-name="${CLIENT_OSNAME}" \
-      --os-version="${CLIENT_OSVERS}" "${JOIN_DOMAIN}" > /dev/null 2>&1 || \
+      "${AD_ATTRIB_OPTS}" \
+      "${JOIN_DOMAIN}" > /dev/null 2>&1 || \
     ( echo "FAILED" ; exit 1)
     echo "Success"
 
@@ -82,9 +96,9 @@ function JoinDomain {
     echo "$( PWdecrypt )" | \
     realm join -U "${JOIN_USER}" \
       --unattended \
+      "${AD_ATTRIB_OPTS}" \
       --computer-ou="${JOIN_OU}" \
-      --os-name="${CLIENT_OSNAME}" \
-      --os-version="${CLIENT_OSVERS}" "${JOIN_DOMAIN}" > /dev/null 2>&1 || \
+      "${JOIN_DOMAIN}" > /dev/null 2>&1 || \
     ( echo "FAILED" ; exit 1)
     echo "Success"
   else
