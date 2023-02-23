@@ -49,6 +49,16 @@ domain_defaults-{{ join_domain.dns_name }}_ensure_permissions:
         seuser: 'system_u'
     - user: 'root'
 
+
+sssd-NETBIOSfix:
+  cmd.script:
+    - name: 'fix-hostname.sh'
+    - source: '{{ common_tools }}/fix-hostname.sh'
+    - cwd: '/root'
+    - stateful: True
+    - require:
+      - pkg: install_sssd
+
 join_realm-{{ join_domain.dns_name }}:
   cmd.script:
     - env:
@@ -64,5 +74,6 @@ join_realm-{{ join_domain.dns_name }}:
     - require:
       - ini: 'fix_domain_separator'
       - file: 'domain_defaults-{{ join_domain.dns_name }}_ensure_permissions'
+      - cmd: 'sssd-NETBIOSfix'
     - source: 'salt://{{ joiner_files }}/join.sh'
     - unless: 'realm list | grep -qs {{ join_domain.dns_name }}'
