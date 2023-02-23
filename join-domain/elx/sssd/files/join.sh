@@ -81,11 +81,11 @@ function JoinDomain {
   if [[ -z ${JOIN_OU} ]]
   then
     printf "Joining to %s... " "${JOIN_DOMAIN}"
-    # shellcheck disable=SC2005
+    # shellcheck disable=SC2005,SC2086
     echo "$( PWdecrypt )" | \
     realm join -U "${JOIN_USER}" \
       --unattended \
-      "${AD_ATTRIB_OPTS}" \
+      ${AD_ATTRIB_OPTS} \
       "${JOIN_DOMAIN}" > /dev/null 2>&1 || \
     ( echo "FAILED" ; exit 1)
     echo "Success"
@@ -93,11 +93,11 @@ function JoinDomain {
   elif [[ -n ${JOIN_OU} ]]
   then
     printf "Joining to %s under %s OU... " "${JOIN_DOMAIN}" "${JOIN_OU}"
-    # shellcheck disable=SC2005
+    # shellcheck disable=SC2005,SC2086
     echo "$( PWdecrypt )" | \
     realm join -U "${JOIN_USER}" \
       --unattended \
-      "${AD_ATTRIB_OPTS}" \
+      ${AD_ATTRIB_OPTS} \
       --computer-ou="${JOIN_OU}" \
       "${JOIN_DOMAIN}" > /dev/null 2>&1 || \
     ( echo "FAILED" ; exit 1)
