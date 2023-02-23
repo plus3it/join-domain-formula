@@ -55,6 +55,7 @@ function IsDiscoverable {
 function JoinDomain {
 
   local AD_ATTRIB_OPTS
+  AD_ATTRIB_OPTS=""
 
   # Toggle SELinux if necessary
   if [[ $( getenforce ) == "Enforcing" ]]
