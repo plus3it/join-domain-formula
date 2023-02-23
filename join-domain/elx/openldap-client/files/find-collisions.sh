@@ -1,16 +1,21 @@
 #!/bin/bash
 # shellcheck disable=SC2236,SC2207
 #
-# set -euo pipefail
+set -euo pipefail
 #
 # Script to locate collisions within an LDAP directory service
 #
 ######################################################################
 PROGNAME="$( basename "${0}" )"
-LOGFACIL="user.err"
+BINDPASS="${CLEARPASS:-UNDEF}"
+CRYPTKEY="${CRYPTKEY:-}"
+CRYPTSTRING="${CRYPTSTRING:-}"
 DEBUGVAL="${DEBUG:-false}"
-LDAPTYPE="AD"
+DIRUSER="${JOIN_USER:-}"
 DOEXIT="0"
+DOMAINNAME="${JOIN_DOMAIN:-}"
+LDAPTYPE="AD"
+LOGFACIL="user.err"
 
 # Function-abort hooks
 trap "exit 1" TERM
@@ -122,15 +127,24 @@ function VerifyDependencies {
 # Decrypt Join Password
 function PWdecrypt {
   local PWCLEAR
-  PWCLEAR=$(echo "${CRYPTSTRING}" | openssl enc -aes-256-cbc -md sha256 -a -d \
-            -salt -pass pass:"${CRYPTKEY}")
 
-  # shellcheck disable=SC2181
-  if [[ $? -ne 0 ]]
+  # Bail if either of crypt-string or decrpytion-key are null
+  if [[ -z ${CRYPTSTRING} ]] || [[ -z ${CRYPTKEY} ]]
   then
-    echo "FAILURE"
-  else
+    logIt "Missing keystring-decryption values" 1
+  fi
+
+  # Lets decrypt!
+  if PWCLEAR=$(
+    echo "${CRYPTSTRING}" | \
+    openssl enc -aes-256-cbc -md sha256 -a -d -salt -pass pass:"${CRYPTKEY}"
+  )
+  then
     echo "${PWCLEAR}"
+    return 0
+  else
+    echo "Decryption FAILED!"
+    return 1
   fi
 }
 
@@ -141,7 +155,7 @@ function FindDCs {
   local DC
 
   # Select whether to try to use AD
-  if [[ ! -z ${ADSITE} ]]
+  if [[ ! -z ${ADSITE:-} ]]
   then
       DNS_SEARCH_STRING="_ldap._tcp.${ADSITE}._sites.dc._msdcs.${1}"
   else
@@ -289,7 +303,6 @@ do
               ;;
             *)
               CRYPTSTRING="${2}"
-              BINDPASS="TOBESET"
               shift 2;
               ;;
         esac
@@ -332,7 +345,6 @@ do
               ;;
             *)
               CRYPTKEY="${2}"
-              BINDPASS="TOBESET"
               shift 2;
               ;;
         esac
@@ -443,9 +455,8 @@ do
 done
 
 # Check that mandatory options have been passed
-if [[ -z  ${DOMAINNAME+x} ]] ||
-  [[ -z  ${DIRUSER+x} ]] ||
-  [[ -z  ${BINDPASS+x} ]]
+if [[ -z ${DOMAINNAME} ]] ||
+  [[ -z ${DIRUSER} ]]
 then
   MISSINGARGS=true
   UsageMsg
@@ -455,13 +466,13 @@ fi
 VerifyDependencies
 
 # Decrypt our query password (as necessary)
-if [[ ${BINDPASS} == TOBESET ]]
+if [[ -z ${BINDPASS} ]]
 then
   BINDPASS="$(PWdecrypt)"
   export BINDPASS
 
   # Bail if needed decrypt failed
-  if [[ ${BINDPASS} == FAILURE ]]
+  if [[ ${BINDPASS} == "FAILURE" ]]
   then
       logIt "Failed decrypting password"
       saltOut "Failed decrypting password" no
