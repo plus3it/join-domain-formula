@@ -59,6 +59,7 @@ join_realm-{{ join_domain.dns_name }}:
       - JOIN_USER: '{{ join_domain.username }}'
     - cwd: '/root'
     - name: 'join.sh'
+    - output_loglevel: quiet
     - require:
       - ini: 'fix_domain_separator'
       - file: 'domain_defaults-{{ join_domain.dns_name }}_ensure_permissions'
