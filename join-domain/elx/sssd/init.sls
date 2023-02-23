@@ -57,6 +57,8 @@ join_realm-{{ join_domain.dns_name }}:
       - JOIN_DOMAIN: '{{ join_domain.dns_name }}'
       - JOIN_OU: '{{ join_domain.oupath }}'
       - JOIN_USER: '{{ join_domain.username }}'
+      - OS_NAME_SET: '{{ join_domain.attrib_bool_name }}'
+      - OS_VERS_SET: '{{ join_domain.attrib_bool_vers }}'
     - cwd: '/root'
     - name: 'join.sh'
     - require:
