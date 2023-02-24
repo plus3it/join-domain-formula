@@ -7,9 +7,11 @@
 {#- Set join-domain defaults for this ad connector #}
 {%- load_yaml as defaults %}
 
-oupath: ''
+attrib_bool_name: 'False'
+attrib_bool_vers: 'False'
 login_home: '/home/%d/%u'
 login_shell: /bin/bash
+oupath: ''
 
 {%- endload %}
 
