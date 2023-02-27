@@ -54,8 +54,11 @@ function IsDiscoverable {
 # Try to join host to domain
 function JoinDomain {
 
-  local AD_ATTRIB_OPTS
-  AD_ATTRIB_OPTS=""
+  local -a REALM_JOIN_OPTS
+  REALM_JOIN_OPTS=(
+    -U "${JOIN_USER}"
+    --unattended
+  )
 
   # Toggle SELinux if necessary
   if [[ $( getenforce ) == "Enforcing" ]]
@@ -70,42 +73,28 @@ function JoinDomain {
 
   if [[ ${OS_NAME_SET} = "True" ]]
   then
-      AD_ATTRIB_OPTS="${AD_ATTRIB_OPTS} --os-name=${CLIENT_OSNAME}"
+      REALM_JOIN_OPTS+=("--os-name=\"${CLIENT_OSNAME}\"")
   fi
 
   if [[ ${OS_VERS_SET} = "True" ]]
   then
-      AD_ATTRIB_OPTS="${AD_ATTRIB_OPTS} --os-version=${CLIENT_OSVERS}"
+      REALM_JOIN_OPTS+=("--os-version=\"${CLIENT_OSVERS}\"")
   fi
 
-  if [[ -z ${JOIN_OU} ]]
+  if [[ -n ${JOIN_OU} ]]
   then
-    printf "Joining to %s... " "${JOIN_DOMAIN}"
-    # shellcheck disable=SC2005,SC2086
-    echo "$( PWdecrypt )" | \
-    realm join -U "${JOIN_USER}" \
-      --unattended \
-      ${AD_ATTRIB_OPTS} \
-      "${JOIN_DOMAIN}" > /dev/null 2>&1 || \
-    ( echo "FAILED" ; exit 1)
-    echo "Success"
-
-  elif [[ -n ${JOIN_OU} ]]
-  then
-    printf "Joining to %s under %s OU... " "${JOIN_DOMAIN}" "${JOIN_OU}"
-    # shellcheck disable=SC2005,SC2086
-    echo "$( PWdecrypt )" | \
-    realm join -U "${JOIN_USER}" \
-      --unattended \
-      ${AD_ATTRIB_OPTS} \
-      --computer-ou="${JOIN_OU}" \
-      "${JOIN_DOMAIN}" > /dev/null 2>&1 || \
-    ( echo "FAILED" ; exit 1)
-    echo "Success"
-  else
-    echo "Unsupported configuration-options"
-    return 1
+      REALM_JOIN_OPTS+=("--computer-ou=${JOIN_OU}")
   fi
+
+  printf "Realm join options: %s\n" "${REALM_JOIN_OPTS[*]}"
+  printf "Joining to %s... " "${JOIN_DOMAIN}"
+  # shellcheck disable=SC2005
+  echo "$( PWdecrypt )" | \
+  realm join \
+    "${REALM_JOIN_OPTS[@]}" \
+    "${JOIN_DOMAIN}" \
+    > /dev/null 2>&1 || ( echo "FAILED" ; exit 1)
+  echo "Success"
 
   # Revert SEL as necessary
   if [[ ${SEL_TARG} -eq 1 ]]
