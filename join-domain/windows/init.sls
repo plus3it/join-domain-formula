@@ -68,6 +68,8 @@ set dns search suffix:
     - args: >-
         -DnsSearchSuffixes {{ join_domain.dns_name }}
         -Ec2ConfigSetDnsSuffixList {{ join_domain.ec2config }}
+        -RegisterPrimaryConnectionAddress {{ '$True' if join_domain.register_primary_connection_address else '$False' }}
+        -UseSuffixWhenRegistering {{ '$True' if join_domain.use_suffix_when_registering else '$False' }}
         -ErrorAction Stop
     - shell: powershell
     - require:
