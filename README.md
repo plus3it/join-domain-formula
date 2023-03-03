@@ -19,6 +19,7 @@ supporting pillar.
 ```yaml
 join-domain:
   lookup:
+    # Required Settings
     dns_name:
     netbios_name:
     username:
@@ -29,10 +30,13 @@ join-domain:
     # or
     password:
 
+    # Optional Settings
     oupath:
     admin_users:
     admin_groups:
     ec2config:
+    register_primary_connection_address:
+    use_suffix_when_registering:
     tries:
 ```
 
