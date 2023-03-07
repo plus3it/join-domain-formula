@@ -92,8 +92,15 @@ function JoinDomain {
   echo "$( PWdecrypt )" | \
   realm join \
     "${REALM_JOIN_OPTS[@]}" \
-    "${JOIN_DOMAIN}" \
-    > /dev/null 2>&1 || ( echo "FAILED" ; exit 1)
+    "${JOIN_DOMAIN}"  || (
+      echo "FAILED: Getting system logs"
+      printf "\n==============================\n"
+      journalctl -u realmd | \
+      grep "$( date '+%b %d %H:%M' )" | \
+      sed 's/^.*]: /: /'
+      printf "\n==============================\n"
+      exit 1
+    )
   echo "Success"
 
   # Revert SEL as necessary
