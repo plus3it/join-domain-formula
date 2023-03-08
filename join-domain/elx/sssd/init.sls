@@ -40,6 +40,7 @@ domain_defaults-{{ join_domain.dns_name }}_ensure_permissions:
     - group: 'root'
     - mode: '0600'
     - name: '/etc/sssd/conf.d/{{ join_domain.netbios_name }}.conf'
+    - replace: False
     - require:
       - pkg: install_sssd
     - selinux:
