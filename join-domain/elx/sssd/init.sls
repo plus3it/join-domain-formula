@@ -27,7 +27,7 @@ domain_defaults-{{ join_domain.dns_name }}:
   ini.options_present:
     - name: '/etc/sssd/conf.d/{{ join_domain.netbios_name }}.conf'
     - require:
-      - pkg: install_sssd
+      - file: 'domain_defaults-{{ join_domain.dns_name }}_ensure_permissions'
     - sections:
         domain/{{ join_domain.dns_name }}:
           default_shell: '{{ join_domain.login_shell }}'
@@ -41,7 +41,7 @@ domain_defaults-{{ join_domain.dns_name }}_ensure_permissions:
     - mode: '0600'
     - name: '/etc/sssd/conf.d/{{ join_domain.netbios_name }}.conf'
     - require:
-      - ini: 'domain_defaults-{{ join_domain.dns_name }}'
+      - pkg: install_sssd
     - selinux:
         serange: 's0'
         serole: 'object_r'
