@@ -7,7 +7,7 @@ set -euo pipefail
 #
 ######################################################################
 PROGNAME="$( basename "${0}" )"
-BINDPASS="${CLEARPASS:-UNDEF}"
+BINDPASS="${CLEARPASS:-}"
 CRYPTKEY="${CRYPTKEY:-}"
 CRYPTSTRING="${CRYPTSTRING:-}"
 DEBUGVAL="${DEBUG:-false}"
