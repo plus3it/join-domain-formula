@@ -5,7 +5,7 @@
 # updating through AD-oriented DDNS capabilities.
 #
 #################################################################
-{%- from tpldir ~ '/map.jinja' import join_domain with context %}
+{%- set join_domain = salt.pillar.get('join-domain:lookup', {}) %}
 {%- set nsupdate_cfgdir = '/etc/nsupdate.d' %}
 {%- set host_ipv4 = salt.network.get_route('192.0.0.8')['source'] %}
 {%- set host_name = salt.grains.get('host') %}
@@ -26,9 +26,9 @@ install_nsupdate:
 A-record_cfg:
   file.managed:
     - contents: |-
-        zone {{ dns_name }}
-        server {{ ddns_server }}
-        update add {{ host_name }}.{{ dns_name }}. 3600 A {{ host_ipv4 }}
+        zone {{ join_domain.dns_name }}
+        server {{ join_domain.ddns_server }}
+        update add {{ host_name }}.{{ join_domain.dns_name }}. 3600 A {{ host_ipv4 }}
         send
     - group: 'root'
     - mode: '0600'
@@ -43,8 +43,8 @@ A-record_cfg:
 PTR-record_cfg:
   file.managed:
     - contents: |-
-        zone {{ dns_name }}
-        server {{ ddns_server }}
+        zone {{ join_domain.dns_name }}
+        server {{ join_domain.ddns_server }}
     - group: 'root'
     - mode: '0600'
     - name: '{{ nsupdate_cfgdir }}/Reverse.cfg'

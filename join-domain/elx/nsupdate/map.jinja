@@ -1,5 +1,0 @@
-{%- set join_domain = salt.pillar.get('join-domain:lookup', {}) %} 
-
-{% do join_domain.update(
-    salt.grains.get('join-domain', {})
-) %}
