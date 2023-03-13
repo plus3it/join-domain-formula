@@ -9,6 +9,8 @@
 {%- set nsupdate_cfgdir = '/etc/nsupdate.d' %}
 {%- set host_ipv4 = salt.network.get_route('192.0.0.8')['source'] %}
 {%- set host_name = salt.grains.get('host') %}
+{%- set rev_ipv4 = host_ipv4.split('.') | reverse | join('.') %}
+{%- set rev_zone = host_ipv4.split('.')[0:3] | reverse | join('.') %}
 
 install_nsupdate:
   pkg.installed:
@@ -16,52 +18,24 @@ install_nsupdate:
     - pkgs:
       - bind-utils
 
-{{ nsupdate_cfgdir }}-present:
-  file.directory:
-    - group: 'root'
-    - mode: '0700'
-    - name: '{{ nsupdate_cfgdir }}'
+DDNS_Forward:
+  ddns.present:
+    - data: '{{ host_ipv4 }}'
+    - nameserver: '{{ join_domain.ddns_server }}'
+    - name: '{{ host_name }}.{{ join_domain.dns_name }}.'
+    - rdtype: 'A'
     - require:
-      - pkg: install_nsupdate
-    - selinux:
-        serange: 's0'
-        serole: 'object_r'
-        setype: 'etc_t'
-        seuser: 'system_u'
-    - user: 'root'
+      - pkg: 'install_nsupdate'
+    - ttl: '7200'
+    - zone: '{{ join_domain.dns_name }}'
 
-A-record_cfg:
-  file.managed:
-    - contents: |-
-        zone {{ join_domain.dns_name }}
-        server {{ join_domain.ddns_server }}
-        update add {{ host_name }}.{{ join_domain.dns_name }}. 3600 A {{ host_ipv4 }}
-        send
-    - group: 'root'
-    - mode: '0600'
-    - name: '{{ nsupdate_cfgdir }}/Foward.cfg'
+DDNS_Reverse:
+  ddns.present:
+    - data: '{{ host_name }}.{{ join_domain.dns_name }}.'
+    - name: '{{ rev_ipv4 }}.in-addr.arpa'
+    - nameserver: '{{ join_domain.ddns_server }}'
+    - rdtype: 'PTR'
     - require:
-      - file: '{{ nsupdate_cfgdir }}-present'
-    - selinux:
-        serange: 's0'
-        serole: 'object_r'
-        setype: 'etc_t'
-        seuser: 'system_u'
-    - user: 'root'
-
-PTR-record_cfg:
-  file.managed:
-    - contents: |-
-        zone {{ join_domain.dns_name }}
-        server {{ join_domain.ddns_server }}
-    - group: 'root'
-    - mode: '0600'
-    - name: '{{ nsupdate_cfgdir }}/Reverse.cfg'
-    - require:
-      - file: '{{ nsupdate_cfgdir }}-present'
-    - selinux:
-        serange: 's0'
-        serole: 'object_r'
-        setype: 'etc_t'
-        seuser: 'system_u'
-    - user: 'root'
+      - pkg: 'install_nsupdate'
+    - ttl: '7200'
+    - zone: '{{ rev_zone }}.in-addr.arpa.'
