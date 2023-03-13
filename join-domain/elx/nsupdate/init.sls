@@ -5,12 +5,8 @@
 # updating through AD-oriented DDNS capabilities.
 #
 #################################################################
+{%- from tpldir ~ '/map.jinja' import join_domain with context %}
 {%- set nsupdate_cfgdir = '/etc/nsupdate.d' %}
-{%- set dns_domain = salt.grains.get(
-    'join-domain:dns_name',
-    salt.pillar.get('join-domain:lookup:dns_name')
-) %}
-{%- set ddns_server = salt.pillar.get('join-domain:lookup:ddns_server') %}
 {%- set host_ipv4 = salt.network.get_route('192.0.0.8')['source'] %}
 {%- set host_name = salt.grains.get('host') %}
 
