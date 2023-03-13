@@ -26,9 +26,9 @@ install_nsupdate:
 A-record_cfg:
   file.managed:
     - contents: |-
-        zone {{ dns_domain }}
+        zone {{ dns_name }}
         server {{ ddns_server }}
-        update add {{ host_name }}.{{ dns_domain }}. 3600 A {{ host_ipv4 }}
+        update add {{ host_name }}.{{ dns_name }}. 3600 A {{ host_ipv4 }}
         send
     - group: 'root'
     - mode: '0600'
@@ -43,7 +43,7 @@ A-record_cfg:
 PTR-record_cfg:
   file.managed:
     - contents: |-
-        zone {{ dns_domain }}
+        zone {{ dns_name }}
         server {{ ddns_server }}
     - group: 'root'
     - mode: '0600'
