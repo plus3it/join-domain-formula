@@ -14,13 +14,20 @@ install_nsupdate:
   pkg.installed:
     - allow_updates: True
     - pkgs:
-      - bindutils
+      - bind-utils
 
 {{ nsupdate_cfgdir }}-present:
-  file.recurse:
-    - dir_mode: '0700'
+  file.directory:
     - group: 'root'
+    - mode: '0700'
     - name: '{{ nsupdate_cfgdir }}'
+    - require:
+      - pkg: install_nsupdate
+    - selinux:
+        serange: 's0'
+        serole: 'object_r'
+        setype: 'etc_t'
+        seuser: 'system_u'
     - user: 'root'
 
 A-record_cfg:
@@ -33,6 +40,8 @@ A-record_cfg:
     - group: 'root'
     - mode: '0600'
     - name: '{{ nsupdate_cfgdir }}/Foward.cfg'
+    - require:
+      - file: '{{ nsupdate_cfgdir }}-present'
     - selinux:
         serange: 's0'
         serole: 'object_r'
@@ -48,6 +57,8 @@ PTR-record_cfg:
     - group: 'root'
     - mode: '0600'
     - name: '{{ nsupdate_cfgdir }}/Reverse.cfg'
+    - require:
+      - file: '{{ nsupdate_cfgdir }}-present'
     - selinux:
         serange: 's0'
         serole: 'object_r'
