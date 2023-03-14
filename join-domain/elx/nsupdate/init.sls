@@ -12,11 +12,9 @@
 {%- set rev_ipv4 = host_ipv4.split('.') | reverse | join('.') %}
 {%- set rev_zone = host_ipv4.split('.')[0:3] | reverse | join('.') %}
 
-install_nsupdate:
-  pkg.installed:
-    - allow_updates: True
-    - pkgs:
-      - bind-utils
+Install_dnspython:
+  pip.installed:
+    - name: dnspython
 
 DDNS_Forward:
   ddns.present:
@@ -25,7 +23,7 @@ DDNS_Forward:
     - name: '{{ host_name }}.{{ join_domain.dns_name }}.'
     - rdtype: 'A'
     - require:
-      - pkg: 'install_nsupdate'
+      - pip: 'Install_dnspython'
     - ttl: '7200'
     - zone: '{{ join_domain.dns_name }}'
 
@@ -36,6 +34,6 @@ DDNS_Reverse:
     - nameserver: '{{ join_domain.ddns_server }}'
     - rdtype: 'PTR'
     - require:
-      - pkg: 'install_nsupdate'
+      - pip: 'Install_dnspython'
     - ttl: '7200'
     - zone: '{{ rev_zone }}.in-addr.arpa.'
