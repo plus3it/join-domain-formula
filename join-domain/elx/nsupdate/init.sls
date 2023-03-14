@@ -15,6 +15,7 @@
 Install_dnspython:
   pip.installed:
     - name: dnspython
+    - reload_modules: True
 
 DDNS_Forward:
   ddns.present:
