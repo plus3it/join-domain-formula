@@ -22,6 +22,7 @@ DDNS_Forward:
     - nameserver: '{{ join_domain.ddns_server }}'
     - name: '{{ host_name }}.{{ join_domain.dns_name }}.'
     - rdtype: 'A'
+    - replace: True
     - require:
       - pip: 'Install_dnspython'
     - ttl: '7200'
