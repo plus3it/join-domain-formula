@@ -31,7 +31,7 @@ DDNS_Forward:
 DDNS_Reverse:
   ddns.present:
     - data: '{{ host_name }}.{{ join_domain.dns_name }}.'
-    - name: '{{ rev_ipv4 }}.in-addr.arpa'
+    - name: '{{ rev_ipv4 }}.in-addr.arpa.'
     - nameserver: '{{ join_domain.ddns_server }}'
     - rdtype: 'PTR'
     - require:
