@@ -46,6 +46,7 @@ join-domain:
     #admin_users:
     #admin_groups:
     #  - linux^admins
+    #ddns server: (*NUMERIC* address of dynamic-DNS server for AD domain)
     #login_home: (PBIS and sssd each use differnt substitution-tokens - see man pages)
     #login_shell: (defaults to '/bin/bash')
     #login_users:
