@@ -34,6 +34,7 @@ DDNS_Reverse:
     - name: '{{ rev_ipv4 }}.in-addr.arpa.'
     - nameserver: '{{ join_domain.ddns_server }}'
     - rdtype: 'PTR'
+    - replace: True
     - require:
       - pip: 'Install_dnspython'
     - ttl: '7200'
