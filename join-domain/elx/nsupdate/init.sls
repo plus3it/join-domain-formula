@@ -6,7 +6,6 @@
 #
 #################################################################
 {%- set join_domain = salt.pillar.get('join-domain:lookup', {}) %}
-{%- set nsupdate_cfgdir = '/etc/nsupdate.d' %}
 {%- set host_ipv4 = salt.network.get_route('192.0.0.8')['source'] %}
 {%- set host_name = salt.grains.get('host') %}
 {%- set rev_ipv4 = host_ipv4.split('.') | reverse | join('.') %}
