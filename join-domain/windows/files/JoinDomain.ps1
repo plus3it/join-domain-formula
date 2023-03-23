@@ -640,9 +640,17 @@ if($DomainJoinStatus -eq $null)
     }
 
     #Try to add the computer to the domain until AD catches up
-    Retry-TestCommand -Test xAdd-Computer -Args @{DomainName=$DomainName; Credential=$cred; TargetOU=$TargetOU; args=@{Options="JoinWithNewName,AccountCreate"; Force=$true; Verbose=$true; Passthru=$true; ErrorAction="SilentlyContinue";}} -Tries $Tries -InitialDelay 10 -TestProperty "hasSucceeded"
-    Write-Host "changed=yes comment=`"Joined system to the domain [$DomainName].`" domain=$DomainName";
+    try
+    {
+      Retry-TestCommand -Test xAdd-Computer -Args @{DomainName=$DomainName; Credential=$cred; TargetOU=$TargetOU; args=@{Options="JoinWithNewName,AccountCreate"; Force=$true; Verbose=$true; Passthru=$true; ErrorAction="SilentlyContinue";}} -Tries $Tries -InitialDelay 10 -TestProperty "hasSucceeded"
+    }
+    catch
+    {
+      Get-Content "${env:windir}\debug\NetSetup.log"
+      throw
+    }
 
+    Write-Host "changed=yes comment=`"Joined system to the domain [$DomainName].`" domain=$DomainName";
 }
 elseif($DomainJoinStatus -eq $DomainName)
 {
