@@ -635,12 +635,8 @@ if($DomainJoinStatus -eq $null)
     $result = Find-LdapObject -LdapConnection:$Ldap -SearchFilter:$SearchFilter -SearchBase:$OUSearchBase -propertiesToLoad:@("distinguishedName") -ErrorAction SilentlyContinue
     if($result)
     {
-        $resultOU = $result.distinguishedName.substring((($result.distinguishedName -replace '\,(.*)').length+1))
-        if($resultOU -ne $TargetOU)
-        {
-            #if the computer object is found in AD, remove it
-            Remove-LdapObject $result.distinguishedName -LdapConnection:$Ldap
-        }
+        #if the computer object is found in AD, remove it
+        Remove-LdapObject $result.distinguishedName -LdapConnection:$Ldap
     }
 
     #Try to add the computer to the domain until AD catches up
