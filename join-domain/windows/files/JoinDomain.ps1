@@ -582,6 +582,36 @@ Function xAdd-Computer
     }
 }
 
+Function Find-Dc
+{
+    Param(
+        [Parameter(Mandatory = $true)]
+        [String]
+            #FQDN of the Domain to search.
+        $DomainName
+    )
+    #Get DC for the domain using NLTest
+    $DsGetDc = nltest /dsgetdc:$DomainName 2> $null
+    # Output is something like this:
+    #    DC: \\{{DC_NAME}}
+    #    Address: \\{{DC_IP}}
+    #    Dom Guid: {{GUID}}
+    #    Dom Name: {{DOMAN_NAME}}
+    #    Forest Name: {{FOREST_NAME}}
+    #    Dc Site Name: {{SITE}}
+    #    Our Site Name: {{SITE}}
+    #    Flags: {{FLAGS}}
+    #    The command completed successfully
+
+    if ($DsGetDc -eq $null) {
+        throw "Unable to find DC for domain $DomainName"
+    }
+
+    # Get the first line, split on the colon, trim whitespace, and return the second
+    # element, removing leading backslashes
+    Write-Output (($DsGetDc[0] -split ":").Trim())[1].Trim("\")
+}
+
 #JoinDomain Main
 
 # Validate parameters
@@ -619,8 +649,11 @@ if($DomainJoinStatus -eq $null)
         $cred = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $UserName, $ReEncryptedPassword
     }
 
+    #Get the DC for the domain
+    $DomainController = Find-Dc -DomainName $DomainName
+
     #Create the ldap connection
-    $Ldap = Get-LdapConnection -LdapServer:$DomainName -Credential:$cred
+    $Ldap = Get-LdapConnection -LdapServer:$DomainController -Credential:$cred
 
     #Create search filter using the Local Computer's NetBIOS Name
     #https://social.msdn.microsoft.com/Forums/en-US/a5690438-d9bc-4f47-b1c6-bcb35cc2d074/how-to-get-changed-computer-name-without-restarting-the-computer?forum=netfxbcl
@@ -642,7 +675,7 @@ if($DomainJoinStatus -eq $null)
     #Try to add the computer to the domain until AD catches up
     try
     {
-      Retry-TestCommand -Test xAdd-Computer -Args @{DomainName=$DomainName; Credential=$cred; TargetOU=$TargetOU; args=@{Options="JoinWithNewName,AccountCreate"; Force=$true; Verbose=$true; Passthru=$true; ErrorAction="SilentlyContinue";}} -Tries $Tries -InitialDelay 10 -TestProperty "hasSucceeded"
+      Retry-TestCommand -Test xAdd-Computer -Args @{DomainName=$DomainName; Credential=$cred; TargetOU=$TargetOU; args=@{Server=$DomainController; Options="JoinWithNewName,AccountCreate"; Force=$true; Verbose=$true; Passthru=$true; ErrorAction="SilentlyContinue";}} -Tries $Tries -InitialDelay 10 -TestProperty "hasSucceeded"
     }
     catch
     {
