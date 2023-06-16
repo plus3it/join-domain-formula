@@ -30,10 +30,9 @@ domain_defaults-{{ join_domain.dns_name }}:
       - file: 'domain_defaults-{{ join_domain.dns_name }}_ensure_permissions'
     - sections:
         domain/{{ join_domain.dns_name }}:
-          default_shell: '{{ join_domain.login_shell }}'
-          override_homedir: '{{ join_domain.login_home }}'
-          shell_fallback: '{{ join_domain.login_shell }}'
-          use_fully_qualified_names: 'False'
+        {%- for key,value in join_domain.sssd_conf_parameters.items() %}
+          {{ key }}: '{{ value }}'
+        {%- endfor %}
 
 domain_defaults-{{ join_domain.dns_name }}_ensure_permissions:
   file.managed:
