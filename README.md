@@ -146,6 +146,17 @@ Set of parameters used for joining a AD-client to its domain:
 -   *`trusted_domains`*: (OPTIONAL) List of domains (within a multi-domin
     forest) to trust
 
+### Tool used for joining client to AD domain
+
+There are a number of third-party and native options available for joining
+Linux clients to AD domains. This parameter is used to tell the formula which
+client-behavior should be used. Expected valid values will be 'centrify',
+'pbis', 'quest', 'sssd' and 'winbind'. As of this version of the formula,
+'pbis' and 'sssd' are supported (though use of 'pbis' is now HIGHLY
+discouraged due to its discontinuation in late 2019).
+
+-   *` ad_connector`*: (e.g., 'sssd')
+
 ### Settings for the URI path-elements to the PBIS installer
 
 These two values are used to determine where to locate the AD-client's
@@ -160,17 +171,6 @@ download methods may also work (but have not been tested).
 -   *`pbis-open-legacy`*: URL of the `pbis-open-legacy` RPM (infrequently used)
 -   *`pbis-open-upgrade`*: URL of the `pbis-open-upgrade` RPM
 
-### Tool used for joining client to AD domain
-
-There are a number of third-party and native options available for joining
-Linux clients to AD domains. This parameter is used to tell the formula which
-client-behavior should be used. Expected valid values will be 'centrify',
-'pbis', 'quest', 'sssd' and 'winbind'. As of this version of the formula,
-'pbis' and 'sssd' are supported (though use of 'pbis' is now HIGHLY
-discouraged due to its discontinuation in late 2019).
-
--   *` ad_connector`*: (e.g., 'sssd')
-
 ### Directories where (the PBIS) AD-client utilities are installed to the system
 
 List of directories associated with the chosen `ad_connector` software/method.
@@ -183,6 +183,23 @@ connector-software files (e.g. `/var/lib/pbis`)
 
 - *`install_db_dir`*: Primary directory hosting connector-software's
 cache-databases (e.g., `/var/lib/pbis/db`)
+
+### SSSD-specific pillar settings
+
+SSSD configuration parameters for domain-specific `.conf` files under the
+`/etc/sssd/conf.d/` directory can be provided using the following pillar dictionary
+parameter:
+
+- *`sssd_conf_parameters`*:
+```yaml
+sssd_conf_parameters:
+  <key1>: '<value1>'
+  ...
+  <keyN>: '<valueN>'
+```
+
+Any parameter supported by `sssd` may be used within `sssd_conf_parameters` to
+customize the operation of `sssd`.
 
 ### List of RPMs to look for
 

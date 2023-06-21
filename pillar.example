@@ -86,3 +86,10 @@ join-domain:
     #    Note: this is only known to work with DNS systems based on Microsoft's
     #          DNS-integrated Active Directory service.
     #update-dns: true
+
+    # Example for overriding or adding additional SSSD conf parameters
+    #sssd_conf_parameters:
+    #  default_shell: '/bin/bash'
+    #  override_homedir: '/home/%d/%f'
+    #  shell_fallback: '/bin/sh'
+    #  use_fully_qualified_names: 'True'
