@@ -6,15 +6,15 @@
 
 {#- Set join-domain defaults for this ad connector #}
 {%- load_yaml as defaults %}
-
 attrib_bool_name: 'False'
 attrib_bool_vers: 'False'
-login_home: '/home/%d/%u'
-login_shell: /bin/bash
 oupath: ''
-
+sssd_conf_parameters:
+  default_shell: /bin/bash
+  override_homedir: '/home/%d/%u'
+  shell_fallback: /bin/bash
+  use_fully_qualified_names: 'False'
 {%- endload %}
-
 
 {#-
     Lookup settings in pillar, merging them with defaults, and overriding them
@@ -25,7 +25,6 @@ oupath: ''
     default = defaults,
     merge = True
 ) %}
-
 
 {% do join_domain.update(
     salt.grains.get('join-domain', {})

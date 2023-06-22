@@ -1,10 +1,11 @@
 version: '{branch}-{build}'
 build: off
+image: Visual Studio 2017
 environment:
   global:
     SALT_FILEROOT: '%APPVEYOR_BUILD_FOLDER%'
     SALT_STATE: join-domain
-    SALT_URL: https://repo.saltproject.io/windows/Salt-Minion-3004.2-1-Py3-AMD64-Setup.exe
+    SALT_URL: https://watchmaker.cloudarmor.io/watchmaker/repo/saltstack/salt/windows/Salt-Minion-3006.1-Py3-AMD64-Setup.exe
   matrix:
     - SALT_PILLARROOT: '%APPVEYOR_BUILD_FOLDER%\tests\pillar\test-windows-main'
 
@@ -18,19 +19,20 @@ install:
   - ps: |
       $null = `
         Start-Process -FilePath "${env:temp}\salt-minion.exe" `
-        -ArgumentList  @("/S", "/install-dir=c:\salt") -NoNewWindow -PassThru -Wait
-  - ps: C:\salt\salt-call.bat --versions-report
+        -ArgumentList "/S" -NoNewWindow -PassThru -Wait
+  - ps: >
+      & "C:\Program Files\Salt Project\Salt\salt-call.exe" --versions-report
 
 test_script:
   - ps: |
-      C:\salt\salt-call.bat --local --retcode-passthrough `
+      & "C:\Program Files\Salt Project\Salt\salt-call.exe" --local --retcode-passthrough `
         --log-file-level debug `
         --file-root="${env:SALT_FILEROOT}" `
         --pillar-root="${env:SALT_PILLARROOT}" `
         state.show_sls `
         "${env:SALT_STATE}"
   - ps: |
-      C:\salt\salt-call.bat --local --retcode-passthrough `
+      & "C:\Program Files\Salt Project\Salt\salt-call.exe" --local --retcode-passthrough `
         --log-file-level debug `
         --file-root="${env:SALT_FILEROOT}" `
         --pillar-root="${env:SALT_PILLARROOT}" `
@@ -39,9 +41,10 @@ test_script:
         mock=True
 
 on_failure:
-  - ps: C:\salt\salt-call.bat --local grains.items
+  - ps: |
+      & "C:\Program Files\Salt Project\Salt\salt-call.exe" --local grains.items
   - ps: dir "env:"
-  - ps: get-content C:\salt\var\log\salt\*
+  - ps: get-content "C:\Program Files\Salt Project\Salt\var\log\salt\*"
 
 ### To enable remote debugging uncomment this (also, see: http://www.appveyor.com/docs/how-to/rdp-to-build-worker):
 # on_finish:
