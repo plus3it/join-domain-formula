@@ -167,7 +167,8 @@ function FindDCs {
   IDX=0
   DC=($(
         dig -t SRV "${DNS_SEARCH_STRING}" | sed -e '/^$/d' -e '/;/d' | \
-        awk '/[ 	]*IN[ 	]*SRV[ 	]*/{ printf("%s;%s\n",$7,$8)}'
+        awk '/\s\s*IN\s\s*SRV\s\s*/{ printf("%s;%s\n",$7,$8) }' | \
+        sed -e 's/\.$//'
       ))
 
   # Parse list of domain-controllers to see who we can connect to
@@ -217,13 +218,17 @@ function FindComputer {
   export SEARCHTERM
 
   # Searach without STARTLS
-  COMPUTERNAME=$( ldapsearch -o ldif-wrap=no -LLL -x -h "${DCINFO//*;/}" \
-        -p "${DCINFO//;*/}" -D "${QUERYUSER}" -w "${BINDPASS}" \
-        -b "${SEARCHSCOPE}" -s sub "${SEARCHTERM}" dn 2> /dev/null || \
-      ldapsearch -o ldif-wrap=no -LLL -Z -x -h "${DCINFO//*;/}" -p \
-        "${DCINFO//;*/}" -D "${QUERYUSER}" -w "${BINDPASS}" \
-        -b "${SEARCHSCOPE}" -s sub \
-        "${SEARCHTERM}" dn 2> /dev/null
+  COMPUTERNAME=$(
+      ldapsearch \
+        -o ldif-wrap=no \
+        -LLL \
+        -Zx \
+        -h "${DCINFO//*;/}" \
+        -p "${DCINFO//;*/}" \
+        -D "${QUERYUSER}" \
+        -w "${BINDPASS}" \
+        -b "${SEARCHSCOPE}" \
+        -s sub "${SEARCHTERM}" dn
   )
 
   COMPUTERNAME=$( echo "${COMPUTERNAME}" | \
