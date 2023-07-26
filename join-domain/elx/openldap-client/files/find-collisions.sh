@@ -167,7 +167,8 @@ function FindDCs {
   IDX=0
   DC=($(
         dig -t SRV "${DNS_SEARCH_STRING}" | sed -e '/^$/d' -e '/;/d' | \
-        awk '/[ 	]*IN[ 	]*SRV[ 	]*/{ printf("%s;%s\n",$7,$8)}'
+        awk '/\s\s*IN\s\s*SRV\s\s*/{ printf("%s;%s\n",$7,$8) }' | \
+        sed -e 's/\.$//'
       ))
 
   # Parse list of domain-controllers to see who we can connect to
