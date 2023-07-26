@@ -218,13 +218,17 @@ function FindComputer {
   export SEARCHTERM
 
   # Searach without STARTLS
-  COMPUTERNAME=$( ldapsearch -o ldif-wrap=no -LLL -Zx -h "${DCINFO//*;/}" \
-        -p "${DCINFO//;*/}" -D "${QUERYUSER}" -w "${BINDPASS}" \
-        -b "${SEARCHSCOPE}" -s sub "${SEARCHTERM}" dn 2> /dev/null || \
-      ldapsearch -o ldif-wrap=no -LLL -Z -x -h "${DCINFO//*;/}" -p \
-        "${DCINFO//;*/}" -D "${QUERYUSER}" -w "${BINDPASS}" \
-        -b "${SEARCHSCOPE}" -s sub \
-        "${SEARCHTERM}" dn 2> /dev/null
+  COMPUTERNAME=$(
+      ldapsearch \
+        -o ldif-wrap=no \
+        -LLL \
+        -Zx \
+        -h "${DCINFO//*;/}" \
+        -p "${DCINFO//;*/}" \
+        -D "${QUERYUSER}" \
+        -w "${BINDPASS}" \
+        -b "${SEARCHSCOPE}" \
+        -s sub "${SEARCHTERM}" dn
   )
 
   COMPUTERNAME=$( echo "${COMPUTERNAME}" | \
