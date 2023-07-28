@@ -7,6 +7,7 @@ set -euo pipefail
 ######################################################################
 PROGNAME="$( basename "${0}" )"
 BINDPASS="${CLEARPASS:-}"
+CLEANUP="${CLEANUP:-TRUE}"
 CRYPTKEY="${CRYPTKEY:-}"
 CRYPTSTRING="${CRYPTSTRING:-}"
 DEBUG="${DEBUG:-false}"
@@ -14,9 +15,9 @@ DIR_DOMAIN="${JOIN_DOMAIN:-}"
 DIRUSER="${JOIN_USER:-}"
 DOMAINNAME="${JOIN_DOMAIN:-}"
 DS_LIST=()
-LDAPPASSWD=""
 LDAPTYPE="AD"
-LOGFACIL="user.err"
+LDAP_AUTH_TYPE="-x"
+LOGFACIL="${LOGFACIL:-kern.crit}"
 REQ_TLS="${REQ_TLS:-true}"
 
 # Make interactive-execution more-verbose unless explicitly told not to
@@ -38,9 +39,9 @@ function err_exit {
    if [[ ${DEBUG} == true ]]
    then
       # Our output channels
-      logger -i -t "${PROGNAME}" -p kern.crit -s -- "${ERRSTR}"
+      logger -i -t "${PROGNAME}" -p "${LOGFACIL}" -s -- "${ERRSTR}"
    else
-      logger -i -t "${PROGNAME}" -p kern.crit -- "${ERRSTR}"
+      logger -i -t "${PROGNAME}" -p "${LOGFACIL}" -- "${ERRSTR}"
    fi
 
    # Only exit if requested exit is numerical
@@ -192,13 +193,63 @@ function CheckTLSsupt {
       # Overwrite global directory-server array with successfully-pinged
       # servers' info
       DS_LIST=("${GOOD_DS_LIST[@]}")
+      LDAP_AUTH_TYPE="-Zx"
       return 0
     else
       # Null the list
+      LDAP_AUTH_TYPE="-x"
       DS_LIST=()
       err_exit "${DS_NAME} failed cert-check" 0
     fi
   done
+}
+
+function FindComputer {
+  local COMPUTERNAME
+  local DS_HOST
+  local DS_PORT
+  local SEARCHEXIT
+  local SEARCHTERM
+  local SHORTHOST
+
+  # AD-hosted objects will always be shortnames
+  SHORTHOST=${HOSTNAME//.*/}
+
+  # Need to ensure we look for literal, all-cap and all-lower
+  SEARCHTERM="(&(objectCategory=computer)(|(cn=${SHORTHOST})(cn=${SHORTHOST^^})(cn=${SHORTHOST,,})))"
+  export SEARCHTERM
+
+  # Directory server info
+  DS_HOST="${DS_LIST[0]//*;/}"
+  DS_PORT="${DS_LIST[0]//;*/}"
+
+  # Perform directory-search
+  COMPUTERNAME=$(
+    ldapsearch \
+      -o ldif-wrap=no \
+      -LLL \
+      "${LDAP_AUTH_TYPE}" \
+      -h "${DS_HOST}" \
+      -p "${DS_PORT}" \
+      -D "${QUERYUSER}" \
+      -w "${BINDPASS}" \
+      -b "${SEARCHSCOPE}" \
+      -s sub "${SEARCHTERM}" dn
+  )
+
+  COMPUTERNAME=$( echo "${COMPUTERNAME}" | \
+        sed -e 's/^.*dn: *//' -e '/^$/d' -e '/#/d' )
+
+  # Output based on exit status and/or what's found
+  if [[ -z ${COMPUTERNAME} ]]
+  then
+      err_exit "Did not find ${COMPUTERNAME}"
+      echo "NOTFOUND"
+  else
+      err_exit "Found ${COMPUTERNAME}"
+      echo "${COMPUTERNAME}"
+  fi
+
 }
 
 
@@ -207,7 +258,25 @@ function CheckTLSsupt {
 # Main program #
 ################
 
-LDAPPASSWD="$( PWdecrypt )"
+# Set directory-user value as appropriate
+if [[ ${LDAPTYPE} == AD ]]
+then
+  QUERYUSER="${DIRUSER}@${DOMAINNAME}"
+else
+  QUERYUSER="${DIRUSER}"
+fi
+export QUERYUSER
+
+# Convert domain to a search scope
+SEARCHSCOPE="$( printf "DC=%s" "${DOMAINNAME//./,DC=}" )"
+export SEARCHSCOPE
+
+# Query-Users's password-string
+if [[ -z ${BINDPASS} ]]
+then
+  BINDPASS="$( PWdecrypt )"
+fi
+
 
 # Verify that RPM-dependencies are met
 VerifyDependencies
@@ -227,4 +296,18 @@ else
   err_exit "Skipping TLS-support test" 0
 fi
 
+# Emit number of servers found
 err_exit "Found ${#DS_LIST[@]} potentially-good directory servers" 0
+
+# Find target computerObject
+OBJECT_DN="$( FindComputer )"
+
+case "${OBJECT_DN}" in
+  NOTFOUND)
+    err_exit "Coult not ${HOSTNAME} in ${SEARCHSCOPE}" 1
+    CLEANUP="FALSE"
+    ;;
+  *)
+    err_exit "Found ${HOSTNAME} in ${SEARCHSCOPE}" 0
+    ;;
+esac
