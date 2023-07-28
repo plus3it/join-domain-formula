@@ -261,6 +261,8 @@ function NukeComputer {
   local DS_PORT
   local DELETE_EXIT
 
+  # Override abort-on-error so we can provide better output
+  set +e
 
   DS_INFO="${1}"
   DIRECTORY_OBJECT="${2}"
@@ -277,12 +279,17 @@ function NukeComputer {
 
   DELETE_EXIT="$?"
 
-  if [[ ${DELETE_EXIT} -eq 0 ]]
-  then
-    err_exit "Delete of ${DIRECTORY_OBJECT} succeeded" 0
-  else
-    err_exit "Delete of ${DIRECTORY_OBJECT} failed" 1
-  fi
+  case "${DELETE_EXIT}" in
+    0)
+      err_exit "Delete of ${DIRECTORY_OBJECT} succeeded" 0
+      ;;
+    34)
+      err_exit "Delete of ${DIRECTORY_OBJECT} failed: bad DN syntax" 1
+      ;;
+    *)
+      err_exit "Delete of ${DIRECTORY_OBJECT} failed" 1
+      ;;
+  esac
 }
 
 
@@ -348,7 +355,7 @@ esac
 # Delete detected collision
 if [[ ${CLEANUP} == "TRUE" ]]
 then
-  NukeComputer "${DS_LIST[0]}" "${HOSTNAME}"
+  NukeComputer "${DS_LIST[0]}" "${OBJECT_DN}"
 else
   err_exit "Script called with 'no-cleanup' requested" 0
 fi
