@@ -626,7 +626,7 @@ OBJECT_DN="$( FindComputer )"
 
 case "${OBJECT_DN}" in
   NOTFOUND)
-    err_exit "Coult not find ${JOIN_CLIENT} in ${SEARCHSCOPE}" 1
+    err_exit "Could not find ${JOIN_CLIENT} in ${SEARCHSCOPE}" 0
     CLEANUP="FALSE"
     ;;
   *)
