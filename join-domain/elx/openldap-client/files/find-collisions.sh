@@ -107,7 +107,7 @@ function PingDirServ {
     # Overwrite global directory-server array with successfully-pinged
     # servers' info
     DS_LIST=("${GOOD_DS_LIST[@]}")
-    err_exit "Found ${#{GOOD_DS_LIST[@]} port-pingable directory servers"
+    err_exit "Found ${#{GOOD_DS_LIST[@]} port-pingable directory servers" 0
     return 0
   else
     err_exit "All candidate servers failed port-ping" 1
@@ -163,7 +163,7 @@ function CheckTLSsupt {
     fi
 
     # Add servers with good certs to list
-    if [[ ${#GOOD_DS_LIST[@]} -gt 0 ]]
+    if [[ ${GOOD_DS_LIST[@]+"${GOOD_DS_LIST[@]}"} -gt 0 ]]
     then
       # Overwrite global directory-server array with successfully-pinged
       # servers' info
