@@ -162,6 +162,7 @@ function CheckTLSsupt {
       err_exit "Appending ${DS_NAME} to 'good servers' list" 0
     fi
 
+    # shellcheck disable=SC2199
     # Add servers with good certs to list
     if [[ ${GOOD_DS_LIST[@]+"${GOOD_DS_LIST[@]}"} -gt 0 ]]
     then
