@@ -46,7 +46,7 @@ function err_exit {
    # Only exit if requested exit is numerical
    if [[ ${SCRIPTEXIT} =~ ${ISNUM} ]]
    then
-      exit "${SCRIPTEXIT}"
+      return "${SCRIPTEXIT}"
    fi
 }
 
@@ -72,10 +72,10 @@ function CandidateDirServ {
 
   if [[ ${#DS_LIST[@]} -eq 0 ]]
   then
-    echo "Unable to generate a list of candidate servers"
+    err_exit "Unable to generate a list of candidate servers" 1
     return 1
   else
-    echo "Found ${#DS_LIST[@]} candidate directory-servers"
+    err_exit "Found ${#DS_LIST[@]} candidate directory-servers" 0
     return 0
   fi
 }
@@ -98,7 +98,7 @@ function PingDirServ {
       ) -eq 0 ]]
     then
       GOOD_DS_LIST+=("${DIR_SERV}")
-      echo "${DIR_SERV//*;} responds to port-ping"
+      err_exit "${DIR_SERV//*;} responds to port-ping" 0
     fi
   done
 
@@ -107,9 +107,10 @@ function PingDirServ {
     # Overwrite global directory-server array with successfully-pinged
     # servers' info
     DS_LIST=("${GOOD_DS_LIST[@]}")
+    err_exit "Found ${#{GOOD_DS_LIST[@]} port-pingable directory servers"
     return 0
   else
-    echo "All candidate servers failed port-ping"
+    err_exit "All candidate servers failed port-ping" 1
     return 1
   fi
 }
@@ -158,7 +159,7 @@ function CheckTLSsupt {
       )$? -eq 0 ]]
     then
       GOOD_DS_LIST+=("${DIR_SERV}")
-      echo appending
+      err_exit "Appending ${DS_NAME} to 'good servers' list" 0
     fi
 
     # Add servers with good certs to list
@@ -171,7 +172,7 @@ function CheckTLSsupt {
     else
       # Null the list
       DS_LIST=()
-      echo "${DS_NAME} failed cert-check"
+      err_exit "${DS_NAME} failed cert-check" 0
     fi
   done
 }
@@ -188,4 +189,4 @@ CandidateDirServ
 PingDirServ
 CheckTLSsupt
 
-echo "${#DS_LIST[@]}"
+err_exit "Found ${#DS_LIST[@]} potentially-good directory servers" 0
