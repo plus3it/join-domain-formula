@@ -208,7 +208,7 @@ function PWdecrypt {
   # Bail if either of crypt-string or decrpytion-key are null
   if [[ -z ${CRYPTSTRING} ]] || [[ -z ${CRYPTKEY} ]]
   then
-    logIt "Missing keystring-decryption values" 1
+    err_exit "Missing keystring-decryption values" 1
   fi
 
   # Lets decrypt!
@@ -380,7 +380,7 @@ function NukeComputer {
 # Ensure parseable arguments have been passed
 if [[ $# -eq 0 ]]
 then
-  logIt "No arguments given. Aborting" 1
+  err_exit "No arguments given. Aborting" 1
 fi
 
 # Define flags to look for...
@@ -406,7 +406,7 @@ do
       -c|--join-crypt)
         case "$2" in
             "")
-              logIt "Error: option required but not specified" 1
+              err_exit "Error: option required but not specified" 1
               shift 2;
               exit 1
               ;;
@@ -419,7 +419,7 @@ do
       -d|--domain-name)
         case "$2" in
             "")
-              logIt "Error: option required but not specified" 1
+              err_exit "Error: option required but not specified" 1
               shift 2;
               exit 1
               ;;
@@ -432,7 +432,7 @@ do
       -f|--hostname)
         case "$2" in
             "")
-              logIt "Error: option required but not specified" 1
+              err_exit "Error: option required but not specified" 1
               shift 2;
               exit 1
               ;;
@@ -448,7 +448,7 @@ do
       -k|--join-key)
         case "$2" in
             "")
-              logIt "Error: option required but not specified" 1
+              err_exit "Error: option required but not specified" 1
               shift 2;
               exit 1
               ;;
@@ -461,7 +461,7 @@ do
       -l|--ldap-host)
         case "$2" in
             "")
-              logIt "Error: option required but not specified" 1
+              err_exit "Error: option required but not specified" 1
               shift 2;
               exit 1
               ;;
@@ -474,7 +474,7 @@ do
       --mode)
         case "$2" in
             "")
-              logIt "Error: option required but not specified" 1
+              err_exit "Error: option required but not specified" 1
               shift 2;
               exit 1
               ;;
@@ -498,7 +498,7 @@ do
       -p|--join-password)
         case "$2" in
             "")
-              logIt "Error: option required but not specified" 1
+              err_exit "Error: option required but not specified" 1
               shift 2;
               exit 1
               ;;
@@ -511,7 +511,7 @@ do
       -s|--ad-site)
         case "$2" in
             "")
-              logIt "Error: option required but not specified" 1
+              err_exit "Error: option required but not specified" 1
               shift 2;
               exit 1
               ;;
@@ -524,7 +524,7 @@ do
       -t|--ldap-type)
         case "$2" in
             "")
-              logIt "Error: option required but not specified" 1
+              err_exit "Error: option required but not specified" 1
               shift 2;
               exit 1
               ;;
@@ -533,7 +533,7 @@ do
               shift 2;
               ;;
             *)
-              logIt "Error: unsupported directory-type" 1
+              err_exit "Error: unsupported directory-type" 1
               shift 2;
               exit 1
               ;;
@@ -542,7 +542,7 @@ do
       -u|--join-user)
         case "$2" in
             "")
-              logIt "Error: option required but not specified" 1
+              err_exit "Error: option required but not specified" 1
               shift 2;
               exit 1
               ;;
@@ -557,7 +557,7 @@ do
         break
         ;;
       *)
-        logIt "Missing value" 1
+        err_exit "Missing value" 1
         exit 1
         ;;
   esac
