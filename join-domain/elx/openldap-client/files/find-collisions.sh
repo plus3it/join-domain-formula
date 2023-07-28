@@ -275,7 +275,7 @@ function FindComputer {
   local SHORTHOST
 
   # AD-hosted objects will always be shortnames
-  SHORTHOST=${HOSTNAME//.*/}
+  SHORTHOST=${JOIN_CLIENT//.*/}
 
   # Need to ensure we look for literal, all-cap and all-lower
   SEARCHTERM="(&(objectCategory=computer)(|(cn=${SHORTHOST})(cn=${SHORTHOST^^})(cn=${SHORTHOST,,})))"
@@ -437,7 +437,7 @@ do
               exit 1
               ;;
             *)
-              HOSTNAME="${2}"
+              JOIN_CLIENT="${2}"
               shift 2;
               ;;
         esac
@@ -619,11 +619,11 @@ OBJECT_DN="$( FindComputer )"
 
 case "${OBJECT_DN}" in
   NOTFOUND)
-    err_exit "Coult not find ${HOSTNAME} in ${SEARCHSCOPE}" 1
+    err_exit "Coult not find ${JOIN_CLIENT} in ${SEARCHSCOPE}" 1
     CLEANUP="FALSE"
     ;;
   *)
-    err_exit "Found ${HOSTNAME} in ${SEARCHSCOPE}" 0
+    err_exit "Found ${JOIN_CLIENT} in ${SEARCHSCOPE}" 0
     ;;
 esac
 
