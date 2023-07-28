@@ -16,6 +16,7 @@ DIR_DOMAIN="${JOIN_DOMAIN:-}"
 DIRUSER="${JOIN_USER:-}"
 DOMAINNAME="${JOIN_DOMAIN:-}"
 DS_LIST=()
+JOIN_CLIENT="${JOIN_CLIENT:-}"
 LDAP_AUTH_TYPE="-x"
 LDAP_HOST="${LDAP_HOST:-}"
 LDAP_TYPE="${LDAP_TYPE:-AD}"
@@ -566,6 +567,12 @@ done
 ################
 # Main program #
 ################
+
+# Set AD-client hostname if not previously set by other means
+if [[ -z ${JOIN_CLIENT} ]]
+then
+  JOIN_CLIENT="$( hostname -f )"
+fi
 
 # Set directory-user value as appropriate
 if [[ ${LDAP_TYPE} == AD ]]
