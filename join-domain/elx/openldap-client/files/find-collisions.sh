@@ -107,7 +107,7 @@ function PingDirServ {
     # Overwrite global directory-server array with successfully-pinged
     # servers' info
     DS_LIST=("${GOOD_DS_LIST[@]}")
-    err_exit "Found ${#{GOOD_DS_LIST[@]} port-pingable directory servers" 0
+    err_exit "Found ${#DS_LIST[@]} port-pingable directory servers" 0
     return 0
   else
     err_exit "All candidate servers failed port-ping" 1
