@@ -208,7 +208,7 @@ function FindComputer {
   local COMPUTERNAME
   local DS_HOST
   local DS_PORT
-  local SEARCHEXIT
+  local SEARCH_EXIT
   local SEARCHTERM
   local SHORTHOST
 
@@ -237,6 +237,8 @@ function FindComputer {
       -s sub "${SEARCHTERM}" dn
   )
 
+  SEARCH_EXIT="$?"
+
   COMPUTERNAME=$( echo "${COMPUTERNAME}" | \
         sed -e 's/^.*dn: *//' -e '/^$/d' -e '/#/d' )
 
@@ -250,6 +252,37 @@ function FindComputer {
       echo "${COMPUTERNAME}"
   fi
 
+}
+
+function NukeComputer {
+  local DIRECTORY_OBJECT
+  local DS_HOST
+  local DS_INFO
+  local DS_PORT
+  local DELETE_EXIT
+
+
+  DS_INFO="${1}"
+  DIRECTORY_OBJECT="${2}"
+
+  DS_HOST="${DS_INFO//*;/}"
+  DS_PORT="${DS_INFO//;*/}"
+
+  ldapdelete \
+    "${LDAP_AUTH_TYPE}" \
+    -h "${DS_HOST}" \
+    -p "${DS_PORT}" \
+    -D "${QUERYUSER}" \
+    -w "${BINDPASS}" "${DIRECTORY_OBJECT}"
+
+  DELETE_EXIT="$?"
+
+  if [[ ${DELETE_EXIT} -eq 0 ]]
+  then
+    err_exit "Delete of ${DIRECTORY_OBJECT} succeeded" 0
+  else
+    err_exit "Delete of ${DIRECTORY_OBJECT} failed" 1
+  fi
 }
 
 
@@ -311,3 +344,11 @@ case "${OBJECT_DN}" in
     err_exit "Found ${HOSTNAME} in ${SEARCHSCOPE}" 0
     ;;
 esac
+
+# Delete detected collision
+if [[ ${CLEANUP} == "TRUE" ]]
+then
+  NukeComputer "${DS_LIST[0]}" "${HOSTNAME}"
+else
+  err_exit "Script called with 'no-cleanup' requested" 0
+fi
