@@ -242,16 +242,23 @@ function FindComputer {
   COMPUTERNAME=$( echo "${COMPUTERNAME}" | \
         sed -e 's/^.*dn: *//' -e '/^$/d' -e '/#/d' )
 
-  # Output based on exit status and/or what's found
-  if [[ -z ${COMPUTERNAME} ]]
+  if [[ -n ${COMPUTERNAME:-} ]]
   then
-      err_exit "Did not find ${COMPUTERNAME}"
-      echo "NOTFOUND"
+    err_exit "Found ${COMPUTERNAME}" 0
+    echo "${COMPUTERNAME}"
   else
-      err_exit "Found ${COMPUTERNAME}"
-      echo "${COMPUTERNAME}"
+    err_exit "Did not find ${COMPUTERNAME}" 0
+    echo "NOTFOUND"
   fi
 
+  case "${SEARCH_EXIT}" in
+    0)
+      err_exit "Found ${COMPUTERNAME} on ${DS_HOST}"j 0
+      ;;
+    *)
+      err_exit "Delete of ${DIRECTORY_OBJECT} with exit-code '${DELETE_EXIT}'" 1
+      ;;
+  esac
 }
 
 function NukeComputer {
