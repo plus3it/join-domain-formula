@@ -16,9 +16,9 @@ DIR_DOMAIN="${JOIN_DOMAIN:-}"
 DIRUSER="${JOIN_USER:-}"
 DOMAINNAME="${JOIN_DOMAIN:-}"
 DS_LIST=()
-LDAPHOST="${LDAPHOST:-}"
-LDAPTYPE="${LDAPTYPE:-AD}"
 LDAP_AUTH_TYPE="-x"
+LDAP_HOST="${LDAP_HOST:-}"
+LDAP_TYPE="${LDAP_TYPE:-AD}"
 LOGFACIL="${LOGFACIL:-kern.crit}"
 OUTPUT="${OUTPUT:-SALTMODE}"
 REQ_TLS="${REQ_TLS:-true}"
@@ -317,6 +317,9 @@ function FindComputer {
     0)
       err_exit "Found '${COMPUTERNAME}' on ${DS_HOST}"j 0
       ;;
+    32)
+      err_exit "Search for '${SHORTHOST}' failed due to 'no such object'" 1
+      ;;
     49)
       err_exit "Search for '${SHORTHOST}' failed due to invalid credentials" 1
       ;;
@@ -463,7 +466,7 @@ do
               exit 1
               ;;
             *)
-              LDAPHOST="${2}"
+              LDAP_HOST="${2}"
               shift 2;
               ;;
         esac
@@ -526,7 +529,7 @@ do
               exit 1
               ;;
             ad|AD)
-              LDAPTYPE="AD"
+              LDAP_TYPE="AD"
               shift 2;
               ;;
             *)
@@ -565,7 +568,7 @@ done
 ################
 
 # Set directory-user value as appropriate
-if [[ ${LDAPTYPE} == AD ]]
+if [[ ${LDAP_TYPE} == AD ]]
 then
   QUERYUSER="${DIRUSER}@${DOMAINNAME}"
 else
@@ -588,12 +591,12 @@ fi
 VerifyDependencies
 
 # Identify list of candidate directory servers
-if [[ -z ${LDAPHOST} ]]
+if [[ -z ${LDAP_HOST} ]]
 then
   CandidateDirServ
 else
   DS_LIST=()
-  DS_LIST[0]="${LDAPHOST}"
+  DS_LIST[0]="${LDAP_HOST}"
 fi
 
 # Port-ping candidate directory servers
