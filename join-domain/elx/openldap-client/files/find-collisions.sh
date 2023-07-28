@@ -26,6 +26,11 @@ then
    DEBUG="true"
 fi
 
+
+#########################
+# Function declarations #
+#########################
+
 # Error handler function
 function err_exit {
    local ERRSTR
@@ -301,6 +306,197 @@ function NukeComputer {
 
 
 
+
+###########################
+# CLI option-flag parsing #
+###########################
+
+# Ensure parseable arguments have been passed
+if [[ $# -eq 0 ]]
+then
+  logIt "No arguments given. Aborting" 1
+fi
+
+# Define flags to look for...
+OPTIONBUFR=$(getopt -o c:d:f:hk:l:p:s:t:u: --long domain-name:,help,hostname:,join-crypt:,join-key:,join-password:,join-user:,ldap-host:,ldap-type:,mode:,ad-site: -n "${PROGNAME}" -- "$@")
+
+# Check for mutually-exclusive arguments
+if [[ ${OPTIONBUFR} =~ p\ |join-password && ${OPTIONBUFR} =~ c\ |join-crypt ]] ||
+  [[ ${OPTIONBUFR} =~ p\ |join-password && ${OPTIONBUFR} =~ c\ |join-key ]]
+then
+  EXCLUSIVEARGS=TRUE
+  UsageMsg
+fi
+
+eval set -- "${OPTIONBUFR}"
+
+#+---------------------------------+
+#| Parse contents of ${OPTIONBUFR} |
+#+---------------------------------+
+
+while true
+do
+  case "$1" in
+      -c|--join-crypt)
+        case "$2" in
+            "")
+              logIt "Error: option required but not specified" 1
+              shift 2;
+              exit 1
+              ;;
+            *)
+              CRYPTSTRING="${2}"
+              shift 2;
+              ;;
+        esac
+        ;;
+      -d|--domain-name)
+        case "$2" in
+            "")
+              logIt "Error: option required but not specified" 1
+              shift 2;
+              exit 1
+              ;;
+            *)
+              DOMAINNAME="${2}"
+              shift 2;
+              ;;
+        esac
+        ;;
+      -f|--hostname)
+        case "$2" in
+            "")
+              logIt "Error: option required but not specified" 1
+              shift 2;
+              exit 1
+              ;;
+            *)
+              HOSTNAME="${2}"
+              shift 2;
+              ;;
+        esac
+        ;;
+      -h|--help)
+        UsageMsg
+        ;;
+      -k|--join-key)
+        case "$2" in
+            "")
+              logIt "Error: option required but not specified" 1
+              shift 2;
+              exit 1
+              ;;
+            *)
+              CRYPTKEY="${2}"
+              shift 2;
+              ;;
+        esac
+        ;;
+      -l|--ldap-host)
+        case "$2" in
+            "")
+              logIt "Error: option required but not specified" 1
+              shift 2;
+              exit 1
+              ;;
+            *)
+              LDAPHOST="${2}"
+              shift 2;
+              ;;
+        esac
+        ;;
+      --mode)
+        case "$2" in
+            "")
+              logIt "Error: option required but not specified" 1
+              shift 2;
+              exit 1
+              ;;
+            cleanup)
+              CLEANUP=TRUE
+              OUTPUT=INTERACTIVE
+              shift 2;
+              ;;
+            saltstack)
+              CLEANUP=TRUE
+              OUTPUT=SALTMODE
+              shift 2;
+              ;;
+            *)
+              CLEANUP=FALSE
+              OUTPUT=INTERACTIVE
+              shift 2;
+              ;;
+        esac
+        ;;
+      -p|--join-password)
+        case "$2" in
+            "")
+              logIt "Error: option required but not specified" 1
+              shift 2;
+              exit 1
+              ;;
+            *)
+              BINDPASS="${2}"
+              shift 2;
+              ;;
+        esac
+        ;;
+      -s|--ad-site)
+        case "$2" in
+            "")
+              logIt "Error: option required but not specified" 1
+              shift 2;
+              exit 1
+              ;;
+            *)
+              ADSITE="${2}"
+              shift 2;
+              ;;
+        esac
+        ;;
+      -t|--ldap-type)
+        case "$2" in
+            "")
+              logIt "Error: option required but not specified" 1
+              shift 2;
+              exit 1
+              ;;
+            ad|AD)
+              LDAPTYPE="AD"
+              shift 2;
+              ;;
+            *)
+              logIt "Error: unsupported directory-type" 1
+              shift 2;
+              exit 1
+              ;;
+        esac
+        ;;
+      -u|--join-user)
+        case "$2" in
+            "")
+              logIt "Error: option required but not specified" 1
+              shift 2;
+              exit 1
+              ;;
+            *)
+              DIRUSER="${2}"
+              shift 2;
+              ;;
+        esac
+        ;;
+      --)
+        shift
+        break
+        ;;
+      *)
+        logIt "Missing value" 1
+        exit 1
+        ;;
+  esac
+done
+
 ################
 # Main program #
 ################
@@ -329,7 +525,10 @@ fi
 VerifyDependencies
 
 # Identify list of candidate directory servers
-CandidateDirServ
+if [[ -z ${LDAPHOST} ]]
+then
+  CandidateDirServ
+fi
 
 # Port-ping candidate directory servers
 PingDirServ
