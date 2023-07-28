@@ -6,6 +6,7 @@ set -euo pipefail
 #
 ######################################################################
 PROGNAME="$( basename "${0}" )"
+ADSITE="${ADSITE:-}"
 BINDPASS="${CLEARPASS:-}"
 CLEANUP="${CLEANUP:-TRUE}"
 CRYPTKEY="${CRYPTKEY:-}"
@@ -18,6 +19,7 @@ DS_LIST=()
 LDAPTYPE="AD"
 LDAP_AUTH_TYPE="-x"
 LOGFACIL="${LOGFACIL:-kern.crit}"
+OUTPUT="${OUTPUT:-SALTMODE}"
 REQ_TLS="${REQ_TLS:-true}"
 
 # Make interactive-execution more-verbose unless explicitly told not to
@@ -54,6 +56,43 @@ function err_exit {
    then
       return "${SCRIPTEXIT}"
    fi
+}
+
+# Print out a basic usage message
+function UsageMsg {
+  (
+      # Special cases
+      if [[ -n ${MISSINGARGS} ]]
+      then
+        printf "Failed to pass one or more mandatory arguments\n\n"
+      elif [[ -n ${EXCLUSIVEARGS} ]]
+      then
+        printf "Passed two or more exclusive arguments\n\n"
+      fi
+
+      echo "Usage: ${0} [GNU long option] [option] ..."
+      echo "  Options:"
+      printf "\t-a <AD_SITENAME> \n"
+      printf "\t-c <ENCRYPTED_PASSWORD>  \n"
+      printf "\t-d <LONG_DOMAIN_NAME>  \n"
+      printf "\t-f <FORCED_HOSTNAME>  \n"
+      printf "\t-h # print this message  \n"
+      printf "\t-k <DECRYPTION_KEY>  \n"
+      printf "\t-l <LDAP_QUERY_HOST>  \n"
+      printf "\t-t <LDAP_TYPE>  \n"
+      printf "\t-u <DIRECTORY_USER> \n"
+      echo "  GNU long options:"
+      printf "\t--domain-name <LONG_DOMAIN_NAME>  \n"
+      printf "\t--help # print this message  \n"
+      printf "\t--hostname <FORCED_HOSTNAME>  \n"
+      printf "\t--join-crypt <ENCRYPTED_PASSWORD>  \n"
+      printf "\t--join-key <DECRYPTION_KEY>  \n"
+      printf "\t--join-user <DIRECTORY_USER> \n"
+      printf "\t--ldap-host <LDAP_QUERY_HOST>  \n"
+      printf "\t--ldap-type <LDAP_TYPE> \n"
+      printf "\t--ad-site <AD_SITENAME> \n"
+  ) >&2
+  exit 1
 }
 
 # SaltStack-compatible outputter
@@ -545,6 +584,9 @@ VerifyDependencies
 if [[ -z ${LDAPHOST} ]]
 then
   CandidateDirServ
+else
+  DS_LIST=()
+  DS_LIST[0]="${LDAPHOST}"
 fi
 
 # Port-ping candidate directory servers
@@ -567,7 +609,7 @@ OBJECT_DN="$( FindComputer )"
 
 case "${OBJECT_DN}" in
   NOTFOUND)
-    err_exit "Coult not ${HOSTNAME} in ${SEARCHSCOPE}" 1
+    err_exit "Coult not find ${HOSTNAME} in ${SEARCHSCOPE}" 1
     CLEANUP="FALSE"
     ;;
   *)
