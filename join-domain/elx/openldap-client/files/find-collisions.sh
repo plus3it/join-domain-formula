@@ -188,6 +188,12 @@ LDAPPASSWD="$( PWdecrypt )"
 
 CandidateDirServ
 PingDirServ
-CheckTLSsupt
+if [[ ${REQ_TLS} == "true" ]]
+then
+  err_exit "Performing TLS-support test" 0
+  CheckTLSsupt
+else
+  err_exit "Skipping TLS-support test" 0
+fi
 
 err_exit "Found ${#DS_LIST[@]} potentially-good directory servers" 0
