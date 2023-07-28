@@ -16,7 +16,8 @@ DIR_DOMAIN="${JOIN_DOMAIN:-}"
 DIRUSER="${JOIN_USER:-}"
 DOMAINNAME="${JOIN_DOMAIN:-}"
 DS_LIST=()
-LDAPTYPE="AD"
+LDAPHOST="${LDAPHOST:-}"
+LDAPTYPE="${LDAPTYPE:-AD}"
 LDAP_AUTH_TYPE="-x"
 LOGFACIL="${LOGFACIL:-kern.crit}"
 OUTPUT="${OUTPUT:-SALTMODE}"
@@ -308,16 +309,19 @@ function FindComputer {
     err_exit "Found ${COMPUTERNAME}" 0
     echo "${COMPUTERNAME}"
   else
-    err_exit "Did not find ${COMPUTERNAME}" 0
+    err_exit "Did not find '${SHORTHOST}'" 0
     echo "NOTFOUND"
   fi
 
   case "${SEARCH_EXIT}" in
     0)
-      err_exit "Found ${COMPUTERNAME} on ${DS_HOST}"j 0
+      err_exit "Found '${COMPUTERNAME}' on ${DS_HOST}"j 0
+      ;;
+    49)
+      err_exit "Search for '${SHORTHOST}' failed due to invalid credentials" 1
       ;;
     *)
-      err_exit "Delete of ${DIRECTORY_OBJECT} with exit-code '${DELETE_EXIT}'" 1
+      err_exit "Search for '${SHORTHOST}' failed with exit-code '${SEARCH_EXIT}'" 1
       ;;
   esac
 }
@@ -349,13 +353,16 @@ function NukeComputer {
 
   case "${DELETE_EXIT}" in
     0)
-      err_exit "Delete of ${DIRECTORY_OBJECT} succeeded" 0
+      err_exit "Delete of '${DIRECTORY_OBJECT}' succeeded" 0
       ;;
     34)
-      err_exit "Delete of ${DIRECTORY_OBJECT} failed: bad DN syntax" 1
+      err_exit "Delete of '${DIRECTORY_OBJECT}' failed: bad DN syntax" 1
+      ;;
+    49)
+      err_exit "Delete of '${DIRECTORY_OBJECT}' failed: invalid credentials" 1
       ;;
     *)
-      err_exit "Delete of ${DIRECTORY_OBJECT} failed" 1
+      err_exit "Delete of '${DIRECTORY_OBJECT}' failed" 1
       ;;
   esac
 }
