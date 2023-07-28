@@ -56,6 +56,23 @@ function err_exit {
    fi
 }
 
+# SaltStack-compatible outputter
+function SaltOut {
+  if [[ ${OUTPUT} == SALTMODE ]]
+  then
+      case "${2}" in
+        no)
+            printf "\n"
+            printf "changed=no comment='%s'\n" "${1}"
+            ;;
+        yes)
+            printf "\n"
+            printf "changed=yes comment='%s'\n" "${1}"
+            ;;
+      esac
+  fi
+}
+
 # Verify tool-dependencies
 function VerifyDependencies {
   local CHKRPMS
