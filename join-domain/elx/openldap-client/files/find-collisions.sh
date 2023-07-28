@@ -50,6 +50,29 @@ function err_exit {
    fi
 }
 
+# Verify tool-dependencies
+function VerifyDependencies {
+  local CHKRPMS
+  local RPM
+
+  # RPMs to check for
+  CHKRPMS=(
+        bind-utils
+        openldap-clients
+      )
+
+  for RPM in "${CHKRPMS[@]}"
+  do
+      err_exit "Checking if dependency on ${RPM} is satisfied... " 0
+      if [[ $( rpm --quiet -q "${RPM}" )$? -eq 0 ]]
+      then
+        err_exit "Dependency on ${RPM} *is* satisfied" 0
+      else
+        err_exit "Dependency on ${RPM} *not* satisfied" 1
+      fi
+  done
+}
+
 # Get Candidate DCs
 function CandidateDirServ {
   local DNS_SEARCH_STRING
@@ -186,8 +209,16 @@ function CheckTLSsupt {
 
 LDAPPASSWD="$( PWdecrypt )"
 
+# Verify that RPM-dependencies are met
+VerifyDependencies
+
+# Identify list of candidate directory servers
 CandidateDirServ
+
+# Port-ping candidate directory servers
 PingDirServ
+
+# Verify candidate directory servers' properly-functioning TLS support
 if [[ ${REQ_TLS} == "true" ]]
 then
   err_exit "Performing TLS-support test" 0
