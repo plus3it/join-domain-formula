@@ -9,11 +9,12 @@ PROGNAME="$( basename "${0}" )"
 BINDPASS="${CLEARPASS:-}"
 CRYPTKEY="${CRYPTKEY:-}"
 CRYPTSTRING="${CRYPTSTRING:-}"
-DEBUGVAL="${DEBUG:-false}"
+DEBUG="${DEBUG:-false}"
 DIR_DOMAIN="${JOIN_DOMAIN:-}"
 DIRUSER="${JOIN_USER:-}"
 DOMAINNAME="${JOIN_DOMAIN:-}"
 DS_LIST=()
+LDAPPASSWD=""
 LDAPTYPE="AD"
 LOGFACIL="user.err"
 REQ_TLS="${REQ_TLS:-true}"
@@ -113,6 +114,30 @@ function PingDirServ {
   fi
 }
 
+# Decrypt password to use for LDAP queries
+function PWdecrypt {
+  local PWCLEAR
+
+  # Bail if either of crypt-string or decrpytion-key are null
+  if [[ -z ${CRYPTSTRING} ]] || [[ -z ${CRYPTKEY} ]]
+  then
+    logIt "Missing keystring-decryption values" 1
+  fi
+
+  # Lets decrypt!
+  if PWCLEAR=$(
+    echo "${CRYPTSTRING}" | \
+    openssl enc -aes-256-cbc -md sha256 -a -d -salt -pass pass:"${CRYPTKEY}"
+  )
+  then
+    echo "${PWCLEAR}"
+    return 0
+  else
+    echo "Decryption FAILED!"
+    return 1
+  fi
+}
+
 # Check if directory-servers support TLS
 function CheckTLSsupt {
   local    DIR_SERV
@@ -156,6 +181,8 @@ function CheckTLSsupt {
 ################
 # Main program #
 ################
+
+LDAPPASSWD="$( PWdecrypt )"
 
 CandidateDirServ
 PingDirServ
