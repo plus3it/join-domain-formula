@@ -8,12 +8,13 @@ set -euo pipefail
 PROGNAME="$( basename "${0}" )"
 ADSITE="${ADSITE:-}"
 BINDPASS="${CLEARPASS:-}"
+CHK_TLS_SPT="${CHK_TLS_SPT:-true}"
 CLEANUP="${CLEANUP:-TRUE}"
 CRYPTKEY="${CRYPTKEY:-}"
 CRYPTSTRING="${CRYPTSTRING:-}"
 DEBUG="${DEBUG:-false}"
 DIR_DOMAIN="${JOIN_DOMAIN:-}"
-DIRUSER="${JOIN_USER:-}"
+DIR_USER="${JOIN_USER:-}"
 DOMAINNAME="${JOIN_DOMAIN:-}"
 DS_LIST=()
 JOIN_CLIENT="${JOIN_CLIENT:-}"
@@ -22,7 +23,6 @@ LDAP_HOST="${LDAP_HOST:-}"
 LDAP_TYPE="${LDAP_TYPE:-AD}"
 LOGFACIL="${LOGFACIL:-kern.crit}"
 OUTPUT="${OUTPUT:-SALTMODE}"
-REQ_TLS="${REQ_TLS:-true}"
 
 # Make interactive-execution more-verbose unless explicitly told not to
 if [[ $( tty -s ) -eq 0 ]] && [[ ${DEBUG} == "UNDEF" ]]
@@ -548,7 +548,7 @@ do
               exit 1
               ;;
             *)
-              DIRUSER="${2}"
+              DIR_USER="${2}"
               shift 2;
               ;;
         esac
@@ -577,9 +577,9 @@ fi
 # Set directory-user value as appropriate
 if [[ ${LDAP_TYPE} == AD ]]
 then
-  QUERYUSER="${DIRUSER}@${DOMAINNAME}"
+  QUERYUSER="${DIR_USER}@${DOMAINNAME}"
 else
-  QUERYUSER="${DIRUSER}"
+  QUERYUSER="${DIR_USER}"
 fi
 export QUERYUSER
 
@@ -610,7 +610,7 @@ fi
 PingDirServ
 
 # Verify candidate directory servers' properly-functioning TLS support
-if [[ ${REQ_TLS} == "true" ]]
+if [[ ${CHK_TLS_SPT} == "true" ]]
 then
   err_exit "Performing TLS-support test" 0
   CheckTLSsupt
