@@ -174,6 +174,8 @@ function PingDirServ {
   local    DS_PORT
   local -a GOOD_DS_LIST
 
+  # Initialize to null
+  GOOD_DS_LIST=()
 
   for DIR_SERV in "${DS_LIST[@]}"
   do
@@ -189,7 +191,7 @@ function PingDirServ {
     fi
   done
 
-  if [[ ${#GOOD_DS_LIST[@]} -gt 0 ]]
+  if [[ ${#GOOD_DS_LIST[@]-} -gt 0 ]]
   then
     # Overwrite global directory-server array with successfully-pinged
     # servers' info
@@ -233,8 +235,6 @@ function CheckTLSsupt {
   local    DS_PORT
   local -a GOOD_DS_LIST
 
-  setenforce 0
-
   for DIR_SERV in "${DS_LIST[@]}"
   do
     DS_NAME="${DIR_SERV//*;/}"
@@ -255,7 +255,7 @@ function CheckTLSsupt {
 
     # shellcheck disable=SC2199
     # Add servers with good certs to list
-    if [[ ${GOOD_DS_LIST[@]+"${GOOD_DS_LIST[@]}"} -gt 0 ]]
+    if [[ ${#GOOD_DS_LIST[@]} -gt 0 ]]
     then
       # Overwrite global directory-server array with successfully-pinged
       # servers' info
@@ -269,8 +269,6 @@ function CheckTLSsupt {
       err_exit "${DS_NAME} failed cert-check" 0
     fi
   done
-
-  setenforce 1
 }
 
 function FindComputer {
