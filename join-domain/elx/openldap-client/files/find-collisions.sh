@@ -27,7 +27,7 @@ OUTPUT="${OUTPUT:-SALTMODE}"
 # Make interactive-execution more-verbose unless explicitly told not to
 if [[ $( tty -s ) -eq 0 ]] && [[ ${DEBUG} == "UNDEF" ]]
 then
-   DEBUG="true"
+  DEBUG="true"
 fi
 
 
@@ -37,62 +37,62 @@ fi
 
 # Error handler function
 function err_exit {
-   local ERRSTR
-   local ISNUM
-   local SCRIPTEXIT
+  local ERRSTR
+  local ISNUM
+  local SCRIPTEXIT
 
-   ERRSTR="${1}"
-   ISNUM='^[0-9]+$'
-   SCRIPTEXIT="${2:-1}"
+  ERRSTR="${1}"
+  ISNUM='^[0-9]+$'
+  SCRIPTEXIT="${2:-1}"
 
-   if [[ ${DEBUG} == true ]]
-   then
-      # Our output channels
-      logger -i -t "${PROGNAME}" -p "${LOGFACIL}" -s -- "${ERRSTR}"
-   else
-      logger -i -t "${PROGNAME}" -p "${LOGFACIL}" -- "${ERRSTR}"
-   fi
+  if [[ ${DEBUG} == true ]]
+  then
+    # Our output channels
+    logger -i -t "${PROGNAME}" -p "${LOGFACIL}" -s -- "${ERRSTR}"
+  else
+    logger -i -t "${PROGNAME}" -p "${LOGFACIL}" -- "${ERRSTR}"
+  fi
 
-   # Only exit if requested exit is numerical
-   if [[ ${SCRIPTEXIT} =~ ${ISNUM} ]]
-   then
-      return "${SCRIPTEXIT}"
-   fi
+  # Only exit if requested exit is numerical
+  if [[ ${SCRIPTEXIT} =~ ${ISNUM} ]]
+  then
+    return "${SCRIPTEXIT}"
+  fi
 }
 
 # Print out a basic usage message
 function UsageMsg {
   (
-      # Special cases
-      if [[ -n ${MISSINGARGS} ]]
-      then
-        printf "Failed to pass one or more mandatory arguments\n\n"
-      elif [[ -n ${EXCLUSIVEARGS} ]]
-      then
-        printf "Passed two or more exclusive arguments\n\n"
-      fi
+    # Special cases
+    if [[ -n ${MISSINGARGS} ]]
+    then
+      printf "Failed to pass one or more mandatory arguments\n\n"
+    elif [[ -n ${EXCLUSIVEARGS} ]]
+    then
+      printf "Passed two or more exclusive arguments\n\n"
+    fi
 
-      echo "Usage: ${0} [GNU long option] [option] ..."
-      echo "  Options:"
-      printf "\t-a <AD_SITENAME> \n"
-      printf "\t-c <ENCRYPTED_PASSWORD>  \n"
-      printf "\t-d <LONG_DOMAIN_NAME>  \n"
-      printf "\t-f <FORCED_HOSTNAME>  \n"
-      printf "\t-h # print this message  \n"
-      printf "\t-k <DECRYPTION_KEY>  \n"
-      printf "\t-l <LDAP_QUERY_HOST>  \n"
-      printf "\t-t <LDAP_TYPE>  \n"
-      printf "\t-u <DIRECTORY_USER> \n"
-      echo "  GNU long options:"
-      printf "\t--domain-name <LONG_DOMAIN_NAME>  \n"
-      printf "\t--help # print this message  \n"
-      printf "\t--hostname <FORCED_HOSTNAME>  \n"
-      printf "\t--join-crypt <ENCRYPTED_PASSWORD>  \n"
-      printf "\t--join-key <DECRYPTION_KEY>  \n"
-      printf "\t--join-user <DIRECTORY_USER> \n"
-      printf "\t--ldap-host <LDAP_QUERY_HOST>  \n"
-      printf "\t--ldap-type <LDAP_TYPE> \n"
-      printf "\t--ad-site <AD_SITENAME> \n"
+    echo "Usage: ${0} [GNU long option] [option] ..."
+    echo "  Options:"
+    printf "\t-a <AD_SITENAME> \n"
+    printf "\t-c <ENCRYPTED_PASSWORD>  \n"
+    printf "\t-d <LONG_DOMAIN_NAME>  \n"
+    printf "\t-f <FORCED_HOSTNAME>  \n"
+    printf "\t-h # print this message  \n"
+    printf "\t-k <DECRYPTION_KEY>  \n"
+    printf "\t-l <LDAP_QUERY_HOST>  \n"
+    printf "\t-t <LDAP_TYPE>  \n"
+    printf "\t-u <DIRECTORY_USER> \n"
+    echo "  GNU long options:"
+    printf "\t--domain-name <LONG_DOMAIN_NAME>  \n"
+    printf "\t--help # print this message  \n"
+    printf "\t--hostname <FORCED_HOSTNAME>  \n"
+    printf "\t--join-crypt <ENCRYPTED_PASSWORD>  \n"
+    printf "\t--join-key <DECRYPTION_KEY>  \n"
+    printf "\t--join-user <DIRECTORY_USER> \n"
+    printf "\t--ldap-host <LDAP_QUERY_HOST>  \n"
+    printf "\t--ldap-type <LDAP_TYPE> \n"
+    printf "\t--ad-site <AD_SITENAME> \n"
   ) >&2
   exit 1
 }
@@ -101,16 +101,16 @@ function UsageMsg {
 function SaltOut {
   if [[ ${OUTPUT} == SALTMODE ]]
   then
-      case "${2}" in
-        no)
-            printf "\n"
-            printf "changed=no comment='%s'\n" "${1}"
-            ;;
-        yes)
-            printf "\n"
-            printf "changed=yes comment='%s'\n" "${1}"
-            ;;
-      esac
+    case "${2}" in
+      no)
+        printf "\n"
+        printf "changed=no comment='%s'\n" "${1}"
+        ;;
+      yes)
+        printf "\n"
+        printf "changed=yes comment='%s'\n" "${1}"
+        ;;
+    esac
   fi
 }
 
@@ -121,19 +121,19 @@ function VerifyDependencies {
 
   # RPMs to check for
   CHKRPMS=(
-        bind-utils
-        openldap-clients
-      )
+    bind-utils
+    openldap-clients
+  )
 
   for RPM in "${CHKRPMS[@]}"
   do
-      err_exit "Checking if dependency on ${RPM} is satisfied... " 0
-      if [[ $( rpm --quiet -q "${RPM}" )$? -eq 0 ]]
-      then
-        err_exit "Dependency on ${RPM} *is* satisfied" 0
-      else
-        err_exit "Dependency on ${RPM} *not* satisfied" 1
-      fi
+    err_exit "Checking if dependency on ${RPM} is satisfied... " 0
+    if [[ $( rpm --quiet -q "${RPM}" )$? -eq 0 ]]
+    then
+      err_exit "Dependency on ${RPM} *is* satisfied" 0
+    else
+      err_exit "Dependency on ${RPM} *not* satisfied" 1
+    fi
   done
 }
 
@@ -183,8 +183,8 @@ function PingDirServ {
     DS_PORT="${DIR_SERV//;*/}"
 
     if [[ $(
-        timeout 1 bash -c "echo > /dev/tcp/${DS_NAME}/${DS_PORT}"
-      ) -eq 0 ]]
+      timeout 1 bash -c "echo > /dev/tcp/${DS_NAME}/${DS_PORT}"
+    ) -eq 0 ]]
     then
       GOOD_DS_LIST+=("${DIR_SERV}")
       err_exit "${DIR_SERV//*;} responds to port-ping" 0
@@ -245,13 +245,13 @@ function CheckTLSsupt {
     DS_PORT="${DIR_SERV//;*/}"
 
     if [[ $(
-        echo | \
-        timeout 15 openssl s_client \
-          -showcerts \
-          -starttls ldap \
-          -connect "${DS_NAME}:${DS_PORT}" 2> /dev/null | \
-        openssl verify > /dev/null 2>&1
-      )$? -eq 0 ]]
+      echo | \
+      timeout 15 openssl s_client \
+        -showcerts \
+        -starttls ldap \
+        -connect "${DS_NAME}:${DS_PORT}" 2> /dev/null | \
+      openssl verify > /dev/null 2>&1
+    )$? -eq 0 ]]
     then
       GOOD_DS_LIST+=("${DIR_SERV}")
       err_exit "Appending ${DS_NAME} to 'good servers' list" 0
