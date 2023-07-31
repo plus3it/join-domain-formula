@@ -191,7 +191,11 @@ function PingDirServ {
     fi
   done
 
-  if [[ ${#GOOD_DS_LIST[@]-} -gt 0 ]]
+  # Looking for unbound vars doesn't work well in this function
+  set +u
+
+  # Check if we actually found any servers that properly-support TLS
+  if [[ ${#GOOD_DS_LIST[@]} -gt 0 ]]
   then
     # Overwrite global directory-server array with successfully-pinged
     # servers' info
