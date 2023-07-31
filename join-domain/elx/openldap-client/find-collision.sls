@@ -27,7 +27,7 @@ LDAP-FindCollison:
       - JOIN_DOMAIN: '{{ join_domain.dns_name }}'
       - JOIN_OU: '{{ join_domain.oupath }}'
       - JOIN_USER: '{{ join_domain.username }}'
-      - REQ_TLS: '{{ tls_check }}'
+      - CHK_TLS_SPT: '{{ tls_check }}'
 {%- if join_domain.ad_site_name and join_domain.get("encrypted_password") %}
     - name: 'find-collisions.sh -d "{{ join_domain.dns_name }}" -s "{{ join_domain.ad_site_name }}" --mode saltstack'
 {%- elif join_domain.ad_site_name and join_domain.get("password") %}
