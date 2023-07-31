@@ -233,6 +233,8 @@ function CheckTLSsupt {
   local    DS_PORT
   local -a GOOD_DS_LIST
 
+  setenforce 0
+
   for DIR_SERV in "${DS_LIST[@]}"
   do
     DS_NAME="${DIR_SERV//*;/}"
@@ -240,7 +242,9 @@ function CheckTLSsupt {
 
     if [[ $(
         echo | \
-        openssl s_client -showcerts -starttls ldap \
+        timeout 15 openssl s_client \
+          -showcerts \
+          -starttls ldap \
           -connect "${DS_NAME}:${DS_PORT}" 2> /dev/null | \
         openssl verify > /dev/null 2>&1
       )$? -eq 0 ]]
@@ -265,6 +269,8 @@ function CheckTLSsupt {
       err_exit "${DS_NAME} failed cert-check" 0
     fi
   done
+
+  setenforce 1
 }
 
 function FindComputer {
