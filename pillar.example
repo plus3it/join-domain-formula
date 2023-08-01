@@ -29,67 +29,68 @@ join-domain:
     # Linux-specific pillar settings
     ################################
 
-    # Required domain-specific settings
+    ## Required domain-specific settings
     dns_name:
-    netbios_name:
+    netbios_name: (PBIS-specific requirement)
     username:
 
-    # Mutually Exclusive Required Settings
+    ## Mutually Exclusive Required Settings
     encrypted_password:
     key:
     # or
     password:
 
-    # Optional domain-specific settings
-    #ad_site_name:
-    #oupath:
-    #admin_users:
-    #admin_groups:
-    #  - linux^admins
-    #ddns server: (*NUMERIC* address of dynamic-DNS server for AD domain)
-    #login_home: (PBIS and sssd each use differnt substitution-tokens - see man pages)
-    #login_shell: (defaults to '/bin/bash')
-    #login_users:
-    #login_groups:
-    #  - linux^operators
-    #trusted_domains (PBIS only)
-    #  - trusted.ad.domain1
-    #  - trusted.ad.domain2
-    #  - ...
-    #  - trusted.ad.domainn
+    ## Optional domain-specific settings
+    ad_site_name:
+    oupath:
+    admin_users:
+    admin_groups:
+      - linux^admins
+    ddns server: (*NUMERIC* address of dynamic-DNS server for AD domain)
+    login_home: (PBIS and sssd each use differnt substitution-tokens - see man pages)
+    login_shell: (defaults to '/bin/bash')
+    login_users:
+    login_groups:
+      - linux^operators
+    trusted_domains (PBIS only)
+      - trusted.ad.domain1
+      - trusted.ad.domain2
+      - ...
+      - trusted.ad.domainn
+    tls_check: (Used for resolving stale-object collisions in directory-domains that don't support TLS)
 
     # AD-connector Tool
-    #ad_connector: [pbis|sssd]
+    ad_connector: [pbis|sssd]
 
     # List of RPM sources to install (PBIS-only)
-    #connector_rpms:
-    #  - pbis-open-legacy: https://s3.amazonaws.com/bits-public/beyond-trust/pbiso/pbis-open-legacy-8.5.3-293.x86_64.rpm
-    #  - pbis-open: https://s3.amazonaws.com/bits-public/beyond-trust/pbiso/pbis-open-8.5.3-293.x86_64.rpm
-    #  - pbis-open-devel: https://s3.amazonaws.com/bits-public/beyond-trust/pbiso/pbis-open-devel-8.5.3-293.x86_64.rpm
-    #  - pbis-open-gui: https://s3.amazonaws.com/bits-public/beyond-trust/pbiso/pbis-open-gui-8.5.3-293.x86_64.rpm
-    #  - pbis-open-upgrade: https://s3.amazonaws.com/bits-public/beyond-trust/pbiso/pbis-open-upgrade-8.5.3-293.x86_64.rpm
+    connector_rpms:
+      - pbis-open-legacy: https://s3.amazonaws.com/bits-public/beyond-trust/pbiso/pbis-open-legacy-8.5.3-293.x86_64.rpm
+      - pbis-open: https://s3.amazonaws.com/bits-public/beyond-trust/pbiso/pbis-open-8.5.3-293.x86_64.rpm
+      - pbis-open-devel: https://s3.amazonaws.com/bits-public/beyond-trust/pbiso/pbis-open-devel-8.5.3-293.x86_64.rpm
+      - pbis-open-gui: https://s3.amazonaws.com/bits-public/beyond-trust/pbiso/pbis-open-gui-8.5.3-293.x86_64.rpm
+      - pbis-open-upgrade: https://s3.amazonaws.com/bits-public/beyond-trust/pbiso/pbis-open-upgrade-8.5.3-293.x86_64.rpm
 
     # Directories where PBIS is installed to the system (PBIS-only)
-    #install_bin_dir: /opt/pbis
-    #install_var_dir: /var/lib/pbis
-    #install_db_dir: /var/lib/pbis/db
+    install_bin_dir: /opt/pbis
+    install_var_dir: /var/lib/pbis
+    install_db_dir: /var/lib/pbis/db
 
     # List of critical files to look for (PBIS-only)
-    #check_files:
-    #  - registry.db
-    #  - sam.db
-    #  - lwi_events.db
-    #  - lsass-adcache.filedb.FQDN
+    check_files:
+      - registry.db
+      - sam.db
+      - lwi_events.db
+      - lsass-adcache.filedb.FQDN
 
     # Whether to try to use AD-integration subsystem's associated utility for
     # issuing a DDNS update request. (PBIS-only)
     #    Note: this is only known to work with DNS systems based on Microsoft's
     #          DNS-integrated Active Directory service.
-    #update-dns: true
+    update-dns: true
 
     # Example for overriding or adding additional SSSD conf parameters
-    #sssd_conf_parameters:
-    #  default_shell: '/bin/bash'
-    #  override_homedir: '/home/%d/%f'
-    #  shell_fallback: '/bin/sh'
-    #  use_fully_qualified_names: 'True'
+    sssd_conf_parameters:
+      default_shell: '/bin/bash'
+      override_homedir: '/home/%d/%f'
+      shell_fallback: '/bin/sh'
+      use_fully_qualified_names: 'True'
