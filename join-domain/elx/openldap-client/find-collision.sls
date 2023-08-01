@@ -9,8 +9,6 @@
 {#- Set location for helper-files #}
 {%- set files = tpldir ~ '/files' %}
 
-{%- set tls_check = join_domain.tls_check %}
-
 RPM-installs:
   pkg.installed:
     - pkgs:
