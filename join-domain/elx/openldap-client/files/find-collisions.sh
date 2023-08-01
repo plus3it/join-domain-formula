@@ -322,6 +322,9 @@ function FindComputer {
     echo "NOTFOUND"
   fi
 
+  # See 'https://docs.oracle.com/cd/E19199-01/816-6400-10/ldelete.html' for
+  # detailed list of LDAP exit-codes. Below is the subset that have been
+  # encountered during testing of this script's operations
   case "${SEARCH_EXIT}" in
     0)
       err_exit "Found '${COMPUTERNAME}' on ${DS_HOST}"j 0
@@ -363,6 +366,9 @@ function NukeComputer {
 
   DELETE_EXIT="$?"
 
+  # See 'https://docs.oracle.com/cd/E19199-01/816-6400-10/ldelete.html' for
+  # detailed list of LDAP exit-codes. Below is the subset that have been
+  # encountered during testing of this script's operations
   case "${DELETE_EXIT}" in
     0)
       err_exit "Delete of '${DIRECTORY_OBJECT}' succeeded" 0
