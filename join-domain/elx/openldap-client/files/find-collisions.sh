@@ -194,7 +194,7 @@ function PingDirServ {
   # Looking for unbound vars doesn't work well in this function
   set +u
 
-  # Check if we actually found any servers that properly-support TLS
+  # Check if we actually found any servers respond to port-pings
   if [[ ${#GOOD_DS_LIST[@]} -gt 0 ]]
   then
     # Overwrite global directory-server array with successfully-pinged
@@ -327,7 +327,7 @@ function FindComputer {
   # encountered during testing of this script's operations
   case "${SEARCH_EXIT}" in
     0)
-      err_exit "Found '${COMPUTERNAME}' on ${DS_HOST}"j 0
+      err_exit "Found '${COMPUTERNAME}' on ${DS_HOST}" 0
       ;;
     32)
       err_exit "Search for '${SHORTHOST}' failed due to 'no such object'" 1
