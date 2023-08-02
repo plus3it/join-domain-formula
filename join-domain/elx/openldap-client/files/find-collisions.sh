@@ -334,6 +334,9 @@ function FindComputer {
     0)
       err_exit "Found '${COMPUTERNAME}' on ${DS_HOST}" 0
       ;;
+    8)
+      err_exit "Search for '${SHORTHOST}' failed due insufficient auth-strength selection" 1
+      ;;
     32)
       err_exit "Search for '${SHORTHOST}' failed due to 'no such object'" 1
       ;;
