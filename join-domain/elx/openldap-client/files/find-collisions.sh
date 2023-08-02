@@ -8,7 +8,6 @@ set -euo pipefail
 PROGNAME="$( basename "${0}" )"
 ADSITE="${ADSITE:-}"
 BINDPASS="${CLEARPASS:-}"
-CHK_TLS_SPT="${CHK_TLS_SPT:-true}"
 CLEANUP="${CLEANUP:-TRUE}"
 CRYPTKEY="${CRYPTKEY:-}"
 CRYPTSTRING="${CRYPTSTRING:-}"
@@ -19,10 +18,12 @@ DOMAINNAME="${JOIN_DOMAIN:-}"
 DS_LIST=()
 JOIN_CLIENT="${JOIN_CLIENT:-}"
 LDAP_AUTH_TYPE="-x"
+LDAP_FATAL_EXIT="${LDAP_FATAL_EXIT:-false}"
 LDAP_HOST="${LDAP_HOST:-}"
 LDAP_TYPE="${LDAP_TYPE:-AD}"
 LOGFACIL="${LOGFACIL:-kern.crit}"
 OUTPUT="${OUTPUT:-SALTMODE}"
+USE_TLS_OPTION="${USE_TLS_OPTION:-try}"
 
 # Make interactive-execution more-verbose unless explicitly told not to
 if [[ $( tty -s ) -eq 0 ]] && [[ ${DEBUG} == "UNDEF" ]]
@@ -261,14 +262,18 @@ function CheckTLSsupt {
     # Add servers with good certs to list
     if [[ ${#GOOD_DS_LIST[@]} -gt 0 ]]
     then
+      err_exit "Found servers with TLS-support: using TLS mode" 0
       # Overwrite global directory-server array with successfully-pinged
       # servers' info
       DS_LIST=("${GOOD_DS_LIST[@]}")
       LDAP_AUTH_TYPE="-Zx"
       return 0
+    elif [[ ${USE_TLS_OPTION} == "try" ]]
+    then
+      err_exit "No LDAP servers found with TLS-support: using standard LDAP" 0
+      LDAP_AUTH_TYPE="-x"
     else
       # Null the list
-      LDAP_AUTH_TYPE="-x"
       DS_LIST=()
       err_exit "${DS_NAME} failed cert-check" 0
     fi
@@ -624,16 +629,27 @@ fi
 PingDirServ
 
 # Verify candidate directory servers' properly-functioning TLS support
-if [[ ${CHK_TLS_SPT} == "true" ]]
-then
-  err_exit "Performing TLS-support test" 0
-  CheckTLSsupt
-else
-  err_exit "Skipping TLS-support test" 0
-fi
+case "${USE_TLS_OPTION}" in
+  require|try)
+    err_exit "Performing TLS-support test" 0
+    CheckTLSsupt
+    ;;
+  none)
+    err_exit "Skipping TLS-support test" 0
+    ;;
+  *)
+    err_exit "Invalid option selected for 'USE_TLS_OPTION'. Aborting..." 1
+    ;;
+esac
 
 # Emit number of servers found
-err_exit "Found ${#DS_LIST[@]} potentially-good directory servers" 0
+if ((  ${#DS_LIST[@]} ))
+then
+  err_exit "Found ${#DS_LIST[@]} potentially-good directory servers" 0
+else
+  err_exit "Found no usable directory servers. Aborting..." 1
+fi
+
 
 # Find target computerObject
 OBJECT_DN="$( FindComputer )"
