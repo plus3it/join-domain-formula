@@ -22,6 +22,8 @@ install_sssd:
   pkg.installed:
     - allow_updates: True
     - pkgs: {{ pkg_list }}
+    - require:
+      - cmd: 'LDAP-FindCollison'
 
 fix_domain_separator:
   ini.options_present:
@@ -85,6 +87,5 @@ join_realm-{{ join_domain.dns_name }}:
       - ini: 'fix_domain_separator'
       - file: 'domain_defaults-{{ join_domain.dns_name }}_ensure_permissions'
       - cmd: 'sssd-NETBIOSfix'
-      - cmd: 'LDAP-FindCollison'
     - source: 'salt://{{ joiner_files }}/join.sh'
     - unless: 'realm list | grep -qs {{ join_domain.dns_name }}'
