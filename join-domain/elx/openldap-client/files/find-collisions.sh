@@ -55,9 +55,12 @@ function err_exit {
   fi
 
   # Only exit if requested exit is numerical
-  if [[ ${SCRIPTEXIT} =~ ${ISNUM} ]]
+  if [[ ${SCRIPTEXIT} =~ ${ISNUM} ]] && [[ ${LDAP_FATAL_EXIT} == "true" ]]
   then
     return "${SCRIPTEXIT}"
+  elif [[ ${SCRIPTEXIT} =~ ${ISNUM} ]] && [[ ${LDAP_FATAL_EXIT} == "false" ]]
+  then
+    return 0
   fi
 }
 
