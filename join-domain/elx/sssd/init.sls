@@ -9,6 +9,15 @@
 {%- set joiner_files = tpldir ~ '/files' %}
 {%- set common_tools = 'salt://' ~ salt.file.dirname(tpldir) ~ '/common-tools'  %}
 
+# link to openldap-client so we can use state-exit data
+{#- Get the `tplroot` from `tpldir` #}
+{%- set tplroot = tpldir.split('/')[0] %}
+{%- set sls_package_install = tplroot ~ '.elx.openldap-client.find-collision' %}
+
+include:
+  - {{ sls_package_install }}
+
+
 install_sssd:
   pkg.installed:
     - allow_updates: True
@@ -76,5 +85,6 @@ join_realm-{{ join_domain.dns_name }}:
       - ini: 'fix_domain_separator'
       - file: 'domain_defaults-{{ join_domain.dns_name }}_ensure_permissions'
       - cmd: 'sssd-NETBIOSfix'
+      - cmd: 'LDAP-FindCollison'
     - source: 'salt://{{ joiner_files }}/join.sh'
     - unless: 'realm list | grep -qs {{ join_domain.dns_name }}'
