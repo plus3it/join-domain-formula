@@ -9,10 +9,21 @@
 {%- set joiner_files = tpldir ~ '/files' %}
 {%- set common_tools = 'salt://' ~ salt.file.dirname(tpldir) ~ '/common-tools'  %}
 
+# link to openldap-client so we can use state-exit data
+{#- Get the `tplroot` from `tpldir` #}
+{%- set tplroot = tpldir.split('/')[0] %}
+{%- set sls_package_install = tplroot ~ '.elx.openldap-client.find-collision' %}
+
+include:
+  - {{ sls_package_install }}
+
+
 install_sssd:
   pkg.installed:
     - allow_updates: True
     - pkgs: {{ pkg_list }}
+    - require:
+      - cmd: 'LDAP-FindCollison'
 
 fix_domain_separator:
   ini.options_present:

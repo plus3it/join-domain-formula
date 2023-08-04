@@ -10,6 +10,5 @@
 ) %}
 
 include:
-  - .openldap-client.find-collision
   - .{{ ad_connector }}
   - .auth-config

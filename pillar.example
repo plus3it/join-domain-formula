@@ -57,7 +57,15 @@ join-domain:
       - trusted.ad.domain2
       - ...
       - trusted.ad.domainn
-    tls_check: (Used for resolving stale-object collisions in directory-domains that don't support TLS)
+
+    # For detection of naming-collisions via LDAP tools
+    ldap_tls_mode:   Provide a hint to the collision-detection script for
+                     whether to use TLS when performing lookup and deletion
+                     activities. Valid values of 'require', 'try' or 'none';
+                     default value of 'try'.
+    ldap_fatal_exit: Whether a connection-failure during search or delete
+                     operation results in the search/delete functions exiting
+                     fatally or not. Valid values of 'true' or 'false'
 
     # AD-connector Tool
     ad_connector: [pbis|sssd]

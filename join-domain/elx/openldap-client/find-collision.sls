@@ -20,12 +20,13 @@ LDAP-FindCollison:
   cmd.script:
     - cwd: '/root'
     - env:
-      - CRYPTSTRING: '{{ join_domain.encrypted_password }}'
       - CRYPTKEY: '{{ join_domain.key }}'
+      - CRYPTSTRING: '{{ join_domain.encrypted_password }}'
       - JOIN_DOMAIN: '{{ join_domain.dns_name }}'
       - JOIN_OU: '{{ join_domain.oupath }}'
       - JOIN_USER: '{{ join_domain.username }}'
-      - CHK_TLS_SPT: '{{ join_domain.tls_check }}'
+      - LDAP_FATAL_EXIT: '{{ join_domain.ldap_fatal_exit }}'
+      - USE_TLS_OPTION: '{{ join_domain.ldap_tls_mode }}'
 {%- if join_domain.ad_site_name and join_domain.get("encrypted_password") %}
     - name: 'find-collisions.sh -d "{{ join_domain.dns_name }}" -s "{{ join_domain.ad_site_name }}" --mode saltstack'
 {%- elif join_domain.ad_site_name and join_domain.get("password") %}
