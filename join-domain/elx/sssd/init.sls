@@ -16,6 +16,15 @@
 
 include:
   - {{ sls_package_install }}
+  {%- if salt.state.sls_exists('ash-linux.el8.STIGbyID.cat1.RHEL-08-no_pam_nullok') %}
+  - ash-linux.el8.STIGbyID.cat1.RHEL-08-no_pam_nullok
+  {%- endif %}
+  {%- if salt.state.sls_exists('ash-linux.el8.STIGbyID.cat2.RHEL-08-pam_pwhistory') %}
+  - ash-linux.el8.STIGbyID.cat2.RHEL-08-pam_pwhistory
+  {%- endif %}
+  {%- if salt.state.sls_exists('ash-linux.el8.STIGbyID.cat2.RHEL-08-pam_faillock') %}
+  - ash-linux.el8.STIGbyID.cat2.RHEL-08-pam_faillock
+  {%- endif %}
 
 
 install_sssd:
@@ -87,5 +96,15 @@ join_realm-{{ join_domain.dns_name }}:
       - ini: 'fix_domain_separator'
       - file: 'domain_defaults-{{ join_domain.dns_name }}_ensure_permissions'
       - cmd: 'sssd-NETBIOSfix'
+    - require_in:
+      {%- if salt.state.sls_exists('ash-linux.el8.STIGbyID.cat1.RHEL-08-no_pam_nullok') %}
+      - cmd: Ensure Valid Starting Config (RHEL-08-no_pam_nullok)
+      {%- endif %}
+      {%- if salt.state.sls_exists('ash-linux.el8.STIGbyID.cat2.RHEL-08-pam_pwhistory') %}
+      - cmd: Ensure Valid Starting Config (RHEL-08-pam_pwhistory)
+      {%- endif %}
+      {%- if salt.state.sls_exists('ash-linux.el8.STIGbyID.cat2.RHEL-08-pam_faillock') %}
+      - cmd: Ensure Valid Starting Config (RHEL-08-pam_faillock)
+      {%- endif %}
     - source: 'salt://{{ joiner_files }}/join.sh'
     - unless: 'realm list | grep -qs {{ join_domain.dns_name }}'
