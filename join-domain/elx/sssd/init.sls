@@ -108,3 +108,21 @@ join_realm-{{ join_domain.dns_name }}:
       {%- endif %}
     - source: 'salt://{{ joiner_files }}/join.sh'
     - unless: 'realm list | grep -qs {{ join_domain.dns_name }}'
+
+Ensure with-mkhomedir feature is enabled:
+  cmd.run:
+    - name: authselect enable-feature with-mkhomedir
+    - cwd: /root
+    - require:
+      - cmd: join_realm-{{ join_domain.dns_name }}
+      {%- if salt.state.sls_exists('ash-linux.el8.STIGbyID.cat1.RHEL-08-no_pam_nullok') %}
+      - cmd: Ensure Valid Starting Config (RHEL-08-no_pam_nullok)
+      {%- endif %}
+      {%- if salt.state.sls_exists('ash-linux.el8.STIGbyID.cat2.RHEL-08-pam_pwhistory') %}
+      - cmd: Ensure Valid Starting Config (RHEL-08-pam_pwhistory)
+      {%- endif %}
+      {%- if salt.state.sls_exists('ash-linux.el8.STIGbyID.cat2.RHEL-08-pam_faillock') %}
+      - cmd: Ensure Valid Starting Config (RHEL-08-pam_faillock)
+      {%- endif %}
+    - unless:
+      - 'authselect current | grep -q "with-mkhomedir"'
