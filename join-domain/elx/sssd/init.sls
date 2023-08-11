@@ -9,7 +9,27 @@
 {%- set joiner_files = tpldir ~ '/files' %}
 {%- set common_tools = 'salt://' ~ salt.file.dirname(tpldir) ~ '/common-tools'  %}
 {%- set elMajor = salt.grains.get('osmajorrelease') | string %}
-{%- set elRel = 'el' + elMajor %}
+{%- set pam_no_nullok =
+          'ash-linux.el' +
+           elMajor +
+           '.STIGbyID.cat1.RHEL-0' +
+           elMajor +
+           '-no_pam_nullok'
+%}
+{%- set pam_pwhistory =
+          'ash-linux.el' +
+           elMajor +
+           '.STIGbyID.cat2.RHEL-0' +
+           elMajor +
+           '-pam_pwhistory'
+%}
+{%- set pam_faillock =
+          'ash-linux.el' +
+           elMajor +
+           '.STIGbyID.cat2.RHEL-0' +
+           elMajor +
+           '-pam_faillock'
+%}
 
 # link to openldap-client so we can use state-exit data
 {#- Get the `tplroot` from `tpldir` #}
@@ -18,16 +38,15 @@
 
 include:
   - {{ sls_package_install }}
-  {%- if salt.state.sls_exists('ash-linux.' + elRel + '.STIGbyID.cat1.RHEL-08-no_pam_nullok') %}
+  {%- if salt.state.sls_exists(pam_no_nullok) %}
   - ash-linux.el8.STIGbyID.cat1.RHEL-08-no_pam_nullok
   {%- endif %}
-  {%- if salt.state.sls_exists('ash-linux.' + elRel + '.STIGbyID.cat2.RHEL-08-pam_pwhistory') %}
+  {%- if salt.state.sls_exists(pam_pwhistory) %}
   - ash-linux.el8.STIGbyID.cat2.RHEL-08-pam_pwhistory
   {%- endif %}
-  {%- if salt.state.sls_exists('ash-linux.' + elRel + '.STIGbyID.cat2.RHEL-08-pam_faillock') %}
+  {%- if salt.state.sls_exists(pam_faillock) %}
   - ash-linux.el8.STIGbyID.cat2.RHEL-08-pam_faillock
   {%- endif %}
-
 
 install_sssd:
   pkg.installed:
@@ -99,13 +118,13 @@ join_realm-{{ join_domain.dns_name }}:
       - file: 'domain_defaults-{{ join_domain.dns_name }}_ensure_permissions'
       - cmd: 'sssd-NETBIOSfix'
     - require_in:
-      {%- if salt.state.sls_exists('ash-linux.' + elRel + '.STIGbyID.cat1.RHEL-08-no_pam_nullok') %}
+      {%- if salt.state.sls_exists(pam_no_nullok) %}
       - cmd: Ensure Valid Starting Config (RHEL-08-no_pam_nullok)
       {%- endif %}
-      {%- if salt.state.sls_exists('ash-linux.' + elRel + '.STIGbyID.cat2.RHEL-08-pam_pwhistory') %}
+      {%- if salt.state.sls_exists(pam_pwhistory) %}
       - cmd: Ensure Valid Starting Config (RHEL-08-pam_pwhistory)
       {%- endif %}
-      {%- if salt.state.sls_exists('ash-linux.' + elRel + '.STIGbyID.cat2.RHEL-08-pam_faillock') %}
+      {%- if salt.state.sls_exists(pam_faillock) %}
       - cmd: Ensure Valid Starting Config (RHEL-08-pam_faillock)
       {%- endif %}
     - source: 'salt://{{ joiner_files }}/join.sh'
@@ -119,13 +138,13 @@ Ensure with-mkhomedir feature is enabled:
       - 'rpm -q --quiet authselect'
     - require:
       - cmd: join_realm-{{ join_domain.dns_name }}
-      {%- if salt.state.sls_exists('ash-linux.' + elRel + '.STIGbyID.cat1.RHEL-08-no_pam_nullok') %}
+      {%- if salt.state.sls_exists(pam_no_nullok) %}
       - cmd: Ensure Valid Starting Config (RHEL-08-no_pam_nullok)
       {%- endif %}
-      {%- if salt.state.sls_exists('ash-linux.' + elRel + '.STIGbyID.cat2.RHEL-08-pam_pwhistory') %}
+      {%- if salt.state.sls_exists(pam_pwhistory) %}
       - cmd: Ensure Valid Starting Config (RHEL-08-pam_pwhistory)
       {%- endif %}
-      {%- if salt.state.sls_exists('ash-linux.' + elRel + '.STIGbyID.cat2.RHEL-08-pam_faillock') %}
+      {%- if salt.state.sls_exists(pam_faillock) %}
       - cmd: Ensure Valid Starting Config (RHEL-08-pam_faillock)
       {%- endif %}
     - unless:
