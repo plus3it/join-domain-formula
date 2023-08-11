@@ -51,6 +51,27 @@ function IsDiscoverable {
   fi
 }
 
+# Perform cleanup actions to leave the domain
+function CleanupDomain {
+  echo "Leaving the domain ..."
+  realm leave "${JOIN_DOMAIN}" || true
+
+# Remove DDNS records associated with the host
+  echo "Removing DDNS records..."
+  sss_dnsupdate -d
+
+# Delete specific files and configurations
+  echo "Cleaning up configuration files..."
+  rm -f "/etc/sssd/conf.d/${JOIN_DOMAIN}.conf"
+  rm -f "/etc/krb5.keytab"
+
+# Empty /etc/krb5.conf.d directory
+  echo "Emptying /etc/krb5.conf.d directory..."
+  rm -f "/etc/krb5.conf.d/*"
+
+  echo "Cleanup completed."
+}
+
 # Try to join host to domain
 function JoinDomain {
 
@@ -115,4 +136,5 @@ function JoinDomain {
 }
 
 IsDiscoverable
+CleanupDomain
 JoinDomain
