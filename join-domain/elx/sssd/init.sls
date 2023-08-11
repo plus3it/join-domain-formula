@@ -115,6 +115,8 @@ Ensure with-mkhomedir feature is enabled:
   cmd.run:
     - name: authselect enable-feature with-mkhomedir
     - cwd: /root
+    - onlyif:
+      - 'rpm -q --quiet authselect'
     - require:
       - cmd: join_realm-{{ join_domain.dns_name }}
       {%- if salt.state.sls_exists('ash-linux.' + elRel + '.STIGbyID.cat1.RHEL-08-no_pam_nullok') %}
@@ -127,4 +129,7 @@ Ensure with-mkhomedir feature is enabled:
       - cmd: Ensure Valid Starting Config (RHEL-08-pam_faillock)
       {%- endif %}
     - unless:
+      {%- if salt.grains.get('osmajorrelease') >= 8 %}
       - 'authselect current | grep -q "with-mkhomedir"'
+      {%- endif %}
+
