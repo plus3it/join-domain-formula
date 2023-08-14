@@ -55,7 +55,11 @@ function IsDiscoverable {
 # Try to join host to domain
 function JoinDomain {
 
+  local    DO_BREAK
+  local    JOIN_CRED
+  local -i LOOP
   local -a REALM_JOIN_OPTS
+
   REALM_JOIN_OPTS=(
     -U "${JOIN_USER}"
     --unattended
@@ -71,6 +75,9 @@ function JoinDomain {
   else
     SEL_TARG=0
   fi
+
+  # Get credentials used for join operation
+  JOIN_CRED="$( PWdecrypt )"
 
   if [[ ${OS_NAME_SET} = "True" ]]
   then
@@ -88,21 +95,37 @@ function JoinDomain {
   fi
 
   printf "Realm join options: %s\n" "${REALM_JOIN_OPTS[*]}"
-  printf "Joining to %s... " "${JOIN_DOMAIN}"
-  # shellcheck disable=SC2005
-  echo "$( PWdecrypt )" | \
-  realm join \
-    "${REALM_JOIN_OPTS[@]}" \
-    "${JOIN_DOMAIN}"  || (
-      echo "FAILED: Getting system logs"
-      printf "\n==============================\n"
-      journalctl -u realmd | \
-      grep "$( date '+%b %d %H:%M' )" | \
-      sed 's/^.*]: /: /'
-      printf "\n==============================\n"
-      exit 1
-    )
-  echo "Success"
+
+
+  LOOP=0
+  while [[ ${LOOP} -lt ${JOIN_TRIES} ]]
+  do
+    DO_BREAK="TRUE"
+    LOOP=$(( LOOP += 1 ))
+
+    printf "Joining to %s (attempt %s)... " "${JOIN_DOMAIN}" "${LOOP}"
+    echo "${JOIN_CRED}" | \
+    realm join \
+      "${REALM_JOIN_OPTS[@]}" \
+      "${JOIN_DOMAIN}" || (
+        echo "FAILED: Getting system logs"
+        printf "\n==============================\n"
+        journalctl -u realmd | \
+        grep "$( date '+%b %d %H:%M' )" | \
+        sed 's/^.*]: /: /'
+        printf "\n==============================\n"
+      ) && DO_BREAK="FALSE"
+
+    if [[ ${DO_BREAK} == TRUE ]]
+    then
+      echo "Success"
+      break
+    else
+      echo "Retrying in 15 seconds... "
+      sleep 15
+    fi
+
+  done
 
   # Revert SEL as necessary
   if [[ ${SEL_TARG} -eq 1 ]]
@@ -112,7 +135,13 @@ function JoinDomain {
     echo "Success"
   fi
 
-  return 0
+  # Return a failure
+  if [[ ${LOOP} -ge  ${JOIN_TRIES} ]]
+  then
+    return 1
+  else
+    return 0
+  fi
 }
 
 IsDiscoverable
