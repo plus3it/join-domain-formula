@@ -1,12 +1,7 @@
 {% include "salt://join-domain/join-domain/elx/sssd/map.jinja" ignore missing %}
 {% from "map.jinja" import mapdata as sssd_data with context %}
 
-# Remove DDNS Records
-ddns.absent:
-  salt.states.ddns.absent:
-    - name: "{{ join_domain.dns_name }}"
-    - require:
-      - service: SSSD Service Dead
+{% include "service/clean.sls" %}
 
 # List of files to delete
 {% set files_to_delete = [
@@ -14,6 +9,13 @@ ddns.absent:
     "/etc/krb5.keytab"
     # Add more file paths here if needed
 ] %}
+
+# Remove DDNS Records
+ddns.absent:
+  salt.states.ddns.absent:
+    - name: "{{ join_domain.dns_name }}"
+    - require:
+      - service: SSSD Service Dead
 
 # Loop through the list of files and create file.absent states
 {% for file_path in files_to_delete %}

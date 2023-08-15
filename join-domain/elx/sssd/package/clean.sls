@@ -1,4 +1,4 @@
-# package/clean.sls
+{% include "service/clean.sls" %}
 
 {%- for pkg_name in pkg_list %}
 Uninstall {{ pkg_name }}:
