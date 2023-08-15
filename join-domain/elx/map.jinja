@@ -52,6 +52,3 @@
     'users' : admin_users + login_users,
     'logins' : admin_users + admin_groups + login_users + login_groups
 } %}
-
-# Number of times to retry domain-join operation
-{%- set tries = salt.pillar.get('join-domain:lookup:tries', 3) %}
