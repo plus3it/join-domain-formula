@@ -1,6 +1,6 @@
 {%- set tplroot = tpldir.split('/')[0] %}
-{%- from tplroot ~ ".join-domain.elx.sssd.config.map" import mapdata as sssd_data with context %}
-{%- from ".join-domain.elx.sssd.service.clean" import SSSD_Service_Dead with context %}
+{%- from tplroot ~ ".join-domain/elx/sssd/config/map.jinja" import mapdata as sssd_data with context %}
+{%- from ".join-domain/elx/sssd/service/clean.sls" import SSSD_Service_Dead with context %}
 
 # Remove DDNS Records
 ddns.absent:
