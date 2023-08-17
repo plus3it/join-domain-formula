@@ -2,7 +2,7 @@
 {%- from tplroot ~ "/elx/sssd/config/map.jinja" import mapdata as sssd_data with context %}
 {%- from "join-domain/elx/sssd/service/clean.sls" import SSSD_Service_Dead with context %}
 
-{%- set join_domain = salt['grains.get']('join-domain', {}) %}
+{%- set authentication_domain_fqdn = salt.pillar.get('join-domain:lookup:dns_name', '') %}
 
 # Remove DDNS Records
 ddns.absent:
