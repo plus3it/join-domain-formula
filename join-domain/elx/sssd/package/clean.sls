@@ -1,4 +1,4 @@
-{%- import "/elx/sssd/service/clean.sls" as service_clean %}
+{%- import "join-domain/elx/sssd/service/clean.sls" as service_clean %}
 
 {%- for pkg_name in pkg_list %}
 Uninstall {{ pkg_name }}:
