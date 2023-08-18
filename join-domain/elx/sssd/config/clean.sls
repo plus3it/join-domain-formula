@@ -7,7 +7,7 @@
 # Remove DDNS Records
 ddns.absent:
   salt.states.ddns.absent:
-    - name: "{{ join_domain.dns_name }}"
+    - name: "{{ authentication_domain_fqdn }}"
     - require:
       - service: {{ SSSD_Service_Dead }}
 
