@@ -107,6 +107,7 @@ join_realm-{{ join_domain.dns_name }}:
       - ENCRYPT_KEY: '{{ join_domain.key }}'
       - JOIN_DOMAIN: '{{ join_domain.dns_name }}'
       - JOIN_OU: '{{ join_domain.oupath }}'
+      - JOIN_TRIES: '{{ join_domain.tries }}'
       - JOIN_USER: '{{ join_domain.username }}'
       - OS_NAME_SET: '{{ join_domain.attrib_bool_name }}'
       - OS_VERS_SET: '{{ join_domain.attrib_bool_vers }}'

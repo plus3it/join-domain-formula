@@ -8,6 +8,7 @@ JOIN_DOMAIN="${JOIN_DOMAIN:-UNDEF}"
 JOIN_OU="${JOIN_OU:-}"
 JOIN_USER="${JOIN_USER:-Administrator}"
 JOIN_CNAME="${JOIN_CNAME:-UNDEF}"
+JOIN_TRIES="${JOIN_TRIES:-UNDEF}"
 OS_NAME_SET="${OS_NAME_SET:-False}"
 OS_VERS_SET="${OS_VERS_SET:-False}"
 PWCRYPT="${ENCRYPT_PASS:-UNDEF}"
@@ -54,7 +55,11 @@ function IsDiscoverable {
 # Try to join host to domain
 function JoinDomain {
 
+  local    JOIN_CRED
+  local -i LOOP
   local -a REALM_JOIN_OPTS
+  local -i RET_CODE
+
   REALM_JOIN_OPTS=(
     -U "${JOIN_USER}"
     --unattended
@@ -70,6 +75,9 @@ function JoinDomain {
   else
     SEL_TARG=0
   fi
+
+  # Get credentials used for join operation
+  JOIN_CRED="$( PWdecrypt )"
 
   if [[ ${OS_NAME_SET} = "True" ]]
   then
@@ -87,21 +95,48 @@ function JoinDomain {
   fi
 
   printf "Realm join options: %s\n" "${REALM_JOIN_OPTS[*]}"
-  printf "Joining to %s... " "${JOIN_DOMAIN}"
-  # shellcheck disable=SC2005
-  echo "$( PWdecrypt )" | \
-  realm join \
-    "${REALM_JOIN_OPTS[@]}" \
-    "${JOIN_DOMAIN}"  || (
+
+
+  LOOP=0
+  while [[ ${LOOP} -lt ${JOIN_TRIES} ]]
+  do
+    LOOP=$(( LOOP += 1 ))
+
+    printf "Joining to %s (attempt %s)... " "${JOIN_DOMAIN}" "${LOOP}"
+
+    if [[ $(
+        echo "${JOIN_CRED}" | \
+        realm join \
+          "${REALM_JOIN_OPTS[@]}" \
+          "${JOIN_DOMAIN}" > /dev/null 2>&1
+    )$? -eq 0 ]]
+    then
+      RET_CODE=0
+
+      echo "Success"
+
+      break
+    else
       echo "FAILED: Getting system logs"
       printf "\n==============================\n"
       journalctl -u realmd | \
-      grep "$( date '+%b %d %H:%M' )" | \
-      sed 's/^.*]: /: /'
+        grep "$( date '+%b %d %H:%M' )" | \
+        sed 's/^.*]: /: /'
       printf "\n==============================\n"
-      exit 1
-    )
-  echo "Success"
+
+      RET_CODE=1
+    fi
+
+    # Either sleep or quit
+    if [[ ${LOOP} -lt ${JOIN_TRIES} ]]
+    then
+      echo "Retrying in 15s..."
+      sleep 15
+    else
+      echo "Giving up."
+    fi
+
+  done
 
   # Revert SEL as necessary
   if [[ ${SEL_TARG} -eq 1 ]]
@@ -111,7 +146,7 @@ function JoinDomain {
     echo "Success"
   fi
 
-  return 0
+  return ${RET_CODE}
 }
 
 IsDiscoverable

@@ -4,6 +4,12 @@
     salt.pillar.get('join-domain:lookup:dns_name')
 ) %}
 
+{#- Grab the tries to use it in the defaults #}
+{%- set tries = salt.grains.get(
+    'join-domain:tries',
+    salt.pillar.get('join-domain:lookup:tries')
+) %}
+
 {#- Set join-domain defaults for this ad connector #}
 {%- load_yaml as defaults %}
 attrib_bool_name: 'False'
@@ -14,6 +20,7 @@ sssd_conf_parameters:
   override_homedir: '/home/%d/%u'
   shell_fallback: /bin/bash
   use_fully_qualified_names: 'False'
+tries: 3
 {%- endload %}
 
 {#-
