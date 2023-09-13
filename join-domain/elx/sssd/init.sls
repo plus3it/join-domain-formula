@@ -120,13 +120,13 @@ join_realm-{{ join_domain.dns_name }}:
       - cmd: 'sssd-NETBIOSfix'
     - require_in:
       {%- if salt.state.sls_exists(pam_no_nullok) %}
-      - cmd: Ensure Valid Starting Config (RHEL-0{{ elMajor }}-no_pam_nullok)
+      - cmd: 'Disable nullok module in PAM'
       {%- endif %}
       {%- if salt.state.sls_exists(pam_pwhistory) %}
-      - cmd: Ensure Valid Starting Config (RHEL-0{{ elMajor }}-pam_pwhistory)
+      - cmd: 'Enable pam_pwhistory module in PAM'
       {%- endif %}
       {%- if salt.state.sls_exists(pam_faillock) %}
-      - cmd: Ensure Valid Starting Config (RHEL-0{{ elMajor }}-pam_faillock)
+      - cmd: 'Enable pam_faillock module in PAM'
       {%- endif %}
     - source: 'salt://{{ joiner_files }}/join.sh'
     - unless: 'realm list | grep -qs {{ join_domain.dns_name }}'
@@ -140,13 +140,13 @@ Ensure with-mkhomedir feature is enabled:
     - require:
       - cmd: join_realm-{{ join_domain.dns_name }}
       {%- if salt.state.sls_exists(pam_no_nullok) %}
-      - cmd: Ensure Valid Starting Config (RHEL-0{{ elMajor }}-no_pam_nullok)
+      - cmd: 'Disable nullok module in PAM'
       {%- endif %}
       {%- if salt.state.sls_exists(pam_pwhistory) %}
-      - cmd: Ensure Valid Starting Config (RHEL-0{{ elMajor }}-pam_pwhistory)
+      - cmd: 'Enable pam_pwhistory module in PAM'
       {%- endif %}
       {%- if salt.state.sls_exists(pam_faillock) %}
-      - cmd: Ensure Valid Starting Config (RHEL-0{{ elMajor }}-pam_faillock)
+      - cmd: 'Enable pam_faillock module in PAM'
       {%- endif %}
     - unless:
       {%- if salt.grains.get('osmajorrelease') >= 8 %}
