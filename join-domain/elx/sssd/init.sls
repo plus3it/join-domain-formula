@@ -153,3 +153,22 @@ Ensure with-mkhomedir feature is enabled:
       - 'authselect current | grep -q "with-mkhomedir"'
       {%- endif %}
 
+Ensure computeObject is Regularly Refreshed:
+  file.managed:
+    - name: /etc/cron.weekly/refreshComputerObject.sh
+    - contents: |-
+        #!/bin/bash
+
+        source /etc/os-release
+        /usr/sbin/adcli update \
+          --os-name="${NAME}" \
+          --os-version="${VERSION}" \
+          --os-service-pack="${VERSION_ID}"
+    - group: root
+    - mode: '0755'
+    - selinux:
+        serange: 's0'
+        serole: 'object_r'
+        setype: 'bin_t'
+        seuser: 'system_u'
+    - user: root
