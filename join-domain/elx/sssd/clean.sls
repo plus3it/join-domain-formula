@@ -5,4 +5,6 @@
 #################################################################
 
 include:
+  - .config.clean
+  - .files.clean
   - .service.clean
