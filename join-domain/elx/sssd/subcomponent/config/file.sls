@@ -13,11 +13,7 @@ include:
 TEMPLATE-subcomponent-config-file-file-managed:
   file.managed:
     - name: {{ TEMPLATE.subcomponent.config }}
-    - source: {{ files_switch(['subcomponent-example.tmpl'],
-                              lookup='TEMPLATE-subcomponent-config-file-file-managed',
-                              use_subpath=True
-                 )
-              }}
+    - source: {{ files_switch(['subcomponent-example.tmpl'], lookup='TEMPLATE-subcomponent-config-file-file-managed', use_subpath=True) }}
     - mode: 644
     - user: root
     - group: {{ TEMPLATE.rootgroup }}

@@ -13,10 +13,7 @@ include:
 TEMPLATE-config-file-file-managed:
   file.managed:
     - name: {{ TEMPLATE.config }}
-    - source: {{ files_switch(['example.tmpl'],
-                              lookup='TEMPLATE-config-file-file-managed'
-                 )
-              }}
+    - source: {{ files_switch(['example.tmpl'], lookup='TEMPLATE-config-file-file-managed') }}
     - mode: 644
     - user: root
     - group: {{ TEMPLATE.rootgroup }}
