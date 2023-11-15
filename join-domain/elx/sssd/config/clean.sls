@@ -1,5 +1,6 @@
 {#- Get the `tplroot` from `tpldir` #}
 {%- set tplroot = tpldir.split('/')[0] %}
+{%- set joiner_files = tplroot ~ '/elx/sssd/files' %}
 
 {%- from tplroot ~ "/map.jinja" import mapdata as join_domain with context %}
 
@@ -21,6 +22,8 @@ Leave Realm - {{ join_domain.dns_name }}:
     - output_loglevel: quiet
     - require:
       - cmd: 'Check Realm Status - {{ join_domain.dns_name }}'
+    - source: 'salt://{{ joiner_files }}/join.sh'
+
 
 
 authselect Disable 'with-mkhomedir':
