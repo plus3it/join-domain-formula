@@ -8,10 +8,20 @@ Check Realm Status - {{ join_domain.dns_name }}:
     - name: '/sbin/realm list | grep -q ''^{{ join_domain.dns_name }}'''
 
 Leave Realm - {{ join_domain.dns_name }}:
-  cmd.run:
-    - name: '/sbin/realm leave {{ join_domain.dns_name }}'
+  cmd.script:
+    - env:
+      - DOMAIN_ACTION: 'leave'
+      - ENCRYPT_PASS: '{{ join_domain.encrypted_password }}'
+      - ENCRYPT_KEY: '{{ join_domain.key }}'
+      - JOIN_DOMAIN: '{{ join_domain.dns_name }}'
+      - JOIN_OU: '{{ join_domain.oupath }}'
+      - JOIN_USER: '{{ join_domain.username }}'
+    - cwd: '/root'
+    - name: 'join.sh'
+    - output_loglevel: quiet
     - require:
       - cmd: 'Check Realm Status - {{ join_domain.dns_name }}'
+
 
 authselect Disable 'with-mkhomedir':
   cmd.run:
