@@ -1,0 +1,18 @@
+# Get clear-text password from crypt
+function PWdecrypt {
+  local PWCLEAR
+
+  # Get cleartext password-string
+  if PWCLEAR=$(
+    echo "${PWCRYPT}" | \
+    openssl enc -aes-256-cbc -md sha256 -a -d -salt -pass pass:"${PWUNLOCK}"
+  )
+  then
+    echo "${PWCLEAR}"
+    return 0
+  else
+    echo "Decryption FAILED!"
+    return 1
+  fi
+}
+
