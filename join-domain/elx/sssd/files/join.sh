@@ -4,11 +4,12 @@ set -eu -o pipefail
 # Script to join host to domain
 #
 #################################################################
+DOMAIN_ACTION="${DOMAIN_ACTION:-join}"
 JOIN_DOMAIN="${JOIN_DOMAIN:-UNDEF}"
 JOIN_OU="${JOIN_OU:-}"
 JOIN_USER="${JOIN_USER:-Administrator}"
 JOIN_CNAME="${JOIN_CNAME:-UNDEF}"
-JOIN_TRIES="${JOIN_TRIES:-UNDEF}"
+JOIN_TRIES="${JOIN_TRIES:-5}"
 OS_NAME_SET="${OS_NAME_SET:-False}"
 OS_VERS_SET="${OS_VERS_SET:-False}"
 PWCRYPT="${ENCRYPT_PASS:-UNDEF}"
@@ -149,5 +150,55 @@ function JoinDomain {
   return ${RET_CODE}
 }
 
-IsDiscoverable
-JoinDomain
+# Try to leave and remove host from domain
+function LeaveDomain {
+  local    LEAVE_CRED
+  local -a REALM_OPTS
+
+  REALM_OPTS=(
+    -U "${JOIN_USER}"
+    --unattended
+    --remove
+  )
+
+  # Get credentials used for leave operation
+  LEAVE_CRED="$( PWdecrypt )"
+
+
+  printf "Removing %s from to %s" "$( hostname -s )" "${JOIN_DOMAIN}"
+
+  if [[ $(
+    echo "${LEAVE_CRED}" |
+    realm leave \
+      "${REALM_OPTS[@]}" \
+      "${JOIN_DOMAIN}" > /dev/null 2>&1
+  )$? -eq 0 ]]
+  then
+    RET_CODE=0
+
+    echo "Success"
+
+  else
+      echo "FAILED: Getting system logs"
+      printf "\n==============================\n"
+      journalctl -u realmd | \
+        grep "$( date '+%b %d %H:%M' )" | \
+        sed 's/^.*]: /: /'
+      printf "\n==============================\n"
+
+      RET_CODE=1
+  fi
+
+  return "${RET_CODE}"
+
+}
+
+# Should I stay or should I go, now
+if [[ ${DOMAIN_ACTION:-} == "join" ]]
+then
+  IsDiscoverable
+  JoinDomain
+elif [[ ${DOMAIN_ACTION:-} == "leave" ]]
+then
+  LeaveDomain
+fi
