@@ -189,7 +189,7 @@ function LeaveDomain {
       RET_CODE=1
   fi
 
-  exit "${RET_CODE}"
+  return "${RET_CODE}"
 
 }
 
