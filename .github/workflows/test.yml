@@ -15,7 +15,7 @@ jobs:
           - 7
           - 8
         salt_state:
-          - join-domain-formula
+          - join-domain
         salt_pillar_root:
           - ./tests/pillar/test-linux-main
     with:
@@ -31,7 +31,7 @@ jobs:
           - windows-2019
           - windows-2022
         salt_state:
-          - join-domain-formula
+          - join-domain
         salt_pillar_root:
           - ./tests/pillar/test-windows-main
     with:
