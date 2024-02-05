@@ -33,7 +33,7 @@ jobs:
         salt_state:
           - join-domain-formula
         salt_pillar_root:
-          - ./tests/pillar/test-linux-main
+          - ./tests/pillar/test-windows-main
     with:
       salt-os-version: ${{ matrix.os_version }}
       salt-state: ${{ matrix.salt_state }}
