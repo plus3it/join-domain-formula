@@ -16,5 +16,21 @@ trim_trailing_whitespace = false
 [*.py]
 indent_size = 4
 
+[go.mod]
+indent_style = tab
+indent_size = 1
+
+[*.go]
+indent_style = tab
+indent_size = 1
+
+[Makefile]
+indent_style = tab
+indent_size = 1
+
+[Makefile.*]
+indent_style = tab
+indent_size = 1
+
 [LICENSE]
 indent_size = none
