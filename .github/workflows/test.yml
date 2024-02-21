@@ -8,7 +8,7 @@ concurrency:
 
 jobs:
   linux:
-    uses: dalerichardson/actions-workflows/.github/workflows/test-salt-linux.yml@166f2cfc1c27914d07f4266e3ad0cb6dff08f670
+    uses: dalerichardson/actions-workflows/githubactions/.github/workflows/test-salt-linux.yml@166f2cfc1c27914d07f4266e3ad0cb6dff08f670
     strategy:
       matrix:
         os_version:
@@ -24,7 +24,7 @@ jobs:
       salt-pillar-root: ${{ matrix.salt_pillar_root }}
 
   windows:
-    uses: dalerichardson/actions-workflows/.github/workflows/test-salt-windows.yml@166f2cfc1c27914d07f4266e3ad0cb6dff08f670
+    uses: dalerichardson/actions-workflows/githubactions/.github/workflows/test-salt-windows.yml@166f2cfc1c27914d07f4266e3ad0cb6dff08f670
     strategy:
       matrix:
         os_version:
