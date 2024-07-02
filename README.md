@@ -88,6 +88,9 @@ computer clients to the AD domain:
 | Validated write to DNS hostname | Descendant Computer objects |
 | Validated write to service principal name | Descendant Computer objects |
 | Write Description | Descendant Computer objects |
+| Write DNS host name attributes | Descendant Computer objects |
+| Write DNSHostname | Descendant Computer objects |
+| Write msDS-AdditionalSamAccountName | Descendant Computer objects |
 | Write msDS-SupportedEncryptionTypes | Descendant Computer objects |
 | Write operating system | Descendant Computer objects |
 | Write operating system version | Descendant Computer objects |
@@ -95,8 +98,14 @@ computer clients to the AD domain:
 | Write operating system hot fix | Descendant Computer objects |
 | Write public information | Descendant Computer objects |
 | Write servicePrincipalName | Descendant Computer objects |
+| Write userAccountControl | Descendant Computer objects |
+| Write userPrincipal Name | Descendant Computer objects |
 | Read/Write account restrictions | Descendant Computer objects |
 | Read all properties | Descendant Computer objects |
+| Reset password | Descendant Computer objects |
+
+See also: 
+* (requires RedHat account) https://access.redhat.com/solutions/5444941
 
 ## join-domain:linux
 
