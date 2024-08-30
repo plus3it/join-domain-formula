@@ -28,33 +28,4 @@ join-domain:
       - usergroup2
 
     # AD-connector Tool
-    ad_connector: pbis
-
-    # Programable path-elements for retrieving the PBIS self-installing
-    # archive file.
-    repo_uri_host: 'https://host/repo'
-    repo_uri_root_path: 'beyond-trust/linux/pbis'
-
-    # Name of installer and hash-file to download
-    package_name: 'pbis-open-8.5.0.153.linux.x86_64.rpm.sh'
-    package_hash: 'pbis-open-8.5.0.153.linux.x86_64.rpm.sh.SHA512'
-
-    # Directories where PBIS is installed to the system
-    #install_bin_dir: '/opt/pbis'
-    #install_var_dir: '/var/lib/pbis'
-    #install_db_dir: '/var/lib/pbis/db'
-
-    # List of RPMs to look for
-    #connector_rpms:
-    #  - 'pbis-open-legacy'
-    #  - 'pbis-open'
-    #  - 'pbis-open-devel'
-    #  - 'pbis-open-gui'
-    #  - 'pbis-open-upgrade'
-
-    # List of critical files to look for
-    #check_files:
-    #  - 'registry.db'
-    #  - 'sam.db'
-    #  - 'lwi_events.db'
-    #  - 'lsass-adcache.filedb.FQDN'
+    ad_connector: sssd
