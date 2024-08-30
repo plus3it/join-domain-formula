@@ -57,6 +57,16 @@ tries: 3
       'realmd',
       'samba-common-tools',
       'sssd',
+    ],
+    9: [
+      'adcli',
+      'authselect-compat',
+      'krb5-workstation',
+      'oddjob',
+      'oddjob-mkhomedir',
+      'realmd',
+      'samba-common-tools',
+      'sssd',
     ]
 } %}
 {%- set pkg_list = salt.grains.filter_by(pkg_map, grain='osmajorrelease') %}
