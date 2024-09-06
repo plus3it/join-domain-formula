@@ -9,6 +9,7 @@
 {%- set joiner_files = tpldir ~ '/files' %}
 {%- set common_tools = 'salt://' ~ salt.file.dirname(tpldir) ~ '/common-tools'  %}
 {%- set elMajor = salt.grains.get('osmajorrelease') | string %}
+{%- set krb5_sec_file = '/etc/crypto-policies/back-ends/krb5.config' %}
 {%- set pam_no_nullok =
           'ash-linux.el' +
           elMajor +
@@ -54,6 +55,22 @@ install_sssd:
     - pkgs: {{ pkg_list }}
     - require:
       - cmd: 'LDAP-FindCollison'
+
+fix_fascist_FIPS_mode:
+  cmd.run:
+    - name: 'update-crypto-policies --set FIPS:AD-SUPPORT'
+    - cwd: '/root'
+    - onlyif:
+      - '[[ {{ elMajor }} -ge 9 ]]'
+    - require:
+      - pkg: install_sssd
+    - shell: '/bin/bash'
+    - success_retcodes:
+      - 0
+    - unless:
+      - '[[ ! -L {{ krb5_sec_file }} ]]'
+      - '[[ $( grep -qw aes256-cts-hmac-sha1-96 {{ krb5_sec_file }} )$? -eq 0 ]]'
+      - '[[ $( grep -qw aes128-cts-hmac-sha1-96 {{ krb5_sec_file }} )$? -eq 0 ]]'
 
 fix_domain_separator:
   ini.options_present:
@@ -118,6 +135,7 @@ join_realm-{{ join_domain.dns_name }}:
       - ini: 'fix_domain_separator'
       - file: 'domain_defaults-{{ join_domain.dns_name }}_ensure_permissions'
       - cmd: 'sssd-NETBIOSfix'
+      - cmd: 'fix_fascist_FIPS_mode'
     - require_in:
       {%- if salt.state.sls_exists(pam_no_nullok) %}
       - cmd: 'Disable nullok module in PAM'
