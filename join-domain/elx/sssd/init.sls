@@ -60,7 +60,7 @@ fix_fascist_FIPS_mode:
     - name: 'update-crypto-policies --set FIPS:AD-SUPPORT'
     - cwd: '/root'
     - onlyif:
-      - 'if [[ {{ elMajor }} -ge 9 ]]'
+      - '[[ {{ elMajor }} -ge 9 ]]'
     - require:
       - pkg: install_sssd
     - shell: '/bin/bash'
@@ -130,6 +130,7 @@ join_realm-{{ join_domain.dns_name }}:
       - ini: 'fix_domain_separator'
       - file: 'domain_defaults-{{ join_domain.dns_name }}_ensure_permissions'
       - cmd: 'sssd-NETBIOSfix'
+      - cmd: 'fix_fascist_FIPS_mode'
     - require_in:
       {%- if salt.state.sls_exists(pam_no_nullok) %}
       - cmd: 'Disable nullok module in PAM'
