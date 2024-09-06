@@ -55,6 +55,18 @@ install_sssd:
     - require:
       - cmd: 'LDAP-FindCollison'
 
+fix_fascist_FIPS_mode:
+  cmd.run:
+    - name: 'update-crypto-policies --set FIPS:AD-SUPPORT'
+    - cwd: '/root'
+    - onlyif:
+      - 'if [[ {{ elMajor }} -ge 9 ]]'
+    - require:
+      - pkg: install_sssd
+    - shell: '/bin/bash'
+    - success_retcodes:
+      - 0
+
 fix_domain_separator:
   ini.options_present:
     - name: '/etc/sssd/sssd.conf'
