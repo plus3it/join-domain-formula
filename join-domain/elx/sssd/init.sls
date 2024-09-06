@@ -9,6 +9,7 @@
 {%- set joiner_files = tpldir ~ '/files' %}
 {%- set common_tools = 'salt://' ~ salt.file.dirname(tpldir) ~ '/common-tools'  %}
 {%- set elMajor = salt.grains.get('osmajorrelease') | string %}
+{%- set krb5_sec_file = '/etc/crypto-policies/back-ends/krb5.config' %}
 {%- set pam_no_nullok =
           'ash-linux.el' +
           elMajor +
@@ -66,6 +67,10 @@ fix_fascist_FIPS_mode:
     - shell: '/bin/bash'
     - success_retcodes:
       - 0
+    - unless:
+      - '[[ ! -L {{ krb5_sec_file }} ]]'
+      - '[[ $( grep -qw aes256-cts-hmac-sha1-96 {{ krb5_sec_file }} )$? -eq 0 ]]'
+      - '[[ $( grep -qw aes128-cts-hmac-sha1-96 {{ krb5_sec_file }} )$? -eq 0 ]]'
 
 fix_domain_separator:
   ini.options_present:
