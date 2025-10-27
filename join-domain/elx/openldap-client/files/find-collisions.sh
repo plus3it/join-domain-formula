@@ -248,14 +248,12 @@ function CheckTLSsupt {
     DS_NAME="${DIR_SERV//*;/}"
     DS_PORT="${DIR_SERV//;*/}"
 
-    if [[ $(
-      echo | \
+    if echo | \
       timeout 15 openssl s_client \
         -showcerts \
         -starttls ldap \
         -connect "${DS_NAME}:${DS_PORT}" 2> /dev/null | \
       openssl verify > /dev/null 2>&1
-    )$? -eq 0 ]]
     then
       GOOD_DS_LIST+=("${DIR_SERV}")
       err_exit "Appending ${DS_NAME} to 'good servers' list" 0

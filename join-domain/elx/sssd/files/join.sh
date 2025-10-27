@@ -43,7 +43,7 @@ function PWdecrypt {
 
 # Make sure domain is discoverable
 function IsDiscoverable {
-  if [[ $( realm discover "${JOIN_DOMAIN}" > /dev/null 2>&1 )$? -eq 0 ]]
+  if realm discover "${JOIN_DOMAIN}" > /dev/null 2>&1
   then
     printf "The %s domain is discoverable\n" "${JOIN_DOMAIN}"
     return 0
@@ -105,12 +105,10 @@ function JoinDomain {
 
     printf "Joining to %s (attempt %s)... " "${JOIN_DOMAIN}" "${LOOP}"
 
-    if [[ $(
-        echo "${JOIN_CRED}" | \
+    if echo "${JOIN_CRED}" | \
         realm join \
           "${REALM_JOIN_OPTS[@]}" \
           "${JOIN_DOMAIN}" > /dev/null 2>&1
-    )$? -eq 0 ]]
     then
       RET_CODE=0
 
@@ -167,12 +165,10 @@ function LeaveDomain {
 
   printf "Removing %s from to %s" "$( hostname -s )" "${JOIN_DOMAIN}"
 
-  if [[ $(
-    echo "${LEAVE_CRED}" |
+  if echo "${LEAVE_CRED}" | \
     realm leave \
       "${REALM_OPTS[@]}" \
       "${JOIN_DOMAIN}" > /dev/null 2>&1
-  )$? -eq 0 ]]
   then
     RET_CODE=0
 
